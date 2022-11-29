@@ -10,7 +10,7 @@ from astropy.visualization import SqrtStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
 from photutils.aperture import CircularAperture
 from astropy.wcs import WCS
-
+from astropy.table import Table
 import astropy.units as u
 from astropy.coordinates import SkyCoord
 #from astroquery.gaia import Gaia
@@ -18,8 +18,12 @@ from astropy.coordinates import SkyCoord
 
 
 # Read fits file
-fitsFileName = ('sao_127029.fits')
-hdu = fits.open(fitsFileName)
+# fitsFileName = ('sao_127029.fits')
+filename = open(sys.argv[1], 'r')
+print(filename)
+hdu = fits.open(sys.argv[1], 'readonly')
+
+
 mywcs = WCS(hdu[0].header)
 #hdu.info()
 
@@ -29,16 +33,29 @@ mean, median, std = sigma_clipped_stats(data, sigma=5.0)
 #print((mean, median, std))  
 
 daofind = DAOStarFinder(fwhm=10.0, threshold=26.0*std)  
-sources = daofind(data - median)  
+sources = daofind(data - median)
+sourcesUpdated = []
+
 """ for col in sources.colnames:  
     sources[col].info.format = '%.8g'  # for consistent table output """
 #print(type(sources))
 # print(sources)
 
 # Iterate trhough table elements
+
 for row in sources:
     ra, dec = mywcs.all_pix2world([[row ['xcentroid'], row ['ycentroid']]], 0)[0]
     print(row['id'], ra, dec, row['mag'])
+
+#print(sources)
+
+
+
+# Add table columns to 'sources' table of ra and dec coordinates of the stars
+
+sources['RA'], sources['DEC'] = mywcs.all_pix2world(sources['xcentroid'], sources['ycentroid'], 0)[0]
+#sources['DEC'] = mywcs.all_pix2world(['ycentroid'])
+print(sources)
 
 """ !Problem: only Gaia DR2 data is available..
     coord = SkyCoord(ra=ra, dec=dec, unit=(u.degree, u.degree), frame='icrs')
