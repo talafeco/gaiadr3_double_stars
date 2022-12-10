@@ -20,6 +20,6 @@ print(doubleStars.dtype)
 
 for ds in doubleStars:
     #print(ds)
-    doubleStar = np.where(gaiaStars == ds)
+    doubleStar = np.where(gaiaStars[0,1:1] == ds)
     print(doubleStar)
 # Write findings into a csv file
