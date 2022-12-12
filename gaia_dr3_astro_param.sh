@@ -17,8 +17,8 @@ now=$(date)
 echo "# $now Extraction finished, start normalizing file content (${file:0:41})." | tee -a "$logfile"
 awk '!/^#/' "$PWD/${file:0:41}" > "$PWD/tmp_${file:0:41}"
 #python3 gaia_list_filter.py "$PWD/tmp_${file:0:28}" | tee -a "$logfile"
-python3 ~/Documents/dev/github/gaiadr3_double_stars/gaia_dr3_astro_param.py "$PWD/tmp_${file:0:41}" "$PWD/gaia_doublestar_sourceid.csv"
-mv "$PWD/result.csv" "$PWD/final_${file:0:42}"
+python3 ~/Documents/dev/github/gaiadr3_double_stars/gaia_dr3_astro_param.py "$PWD/tmp_${file:0:41}" "$PWD/gaia_doublestar_sourceid.txt"
+mv "$PWD/result.csv" "$PWD/final_${file:0:41}"
 
 #now=$(date)
 #echo "# $now Normalization finished, start searching for double stars." | tee -a "$logfile"
