@@ -91,7 +91,7 @@ for star in starList: ## modify according to arrays instead of starlist
     StarA = (star['designation'], star['ra'], star['dec'], star['parallax'], star['parallax_error'], star['pmra'], star['pmdec'], star['phot_g_mean_mag'], star['source_ra'], star['source_dec'])
     for star in starList:
         StarB = (star['designation'], star['ra'], star['dec'], star['parallax'], star['parallax_error'], star['pmra'], star['pmdec'], star['phot_g_mean_mag'], star['source_ra'], star['source_dec'])
-        if StarA != StarB and float(StarA[7]) < float(StarB[7]) and float(StarA[3]) != 0 and float(StarB[3] != 0):
+        if StarA != StarB and float(StarA[7]) < float(StarB[7]) and float(StarA[3]) != 0 and float(StarB[3]) != 0:
             #Set input data
             #print('StarA', StarA)
             #print('StarB', StarB)
