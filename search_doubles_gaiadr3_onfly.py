@@ -167,7 +167,7 @@ for star in starList: ## modify according to arrays instead of starlist
                 
                 #Print data, if stars are close and share a common distance range
                 if distanceCommon == 'overlapping':
-                    print(starName1,'|',starName2,'|',thetaStar,'|',rhoStar,'|',starGMag1,'|',starGMag2,'|',starDistance1,'|',starDistanceMax1,'|',starDistanceMin1,'|',starDistanceRange1,'|',starDistance2,'|',starDistanceMax2,'|',starDistanceMin2,'|',starDistanceRange2,'|',distanceCommon,'|',starParallaxFactor,'|',starPmFactor,'|',pmCommon,'|',thetaActual,'|',rhoActual)
+                    print(filename,'|',starName1,'|',starName2,'|',thetaStar,'|',rhoStar,'|',starGMag1,'|',starGMag2,'|',starDistance1,'|',starDistanceMax1,'|',starDistanceMin1,'|',starDistanceRange1,'|',starDistance2,'|',starDistanceMax2,'|',starDistanceMin2,'|',starDistanceRange2,'|',distanceCommon,'|',starParallaxFactor,'|',starPmFactor,'|',pmCommon,'|',thetaActual,'|',rhoActual)
 
 
 # Iterating over each row and append values to empty list
