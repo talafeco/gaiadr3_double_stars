@@ -60,3 +60,22 @@ for star in starList:
 
 # print(starList)
 
+# New function
+# Search for coordinates in a catalog
+# https://keflavich-astropy.readthedocs.io/en/latest/coordinates/matchsep.html
+
+from astropy.coordinates import SkyCoord
+from astropy import units as u
+
+# 1. Read the list of sources extracted from an image file
+
+# 2. Define the catalog file based on the source coordinate and read data from catalog file(s) to a catalog
+
+# 3. Search sources in the catalog
+
+## Example
+c = SkyCoord(ra=ra1*u.degree, dec=dec1*u.degree)  
+catalog = SkyCoord(ra=ra2*u.degree, dec=dec2*u.degree)  
+idx, d2d, d3d = c.match_to_catalog_sky(catalog)
+
+# 4. Write matching data into file.
