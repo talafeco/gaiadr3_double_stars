@@ -1,18 +1,11 @@
 import sys
-import csv
-import os
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 from astropy.io import fits
 from astropy.stats import sigma_clipped_stats
 from astropy.table import QTable
-from photutils.datasets import load_star_image
 from photutils.detection import DAOStarFinder
 import numpy as np
-import matplotlib.pyplot as plt
-from astropy.visualization import SqrtStretch
-from astropy.visualization.mpl_normalize import ImageNormalize
-from photutils.aperture import CircularAperture
 from astropy.wcs import WCS
 import astropy.units as u
 from astropy.coordinates import SkyCoord
@@ -34,7 +27,6 @@ sources = daofind(data - median)
 #print(sources)
 
 # 2. Define the catalog file based on the source coordinate and read data from catalog file(s) to a catalog
-#starList = []
 segments = []
 for star in sources:
     ra, dec = mywcs.all_pix2world([[star ['xcentroid'], star ['ycentroid']]], 0)[0]
@@ -65,9 +57,15 @@ sourceDec = np.array([], dtype=np.float64)
 sourceMag = np.array([], dtype=np.float64)
 sourceTable = QTable([sourceId, dr3Designation, dr3Ra, dr3Dec, dr3Parallax, dr3ParallaxError, dr3PmRa, dr3PmDec, imageId, gMag, sourceRa, sourceDec, sourceMag], names=('source_id', 'designation', 'ra', 'dec', 'parallax', 'parallax_error', 'pmra', 'pmdec', 'image_id', 'phot_g_mean_mag', 'source_ra', 'source_dec', 'source_mag'), meta={'name': 'first table'})
 
-# Read all segments into an array / ide kell egy for loop berakni a segment fileok tartalmát egy nagy arrayba...! valahogy :) ráadásul úgy, hogy ne ismétlődjön a header
-gaiaStars = np.genfromtxt(f"{segmentName}", delimiter=",")
+# Read all segments into an array
+gaiaStars = np.empty((0, 152), float)
 
+# Add all segments to the numpy array
+for seg in segments:
+    segmentpart = np.genfromtxt(f"/home/gergo/Documents/dr3_catalog/gaiadr3_15mag_catalog/{seg}", delimiter=",", skip_header=1)
+    gaiaStars = np.append(gaiaStars, segmentpart, axis=0)
+
+# Search sources in the segment catalog
 for star in sources:
     ra2, dec2 = mywcs.all_pix2world([[star ['xcentroid'], star ['ycentroid']]], 0)[0]   
     c = SkyCoord(ra=ra2*u.degree, dec=dec2*u.degree)  
@@ -83,6 +81,7 @@ for star in sources:
         #print('Gaia data : ', gaiaStars[idx + 1][5], gaiaStars[idx + 1][7], str(gaiaStars[idx + 1][2]))
         sourceTable.add_row([gaiaStars[idx + 1][2], 'Gaia DR3 ' + str(gaiaStars[idx + 1][2]), gaiaStars[idx + 1][5], gaiaStars[idx + 1][7], gaiaStars[idx + 1][9], gaiaStars[idx + 1][10], gaiaStars[idx + 1][12], gaiaStars[idx + 1][14], star['id'], gaiaStars[idx + 1][69], ra2, dec2, star['mag']])
 
+# Write found sources into file
 tableFileName = (str(sys.argv[1][:-4] + '.csv'))
 sourceTable.write(tableFileName, format='ascii', overwrite=True, delimiter=',')
 print(sourceTable)
