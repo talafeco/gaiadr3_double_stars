@@ -74,8 +74,8 @@ from astropy import units as u
 # 3. Search sources in the catalog
 
 ## Example
-c = SkyCoord(ra=ra1*u.degree, dec=dec1*u.degree)  
+""" c = SkyCoord(ra=ra1*u.degree, dec=dec1*u.degree)  
 catalog = SkyCoord(ra=ra2*u.degree, dec=dec2*u.degree)  
-idx, d2d, d3d = c.match_to_catalog_sky(catalog)
+idx, d2d, d3d = c.match_to_catalog_sky(catalog) """
 
 # 4. Write matching data into file.
