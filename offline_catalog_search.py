@@ -31,7 +31,7 @@ mean, median, std = sigma_clipped_stats(data, sigma=5.0)
 
 daofind = DAOStarFinder(fwhm=10.0, threshold=18.0*std)  
 sources = daofind(data - median)
-print(sources)
+#print(sources)
 
 # 2. Define the catalog file based on the source coordinate and read data from catalog file(s) to a catalog
 #starList = []
@@ -46,8 +46,8 @@ for star in sources:
     if segmentName not in segments:
         segments.append(segmentName)
 
-print(segments)
-print(sources)
+#print(segments)
+#print(sources)
 
 # Define Qtable for results
 dr3Designation = np.array([], dtype=np.str)
@@ -73,15 +73,19 @@ for star in sources:
     c = SkyCoord(ra=ra2*u.degree, dec=dec2*u.degree)  
     catalog = SkyCoord(ra=gaiaStars[1:, 5]*u.degree, dec=gaiaStars[1:, 7]*u.degree)  
     idx, d2d, d3d = c.match_to_catalog_sky(catalog)
-    catalogstar = SkyCoord(ra=gaiaStars[idx][5]*u.degree, dec=gaiaStars[idx][7]*u.degree)
+    catalogstar = SkyCoord(ra=gaiaStars[idx + 1][5]*u.degree, dec=gaiaStars[idx + 1][7]*u.degree)
     sep = c.separation(catalogstar)
-    if sep < Angle('00d00m10s'): #Angle(d2d) < Angle('00d00m02s')
-        print("\n", star)
-        print('Separation based on catalog function: ', Angle(d2d))
-        print('Separation based on SkyCoord calculation: ', sep.arcsecond)
-        print('Image data: ', ra2, dec2)
-        print('Gaia data : ', gaiaStars[idx][5], gaiaStars[idx][7], str(gaiaStars[idx][2]))
-        
+    if sep < Angle('00d00m02s'):
+        #print("\n", star)
+        #print('Separation based on catalog function: ', Angle(d2d))
+        #print('Separation based on SkyCoord calculation: ', sep.arcsecond)
+        #print('Image data: ', ra2, dec2)
+        #print('Gaia data : ', gaiaStars[idx + 1][5], gaiaStars[idx + 1][7], str(gaiaStars[idx + 1][2]))
+        sourceTable.add_row([gaiaStars[idx + 1][2], 'Gaia DR3 ' + str(gaiaStars[idx + 1][2]), gaiaStars[idx + 1][5], gaiaStars[idx + 1][7], gaiaStars[idx + 1][9], gaiaStars[idx + 1][10], gaiaStars[idx + 1][12], gaiaStars[idx + 1][14], star['id'], gaiaStars[idx + 1][69], ra2, dec2, star['mag']])
+
+tableFileName = (str(sys.argv[1][:-4] + '.csv'))
+sourceTable.write(tableFileName, format='ascii', overwrite=True, delimiter=',')
+print(sourceTable)
 
 
 
