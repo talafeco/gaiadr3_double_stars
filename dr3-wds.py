@@ -32,7 +32,7 @@ sourceId = np.array([], dtype=np.int64)
 gMag = np.array([], dtype=np.float64)
 wdsIdentifier = np.array([], dtype=str)
 discoverer = np.array([], dtype=str)
-magnitudePri = np.array([], dtype=np.float64)
+magnitudePri = np.array([], dtype=str)
 sourceTable = QTable([wdsIdentifier, discoverer, dr3Designation, sourceId, dr3Ra, dr3Dec, dr3Parallax, dr3ParallaxError, dr3PmRa, dr3PmDec, magnitudePri, gMag], names=('wds_identifier', 'discoverer', 'designation', 'source_id', 'ra', 'dec', 'parallax', 'parallax_error', 'pmra', 'pmdec', 'magnitude_pri', 'phot_g_mean_mag'), meta={'name': 'first table'})
 
 counter = int()
@@ -41,10 +41,10 @@ tableFileName = (str(sys.argv[1][:-4] + '_dr3.csv'))
 for row in file:
     counter = counter + 1
     #print(row['ra_h'], row['ra_m'], row['ra_s'], row['dec_d'], row['dec_m'], row['dec_s'])
-    if row['ra_h']:
+    if row['ra_h']: #  and row['magnitude_pri']
         ra = row['ra_h'] + 'h' + row['ra_m'] + 'm' + row['ra_s'] + 's'
         dec = row['dec_d'] + 'd' + row['dec_m'] + 'm' + row['dec_s'] + 's'
-        coord = SkyCoord(ra=Angle(ra), dec=Angle(dec), unit=(u.degree, u.degree), frame='icrs')
+        coord = SkyCoord(ra=Angle(ra), dec=Angle(dec), unit=(u.degree, u.degree), frame='icrs', equinox='J2000.000')
         radius = u.Quantity(0.0005, u.deg)
         j = Gaia.cone_search_async(coord, radius, table_name='gaiadr3.gaia_source')
         r = j.get_results()
@@ -53,14 +53,15 @@ for row in file:
         print(r['DESIGNATION', 'source_id', 'phot_g_mean_mag', 'parallax', 'parallax_error', 'ra', 'dec', 'pmra', 'pmdec'])
         # Write findings to consolidated table
         if r:
-            sourceTable.add_row([row['wds_identifier'], row['discoverer'], r[0]['DESIGNATION'], r[0]['source_id'], r[0]['ra'], r[0]['dec'], r[0]['parallax'], r[0]['parallax_error'], r[0]['pmra'], r[0]['pmdec'], row['magnitude_pri'], r[0]['phot_g_mean_mag']])
-            sourceTable.write(tableFileName, format='ascii', overwrite=True, delimiter=',')
+            for line in r:
+                sourceTable.add_row([row['wds_identifier'], row['discoverer'], r[line.index]['DESIGNATION'], r[line.index]['source_id'], r[line.index]['ra'], r[line.index]['dec'], r[line.index]['parallax'], r[line.index]['parallax_error'], r[line.index]['pmra'], r[line.index]['pmdec'], row['magnitude_pri'], r[line.index]['phot_g_mean_mag']])
+                sourceTable.write(tableFileName, format='ascii', overwrite=True, delimiter=',')
         elif not r:
             sourceTable.add_row([row['wds_identifier'], row['discoverer'], 'Not found in Gaia DR3', '0', '0', '0', '0', '0', '0', '0', row['magnitude_pri'], '0'])
             sourceTable.write(tableFileName, format='ascii', overwrite=True, delimiter=',')
     else:
         print('\n#: ', counter, 'WDS Identifier: ' + row['wds_identifier'], 'Discoverer: ' + row['discoverer'], 'Has no precise coodinates!')
-        sourceTable.add_row([row['wds_identifier'], row['discoverer'], 'No precise coodinates', '0', '0', '0', '0', '0', '0', '0', row['magnitude_pri'], '0'])
+        sourceTable.add_row([row['wds_identifier'], row['discoverer'], 'Precise coodinates or magnitude is missing!', '0', '0', '0', '0', '0', '0', '0', '0', '0'])
         sourceTable.write(tableFileName, format='ascii', overwrite=True, delimiter=',')
 
 #print(sourceTable)
