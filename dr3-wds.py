@@ -41,27 +41,32 @@ tableFileName = (str(sys.argv[1][:-4] + '_dr3.csv'))
 for row in file:
     counter = counter + 1
     #print(row['ra_h'], row['ra_m'], row['ra_s'], row['dec_d'], row['dec_m'], row['dec_s'])
-    if row['ra_h']: #  and row['magnitude_pri']
+    """ if row['ra_h']: #  and row['magnitude_pri']
         ra = row['ra_h'] + 'h' + row['ra_m'] + 'm' + row['ra_s'] + 's'
         dec = row['dec_d'] + 'd' + row['dec_m'] + 'm' + row['dec_s'] + 's'
         coord = SkyCoord(ra=Angle(ra), dec=Angle(dec), unit=(u.degree, u.degree), frame='icrs', equinox='J2000.000')
-        radius = u.Quantity(0.0005, u.deg)
-        j = Gaia.cone_search_async(coord, radius, table_name='gaiadr3.gaia_source')
-        r = j.get_results()
-        # Print findings
-        print('\n#: ', counter, 'WDS Identifier: ' + row['wds_identifier'], 'Discoverer: ' + row['discoverer'], 'Mag Pri: ' + row['magnitude_pri'], 'RA: ' + ra, ' DEC: ', dec)
-        print(r['DESIGNATION', 'source_id', 'phot_g_mean_mag', 'parallax', 'parallax_error', 'ra', 'dec', 'pmra', 'pmdec'])
-        # Write findings to consolidated table
-        if r:
-            for line in r:
-                sourceTable.add_row([row['wds_identifier'], row['discoverer'], r[line.index]['DESIGNATION'], r[line.index]['source_id'], r[line.index]['ra'], r[line.index]['dec'], r[line.index]['parallax'], r[line.index]['parallax_error'], r[line.index]['pmra'], r[line.index]['pmdec'], row['magnitude_pri'], r[line.index]['phot_g_mean_mag']])
-                sourceTable.write(tableFileName, format='ascii', overwrite=True, delimiter=',')
-        elif not r:
-            sourceTable.add_row([row['wds_identifier'], row['discoverer'], 'Not found in Gaia DR3', '0', '0', '0', '0', '0', '0', '0', row['magnitude_pri'], '0'])
-            sourceTable.write(tableFileName, format='ascii', overwrite=True, delimiter=',')
+        radius = u.Quantity(0.001, u.deg)
     else:
         print('\n#: ', counter, 'WDS Identifier: ' + row['wds_identifier'], 'Discoverer: ' + row['discoverer'], 'Has no precise coodinates!')
         sourceTable.add_row([row['wds_identifier'], row['discoverer'], 'Precise coodinates or magnitude is missing!', '0', '0', '0', '0', '0', '0', '0', '0', '0'])
+        sourceTable.write(tableFileName, format='ascii', overwrite=True, delimiter=',') """
+    ra = row['ra_h'] + 'h' + row['ra_m'] + 'm' + row['ra_s'] + 's'
+    dec = row['dec_d'] + 'd' + row['dec_m'] + 'm' + row['dec_s'] + 's'
+    coord = SkyCoord(ra=Angle(ra), dec=Angle(dec), unit=(u.degree, u.degree), frame='icrs', equinox='J2000.000')
+    radius = u.Quantity(0.001, u.deg)
+    j = Gaia.cone_search_async(coord, radius, table_name='gaiadr3.gaia_source')
+    r = j.get_results()
+    # Print findings
+    print('\n#: ', counter, 'WDS Identifier: ' + row['wds_identifier'], 'Discoverer: ' + row['discoverer'], 'Mag Pri: ' + row['magnitude_pri'], 'RA: ' + ra, ' DEC: ', dec)
+    print(r['DESIGNATION', 'source_id', 'phot_g_mean_mag', 'parallax', 'parallax_error', 'ra', 'dec', 'pmra', 'pmdec'])
+    # Write findings to consolidated table
+    if r:
+        for line in r:
+            sourceTable.add_row([row['wds_identifier'], row['discoverer'], r[line.index]['DESIGNATION'], r[line.index]['source_id'], r[line.index]['ra'], r[line.index]['dec'], r[line.index]['parallax'], r[line.index]['parallax_error'], r[line.index]['pmra'], r[line.index]['pmdec'], row['magnitude_pri'], r[line.index]['phot_g_mean_mag']])
+            sourceTable.write(tableFileName, format='ascii', overwrite=True, delimiter=',')
+    elif not r:
+        sourceTable.add_row([row['wds_identifier'], row['discoverer'], 'Not found in Gaia DR3', '0', '0', '0', '0', '0', '0', '0', row['magnitude_pri'], '0'])
         sourceTable.write(tableFileName, format='ascii', overwrite=True, delimiter=',')
+    
 
 #print(sourceTable)
