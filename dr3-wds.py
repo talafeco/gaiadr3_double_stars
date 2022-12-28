@@ -54,7 +54,7 @@ for row in file:
     dec = row['dec_d'] + 'd' + row['dec_m'] + 'm' + row['dec_s'] + 's'
     coord = SkyCoord(ra=Angle(ra), dec=Angle(dec), unit=(u.degree, u.degree), frame='icrs', equinox='J2000.000')
     radius = u.Quantity(0.001, u.deg)
-    j = Gaia.cone_search_async(coord, radius, table_name='gaiadr3.gaia_source')
+    j = Gaia.cone_search(coord, radius, table_name='gaiadr3.gaia_source')
     r = j.get_results()
     # Print findings
     print('\n#: ', counter, 'WDS Identifier: ' + row['wds_identifier'], 'Discoverer: ' + row['discoverer'], 'Mag Pri: ' + row['magnitude_pri'], 'RA: ' + ra, ' DEC: ', dec)
