@@ -42,7 +42,7 @@ for star in sources:
 #print(sources)
 
 # Define Qtable for results
-dr3Designation = np.array([], dtype=np.str)
+dr3Designation = np.array([], dtype=str)
 dr3Ra = np.array([], dtype=np.float64)
 dr3Dec = np.array([], dtype=np.float64)
 dr3Parallax = np.array([], dtype=np.float64)
