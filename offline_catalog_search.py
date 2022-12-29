@@ -78,7 +78,7 @@ for star in sources:
         #print('Separation based on catalog function: ', Angle(d2d))
         #print('Separation based on SkyCoord calculation: ', sep.arcsecond)
         #print('Image data: ', ra2, dec2)
-        print('Gaia data : ', gaiaStars[idx + 1][5], gaiaStars[idx + 1][7], str(gaiaStars[idx + 1][2]))
+        #print('Gaia data : ', gaiaStars[idx + 1][5], gaiaStars[idx + 1][7], str(gaiaStars[idx + 1][2]))
         sourceTable.add_row([gaiaStars[idx + 1][2], 'Gaia DR3 ' + str(int(gaiaStars[idx + 1][2])), gaiaStars[idx + 1][5], gaiaStars[idx + 1][7], gaiaStars[idx + 1][9], gaiaStars[idx + 1][10], gaiaStars[idx + 1][12], gaiaStars[idx + 1][14], star['id'], gaiaStars[idx + 1][69], ra2, dec2, star['mag']])
 
 # Write found sources into file
