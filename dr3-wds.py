@@ -36,20 +36,12 @@ magnitudePri = np.array([], dtype=str)
 sourceTable = QTable([wdsIdentifier, discoverer, dr3Designation, sourceId, dr3Ra, dr3Dec, dr3Parallax, dr3ParallaxError, dr3PmRa, dr3PmDec, magnitudePri, gMag], names=('wds_identifier', 'discoverer', 'designation', 'source_id', 'ra', 'dec', 'parallax', 'parallax_error', 'pmra', 'pmdec', 'magnitude_pri', 'phot_g_mean_mag'), meta={'name': 'first table'})
 
 counter = int()
+importCounter = int()
 tableFileName = (str(sys.argv[1][:-4] + '_dr3.csv'))
 
 for row in file:
     counter = counter + 1
-    #print(row['ra_h'], row['ra_m'], row['ra_s'], row['dec_d'], row['dec_m'], row['dec_s'])
-    """ if row['ra_h']: #  and row['magnitude_pri']
-        ra = row['ra_h'] + 'h' + row['ra_m'] + 'm' + row['ra_s'] + 's'
-        dec = row['dec_d'] + 'd' + row['dec_m'] + 'm' + row['dec_s'] + 's'
-        coord = SkyCoord(ra=Angle(ra), dec=Angle(dec), unit=(u.degree, u.degree), frame='icrs', equinox='J2000.000')
-        radius = u.Quantity(0.001, u.deg)
-    else:
-        print('\n#: ', counter, 'WDS Identifier: ' + row['wds_identifier'], 'Discoverer: ' + row['discoverer'], 'Has no precise coodinates!')
-        sourceTable.add_row([row['wds_identifier'], row['discoverer'], 'Precise coodinates or magnitude is missing!', '0', '0', '0', '0', '0', '0', '0', '0', '0'])
-        sourceTable.write(tableFileName, format='ascii', overwrite=True, delimiter=',') """
+    importCounter = importCounter + 1
     ra = row['ra_h'] + 'h' + row['ra_m'] + 'm' + row['ra_s'] + 's'
     dec = row['dec_d'] + 'd' + row['dec_m'] + 'm' + row['dec_s'] + 's'
     coord = SkyCoord(ra=Angle(ra), dec=Angle(dec), unit=(u.degree, u.degree), frame='icrs', equinox='J2000.000')
@@ -70,3 +62,14 @@ for row in file:
     
 
 #print(sourceTable)
+
+    #print(row['ra_h'], row['ra_m'], row['ra_s'], row['dec_d'], row['dec_m'], row['dec_s'])
+    """ if row['ra_h']: #  and row['magnitude_pri']
+        ra = row['ra_h'] + 'h' + row['ra_m'] + 'm' + row['ra_s'] + 's'
+        dec = row['dec_d'] + 'd' + row['dec_m'] + 'm' + row['dec_s'] + 's'
+        coord = SkyCoord(ra=Angle(ra), dec=Angle(dec), unit=(u.degree, u.degree), frame='icrs', equinox='J2000.000')
+        radius = u.Quantity(0.001, u.deg)
+    else:
+        print('\n#: ', counter, 'WDS Identifier: ' + row['wds_identifier'], 'Discoverer: ' + row['discoverer'], 'Has no precise coodinates!')
+        sourceTable.add_row([row['wds_identifier'], row['discoverer'], 'Precise coodinates or magnitude is missing!', '0', '0', '0', '0', '0', '0', '0', '0', '0'])
+        sourceTable.write(tableFileName, format='ascii', overwrite=True, delimiter=',') """
