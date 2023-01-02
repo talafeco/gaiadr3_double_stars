@@ -67,6 +67,21 @@ def calcPmFactor(pmraa, pmdeca, pmrab, pmdecb):
     pmfac = math.fabs(1-((math.sqrt(((pmraa-pmrab) ** 2) + ((pmdeca-pmdecb) ** 2))/(math.sqrt((pmraa ** 2) + (pmdeca ** 2))+((pmrab ** 2) + pmdecb ** 2)))))
     return pmfac
 
+# Function to calculate the Star's absolute magnitude
+
+# Function to calculate the Star's luminosity
+
+# Function to calculate the Star mass
+
+# Function to calculate Harshaw probapility of duplicity based on the parallax and proper motion factors
+
+# Function to calculate the Relative velocity
+
+# Function to calculate the Escape velocity of the system
+
+# Function to calculate the Probability of binarity based on the Relative and the escape velocity
+
+
 ### Run source detection, collect star data to Qtable
 workingDirectory = sys.argv[1]
 directoryContent = os.listdir(workingDirectory)
