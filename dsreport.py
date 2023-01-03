@@ -75,8 +75,28 @@ def calcAbsMag(gmag, par):
     return absmag
 
 # Function to calculate the Star's luminosity
+# Excel formula =2.52^(4.83-'Absolute magnitude')
+def calcLuminosity(absmag):
+    lum = 2.52 ** (4.83 - absmag)
+    return lum
 
 # Function to calculate the Star mass
+# Excel formula M <0.43M =('luminosity'/0.23)^(1/2.3), M <2M ='luminosity'^(1/4), M < 20M =('luminosity'/1.4)^(1/3.5), M > 55M ='luminosity'/3200
+def calcMass(lum):
+    mass = ()
+    mass_small = (lum / 0.23) ** (1 / 2.3)
+    mass_med = lum ** (1 / 4)
+    mass_lar = (lum / 1.4) ** (1 / 3.5)
+    mass_ex = lum / 3200
+    if mass_small <= 0.43:
+        mass = mass_small
+    elif 0.43 < mass_med < 2:
+        mass = mass_med
+    elif 2 < mass_lar < 55:
+        mass = mass_lar
+    elif mass_ex > 55:
+        mass = mass_ex
+    return mass
 
 # Function to calculate Harshaw probapility of duplicity based on the parallax and proper motion factors
 def calcHarshaw(parallaxFactor, pmFactor):
@@ -89,10 +109,10 @@ def calcHarshaw(parallaxFactor, pmFactor):
 
 # Function to calculate the Probability of binarity based on the Relative and the escape velocity
 
-# Function to calculate the Standard deviation in RA/DEC measurements
-
 # Function to calculate the Standard error in RA/DEC measurements
-
+def calcStandardError(arr):
+    stderr = np.std(arr)
+    return stderr
 
 ### Run source detection, collect star data to Qtable
 workingDirectory = sys.argv[1]
