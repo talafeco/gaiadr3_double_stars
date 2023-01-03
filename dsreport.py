@@ -68,12 +68,20 @@ def calcPmFactor(pmraa, pmdeca, pmrab, pmdecb):
     return pmfac
 
 # Function to calculate the Star's absolute magnitude
+# Excel formula =phot_g_mean_mag-5*LOG10('distance from earth')+5
+def calcAbsMag(gmag, par):
+    dist = calcDistance(par)
+    absmag = gmag - 5 * math.log(dist, 10) + 5
+    return absmag
 
 # Function to calculate the Star's luminosity
 
 # Function to calculate the Star mass
 
 # Function to calculate Harshaw probapility of duplicity based on the parallax and proper motion factors
+def calcHarshaw(parallaxFactor, pmFactor):
+    HarshawFactor = (parallaxFactor * 0.75) + (pmFactor * 0.15)
+    return HarshawFactor
 
 # Function to calculate the Relative velocity
 
@@ -174,36 +182,38 @@ for key, group in zip(sourceTable_by_file.groups.keys, sourceTable_by_file.group
     StarA = []
     StarB = []
     for star in group: ## modify according to arrays instead of starlist
-        StarA = (star['designation'], star['ra'], star['dec'], star['parallax'], star['parallax_error'], star['pmra'], star['pmdec'], star['phot_g_mean_mag'], star['source_ra'], star['source_dec'])
+        #StarA = (star['designation'], star['ra'], star['dec'], star['parallax'], star['parallax_error'], star['pmra'], star['pmdec'], star['phot_g_mean_mag'], star['source_ra'], star['source_dec'])
+        StarA = (star['filename'], star['source_id'], star['designation'], star['ra'], star['dec'], star['parallax'], star['parallax_error'], star['pmra'], star['pmdec'],star['phot_g_mean_mag'], star['phot_bp_mean_mag'], star['phot_rp_mean_mag'], star['radial_velocity'], star['radial_velocity_error'], star['teff_gspphot'], star['image_id'], star['source_ra'], star['source_dec'], star['source_mag'])
         for star in group:
-            StarB = (star['designation'], star['ra'], star['dec'], star['parallax'], star['parallax_error'], star['pmra'], star['pmdec'], star['phot_g_mean_mag'], star['source_ra'], star['source_dec'])
-            if StarA != StarB and float(StarA[7]) < float(StarB[7]) and float(StarA[3]) != 0 and float(StarB[3]) != 0:
+            #StarB = (star['designation'], star['ra'], star['dec'], star['parallax'], star['parallax_error'], star['pmra'], star['pmdec'], star['phot_g_mean_mag'], star['source_ra'], star['source_dec'])
+            StarB = (star['filename'], star['source_id'], star['designation'], star['ra'], star['dec'], star['parallax'], star['parallax_error'], star['pmra'], star['pmdec'],star['phot_g_mean_mag'], star['phot_bp_mean_mag'], star['phot_rp_mean_mag'], star['radial_velocity'], star['radial_velocity_error'], star['teff_gspphot'], star['image_id'], star['source_ra'], star['source_dec'], star['source_mag'])
+            if StarA != StarB and float(StarA[9]) < float(StarB[9]) and float(StarA[5]) != 0 and float(StarB[5]) != 0:
                 #Set input data
-                starRa1 = float(StarA[1])
-                starDec1 = float(StarA[2])
-                starRa2 = float(StarB[1])
-                starDec2 = float(StarB[2])
-                starParallax1 = float(StarA[3])
-                starParallaxError1 = float(StarA[4])
+                starRa1 = float(StarA[3])
+                starDec1 = float(StarA[4])
+                starRa2 = float(StarB[3])
+                starDec2 = float(StarB[4])
+                starParallax1 = float(StarA[5])
+                starParallaxError1 = float(StarA[6])
                             
                 # Calculate the widest possible separation for StarA
                 possSep1 = 10000 / calcDistanceMax(starParallax1, starParallaxError1)
                 rhoStar = rhoCalc(starRa1, starDec1, starRa2, starDec2)
                 if possSep1 > rhoStar:
-                    starName1 = StarA[0]
-                    starName2 = StarB[0]
-                    starParallax2 = float(StarB[3])
-                    starParallaxError2 = float(StarB[4])
-                    starPmRa1 = float(StarA[5])
-                    starPmDec1 = float(StarA[6])
-                    starPmRa2 = float(StarB[5])
-                    starPmDec2 = float(StarB[6])
-                    starGMag1 = float(StarA[7])
-                    starGMag2 = float(StarB[7])
-                    starActualRa1 = float(StarA[8])
-                    starActualDec1 = float(StarA[9])
-                    starActualRa2 = float(StarB[8])
-                    starActualDec2 = float(StarB[9])
+                    starName1 = StarA[2]
+                    starName2 = StarB[2]
+                    starParallax2 = float(StarB[5])
+                    starParallaxError2 = float(StarB[6])
+                    starPmRa1 = float(StarA[7])
+                    starPmDec1 = float(StarA[8])
+                    starPmRa2 = float(StarB[7])
+                    starPmDec2 = float(StarB[8])
+                    starGMag1 = float(StarA[9])
+                    starGMag2 = float(StarB[9])
+                    starActualRa1 = float(StarA[16])
+                    starActualDec1 = float(StarA[17])
+                    starActualRa2 = float(StarB[16])
+                    starActualDec2 = float(StarB[17])
 
                     # Value to modify Theta according to the appropriate quadrant
                     addThetaValue = ()
@@ -246,7 +256,46 @@ for key, group in zip(sourceTable_by_file.groups.keys, sourceTable_by_file.group
                         pmCommon = 'SPM'
                     elif starPmFactor < 0.4:
                         pmCommon = 'DPM'
+
+                    # Calculate Harshaw double star factor
+                    HarshawPhisicality = ()
+                    if distanceCommon == 'overlapping':
+                        HarshawFactor = calcHarshaw(starParallaxFactor, starPmFactor)
+                        if HarshawFactor > 0.85:
+                            HarshawPhisicality = 'yes'
+                        elif 0.65 < HarshawFactor < 0.85:
+                            HarshawPhisicality = '?'
+                        elif 0.5 < HarshawFactor < 0.65:
+                            HarshawPhisicality = 'Maybe'
+                        elif 0.35 < HarshawFactor < 0.5:
+                            HarshawPhisicality = '??'
+                        elif 0.0 < HarshawFactor < 0.35:
+                            HarshawPhisicality = 'No'
+                    
+                    # Calculate Absolute magnitudes of the stars
+                    absMagA = calcAbsMag(starGMag1, starParallax1)
+                    absMagB = calcAbsMag(starGMag2, starParallax2)
                     
                     #Print data, if stars are close and share a common distance range
                     if distanceCommon == 'overlapping':
-                        print(star[0], '|', starName1,'|',starName2,'|',thetaStar,'|',rhoStar,'|',starGMag1,'|',starGMag2,'|',starDistance1,'|',starDistanceMax1,'|',starDistanceMin1,'|',starDistanceRange1,'|',starDistance2,'|',starDistanceMax2,'|',starDistanceMin2,'|',starDistanceRange2,'|',distanceCommon,'|',starParallaxFactor,'|',starPmFactor,'|',pmCommon,'|',thetaActual,'|',rhoActual)
+                        #print(star[0], '|', starName1,'|',starName2,'|',thetaStar,'|',rhoStar,'|',starGMag1,'|',starGMag2,'|',starDistance1,'|',starDistanceMax1,'|',starDistanceMin1,'|',starDistanceRange1,'|',starDistance2,'|',starDistanceMax2,'|',starDistanceMin2,'|',starDistanceRange2,'|',distanceCommon,'|',starParallaxFactor,'|',starPmFactor,'|',pmCommon, '|', HarshawPhisicality, '|',thetaActual,'|',rhoActual)
+                        print()
+                        print('File:', star[0])
+                        print('Star A:', starName1)
+                        print('Apparent magnitude:', starGMag1)
+                        print('Absolute magnitude:', absMagA)
+                        print('Distance from earth (pc):', starDistance1)
+                        print()
+                        print('Star B: ', starName2)
+                        print('Apparent magnitude:', starGMag2)
+                        print('Absolute magnitude:', absMagB)
+                        print('Distance from earth (pc):', starDistance2)
+                        print()
+                        print('Double star data')
+                        print('Share common distance range?', distanceCommon)
+                        print('Star common parallax factor:', starParallaxFactor)
+                        print('Star common proper motion factor:', starPmFactor)
+                        print('Proper motion type:', pmCommon)
+                        print('Physical:', HarshawPhisicality)
+                        print('Actual position angle (deg):', thetaActual)
+                        print('Actual separation (arcsec)', rhoActual)
