@@ -340,6 +340,11 @@ for key, group in zip(sourceTable_by_file.groups.keys, sourceTable_by_file.group
                     starDistanceRange2 = starDistanceMax2 - starDistanceMin2
                     starParallaxFactor = calcParallaxFactor(starParallax1, starParallax2)
                     starPmFactor = calcPmFactor(starPmRa1, starPmDec1, starPmRa2, starPmDec2)
+                    starMass1 = 
+                    starMass2 = 
+                    starAbsMagA = calcAbsMag(starGMag1, starParallax1) # Calculate Absolute magnitude
+                    starAbsMagB = calcAbsMag(starGMag2, starParallax2) # Calculate Absolute magnitude
+
                     
                     # Check if stars shares a common distance range
                     distanceCommon = ()
@@ -371,11 +376,7 @@ for key, group in zip(sourceTable_by_file.groups.keys, sourceTable_by_file.group
                             HarshawPhisicality = '??'
                         elif 0.0 < HarshawFactor < 0.35:
                             HarshawPhysicality = 'No'
-                    
-                    # Calculate Absolute magnitudes of the stars
-                    absMagA = calcAbsMag(starGMag1, starParallax1)
-                    absMagB = calcAbsMag(starGMag2, starParallax2)
-                    
+
                     #Print data, if stars are close and share a common distance range
                     if distanceCommon == 'overlapping':
                         print(star[0], '|', starName1,'|',starName2,'|',thetaStar,'|',rhoStar,'|',starGMag1,'|',starGMag2,'|',starDistance1,'|',starDistanceMax1,'|',starDistanceMin1,'|',starDistanceRange1,'|',starDistance2,'|',starDistanceMax2,'|',starDistanceMin2,'|',starDistanceRange2,'|',distanceCommon,'|',starParallaxFactor,'|',starPmFactor,'|',pmCommon, '|', HarshawPhysicality, '|',thetaActual,'|',rhoActual)
