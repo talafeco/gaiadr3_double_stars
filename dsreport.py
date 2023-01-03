@@ -40,6 +40,16 @@ def rhoCalc(raa, deca, rab, decb):
     rhocalc = math.sqrt(((raa-rab) * math.cos(math.radians(deca))) ** 2 + (deca - decb) ** 2) * 3600
     return rhocalc
 
+# Function to calculate the separation of the two stars in parsecs
+# Excel formula =IF('min distance A'>'min distance b','min distance A'*'Rho','min distance b'*'Rho')
+auToParsec = 0.0000048481368111358
+def sepCalc(dist_a, dist_b, rho):
+    if dist_a > dist_b:
+        sep = (dist_a * rho) * auToParsec
+    else:
+        sep = (dist_b * rho) * auToParsec
+    return sep
+
 # Function to calculate the distance of the star based on the parallax
 def calcDistance(par):
     dist = 1 / (par/1000)
@@ -102,6 +112,20 @@ def calcMass(lum):
 def calcHarshaw(parallaxFactor, pmFactor):
     HarshawFactor = (parallaxFactor * 0.75) + (pmFactor * 0.15)
     return HarshawFactor
+
+# Function to calculate Harshaw physicality of the system based on the parallax and pm factors
+def calcHarshawPhysicality(harfac):
+    if harfac > 0.85:
+        HarshawPhysicality = 'yes'
+    elif 0.65 < harfac < 0.85:
+        HarshawPhysicality = '?'
+    elif 0.5 < harfac < 0.65:
+        HarshawPhysicality = 'Maybe'
+    elif 0.35 < harfac < 0.5:
+        HarshawPhysicality = '??'
+    elif 0.0 < harfac < 0.35:
+        HarshawPhysicality = 'No'
+    return HarshawPhysicality
 
 # Function to calculate the Relative velocity
 
@@ -340,11 +364,18 @@ for key, group in zip(sourceTable_by_file.groups.keys, sourceTable_by_file.group
                     starDistanceRange2 = starDistanceMax2 - starDistanceMin2
                     starParallaxFactor = calcParallaxFactor(starParallax1, starParallax2)
                     starPmFactor = calcPmFactor(starPmRa1, starPmDec1, starPmRa2, starPmDec2)
-                    starMass1 = 
-                    starMass2 = 
-                    starAbsMagA = calcAbsMag(starGMag1, starParallax1) # Calculate Absolute magnitude
-                    starAbsMagB = calcAbsMag(starGMag2, starParallax2) # Calculate Absolute magnitude
-
+                    starAbsMag1 = calcAbsMag(starGMag1, starParallax1) # Calculate Absolute magnitude
+                    starAbsMag2 = calcAbsMag(starGMag2, starParallax2) # Calculate Absolute magnitude
+                    starLum1 = calcLuminosity(starAbsMag1)
+                    starLum2 = calcLuminosity(starAbsMag2)
+                    starMass1 = calcMass(starLum1)
+                    starMass2 = calcMass(starLum2)
+                    starSepPar = sepCalc(starDistanceMin1, starDistanceMin2, rhoStar) # Separation of the stars in parsecs
+                    starEscapeVelocity = calcEscapevelocity(starMass1, starMass2, starSepPar, gravConst)
+                    starRelativeVelocity = 
+                    HarshawFactor = calcHarshaw(starParallaxFactor, starPmFactor)
+                    starHarshawPhysicality = calcHarshawPhysicality(HarshawFactor)
+                    starBinarity = 
                     
                     # Check if stars shares a common distance range
                     distanceCommon = ()
@@ -362,22 +393,11 @@ for key, group in zip(sourceTable_by_file.groups.keys, sourceTable_by_file.group
                     elif starPmFactor < 0.4:
                         pmCommon = 'DPM'
 
-                    # Calculate Harshaw double star factor
-                    HarshawPhisicality = ()
                     if distanceCommon == 'overlapping':
-                        HarshawFactor = calcHarshaw(starParallaxFactor, starPmFactor)
-                        if HarshawFactor > 0.85:
-                            HarshawPhisicality = 'yes'
-                        elif 0.65 < HarshawFactor < 0.85:
-                            HarshawPhisicality = '?'
-                        elif 0.5 < HarshawFactor < 0.65:
-                            HarshawPhisicality = 'Maybe'
-                        elif 0.35 < HarshawFactor < 0.5:
-                            HarshawPhisicality = '??'
-                        elif 0.0 < HarshawFactor < 0.35:
-                            HarshawPhysicality = 'No'
+                        
+
 
                     #Print data, if stars are close and share a common distance range
                     if distanceCommon == 'overlapping':
-                        print(star[0], '|', starName1,'|',starName2,'|',thetaStar,'|',rhoStar,'|',starGMag1,'|',starGMag2,'|',starDistance1,'|',starDistanceMax1,'|',starDistanceMin1,'|',starDistanceRange1,'|',starDistance2,'|',starDistanceMax2,'|',starDistanceMin2,'|',starDistanceRange2,'|',distanceCommon,'|',starParallaxFactor,'|',starPmFactor,'|',pmCommon, '|', HarshawPhysicality, '|',thetaActual,'|',rhoActual)
+                        print(star[0], '|', starName1,'|',starName2,'|',thetaStar,'|',rhoStar,'|',starGMag1,'|',starGMag2,'|',starDistance1,'|',starDistanceMax1,'|',starDistanceMin1,'|',starDistanceRange1,'|',starDistance2,'|',starDistanceMax2,'|',starDistanceMin2,'|',starDistanceRange2,'|',distanceCommon,'|',starParallaxFactor,'|',starPmFactor,'|',pmCommon, '|', starHarshawPhysicality, '|',thetaActual,'|',rhoActual)
                         reportTable.add_row([star[0], starId1, starName1, starRa1, starDec1, starParallax1, starParallaxError1, starPmRa1, starPmDec1, starGMag1, starBpMag1, starRpMag1, starRadVel1, starRadVelErr1, starTemp1, starId1, starName1, starRa1, starDec1, starParallax1, starParallaxError1, starPmRa1, starPmDec1, starGMag1, starBpMag1, starRpMag1, starRadVel1, starRadVelErr1, starTemp1, starId2, starName2, starRa2, starDec2, starParallax2, starParallaxError2, starPmRa2, starPmDec2, starGMag2, starBpMag2, starRpMag2, starRadVel2, starRadVelErr2, starTemp2, ])
