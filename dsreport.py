@@ -81,6 +81,10 @@ def calcPmFactor(pmraa, pmdeca, pmrab, pmdecb):
 
 # Function to calculate the Probability of binarity based on the Relative and the escape velocity
 
+# Function to calculate the Standard deviation in RA/DEC measurements
+
+# Function to calculate the Standard error in RA/DEC measurements
+
 
 ### Run source detection, collect star data to Qtable
 workingDirectory = sys.argv[1]
