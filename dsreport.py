@@ -127,7 +127,26 @@ def calcHarshawPhysicality(harfac):
         HarshawPhysicality = 'No'
     return HarshawPhysicality
 
+# Function to calculate the Tangential speed components from proper motin in km/s
+# Excel formula to calculate the Proper motion in km/s =pm_ra(dec)/1000*distance from earth*4.74
+def calcTangentialSpeedComponent(dist, pm):
+    tanspeed = pm/1000*dist*4.74
+    return tanspeed
+
 # Function to calculate the Relative velocity
+# Excel formula to calculate the difference to the Tangential speeds in km/s =SQRT((pm_ra_a-pm_ra_b)^2+(pm_dec_a-pm_dec_b)^2)
+# Excel formula to calculate the difference to the Radial speeds in km/s =ABS(rad_vel_a-rad_vel_b)
+# Excel formula to calculate the relative velocity =SQRT(L8^2+L7^2)
+def calcRelativeVelocity(pmraa, pmdeca, pmrab, pmdecb, radvela, radvelb, dista, distb):
+    tanraa = calcTangentialSpeedComponent(dista, pmraa)
+    tandeca = calcTangentialSpeedComponent(dista, pmdeca)
+    tanrab = calcTangentialSpeedComponent(distb, pmrab)
+    tandecb = calcTangentialSpeedComponent(distb, pmdecb)
+    tanspeeddiff = math.sqrt((tanraa - tanrab) ** 2 + (tandeca - tandecb) ** 2)
+    radspeeddif = math.fabs(radvela - radvelb)
+    sumspeeddiff = math.sqrt(tanspeeddiff ** 2 + radspeeddif ** 2)
+    return sumspeeddiff
+
 
 # Function to calculate the Escape velocity of the system, separation should be calculated in parsec!
 gravConst = 0.0043009 # Gravitational constant is convenient if measure distances in parsecs (pc), velocities in kilometres per second (km/s) and masses in solar units M
@@ -136,6 +155,13 @@ def calcEscapevelocity(mass_a, mass_b, separation, gravconst):
     return escvel
 
 # Function to calculate the Probability of binarity based on the Relative and the escape velocity
+# Excel formula =IF(relative speed<=escape velocity,"Y","No"))
+def calcBinarity(relsped, escsped):
+    if relsped < escsped:
+        binarity = 'yes'
+    else:
+        binarity = 'no'
+    return binarity
 
 # Function to calculate the Standard error in RA/DEC measurements
 def calcStandardError(arr):
@@ -372,10 +398,10 @@ for key, group in zip(sourceTable_by_file.groups.keys, sourceTable_by_file.group
                     starMass2 = calcMass(starLum2)
                     starSepPar = sepCalc(starDistanceMin1, starDistanceMin2, rhoStar) # Separation of the stars in parsecs
                     starEscapeVelocity = calcEscapevelocity(starMass1, starMass2, starSepPar, gravConst)
-                    starRelativeVelocity = 
-                    HarshawFactor = calcHarshaw(starParallaxFactor, starPmFactor)
-                    starHarshawPhysicality = calcHarshawPhysicality(HarshawFactor)
-                    starBinarity = 
+                    starRelativeVelocity = calcRelativeVelocity(starPmRa1, starPmDec1, starPmRa2, starPmDec2, starRadVel1, starRadVel2, starDistanceMin1, starDistanceMin2)
+                    starHarshawFactor = calcHarshaw(starParallaxFactor, starPmFactor)
+                    starHarshawPhysicality = calcHarshawPhysicality(starHarshawFactor)
+                    starBinarity = calcBinarity(starRelativeVelocity, starEscapeVelocity)
                     
                     # Check if stars shares a common distance range
                     distanceCommon = ()
@@ -393,11 +419,7 @@ for key, group in zip(sourceTable_by_file.groups.keys, sourceTable_by_file.group
                     elif starPmFactor < 0.4:
                         pmCommon = 'DPM'
 
-                    if distanceCommon == 'overlapping':
-                        
-
-
                     #Print data, if stars are close and share a common distance range
                     if distanceCommon == 'overlapping':
                         print(star[0], '|', starName1,'|',starName2,'|',thetaStar,'|',rhoStar,'|',starGMag1,'|',starGMag2,'|',starDistance1,'|',starDistanceMax1,'|',starDistanceMin1,'|',starDistanceRange1,'|',starDistance2,'|',starDistanceMax2,'|',starDistanceMin2,'|',starDistanceRange2,'|',distanceCommon,'|',starParallaxFactor,'|',starPmFactor,'|',pmCommon, '|', starHarshawPhysicality, '|',thetaActual,'|',rhoActual)
-                        reportTable.add_row([star[0], starId1, starName1, starRa1, starDec1, starParallax1, starParallaxError1, starPmRa1, starPmDec1, starGMag1, starBpMag1, starRpMag1, starRadVel1, starRadVelErr1, starTemp1, starId1, starName1, starRa1, starDec1, starParallax1, starParallaxError1, starPmRa1, starPmDec1, starGMag1, starBpMag1, starRpMag1, starRadVel1, starRadVelErr1, starTemp1, starId2, starName2, starRa2, starDec2, starParallax2, starParallaxError2, starPmRa2, starPmDec2, starGMag2, starBpMag2, starRpMag2, starRadVel2, starRadVelErr2, starTemp2, ])
+                        reportTable.add_row([star[0], starId1, starName1, starRa1, starDec1, starParallax1, starParallaxError1, starPmRa1, starPmDec1, starGMag1, starBpMag1, starRpMag1, starRadVel1, starRadVelErr1, starTemp1, starId1, starName1, starRa1, starDec1, starParallax1, starParallaxError1, starPmRa1, starPmDec1, starGMag1, starBpMag1, starRpMag1, starRadVel1, starRadVelErr1, starTemp1, starId2, starName2, starRa2, starDec2, starParallax2, starParallaxError2, starPmRa2, starPmDec2, starGMag2, starBpMag2, starRpMag2, starRadVel2, starRadVelErr2, starTemp2])
