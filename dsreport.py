@@ -247,16 +247,10 @@ reportThetaDr3 = np.array([], dtype=np.float64)
 reportThetaMeasured = np.array([], dtype=np.float64)
 reportRhoDr3= np.array([], dtype=np.float64)
 reportRhoMeasured = np.array([], dtype=np.float64)
-reportTable = QTable([reportFileName, reportSourceIdA, reportDr3DesignationA, reportDr3RaA, reportDr3DecA, reportDr3ParallaxA, reportDr3ParallaxErrorA, reportDr3PmRaA, reportDr3PmDecA, reportDr3gMagA, reportDr3bpMagA, reportDr3rpMagA, reportDr3RadVelA, reportDr3RadVelErrA, reportDr3TempA, reportRaMeasuredA, reportDecMeasuredA, reportMagMeasuredA, reportSourceIdB, reportDr3DesignationB, reportDr3RaB, reportDr3DecB, reportDr3ParallaxB, reportDr3ParallaxErrorB, reportDr3PmRaB, reportDr3PmDecB, reportDr3gMagB, reportDr3bpMagB, reportDr3rpMagB, reportDr3RadVelB, reportDr3RadVelErrB, reportDr3TempB, reportRaMeasuredB, reportDecMeasuredB, reportMagMeasuredB, reportThetaDr3, reportThetaMeasured, reportRhoDr3, reportRhoMeasured], names=('filename', 'source_id_a', 'designation_a', 'ra_a', 'dec_a', 'parallax_a', 'parallax_error_a', 'pmra_a', 'pmdec_a', 'phot_g_mean_mag_a', 'phot_bp_mean_mag_a', 'phot_rp_mean_mag_a', 'radial_velocity_a', 'radial_velocity_error_a', 'teff_gspphot_a', 'rameasured_a', 'decmeasured_a', 'magmeasured_a', 'source_id_b', 'designation_b', 'ra_b', 'dec_b', 'parallax_b', 'parallax_error_b', 'pmra_b', 'pmdec_b', 'phot_g_mean_mag_b', 'phot_bp_mean_mag_b', 'phot_rp_mean_mag_b', 'radial_velocity_b', 'radial_velocity_error_b', 'teff_gspphot_b', 'rameasured_b', 'decmeasured_b', 'magmeasured_b', 'theta_dr3', "theta_measured", 'rho_dr3', 'rho_measured'), meta={'name': 'report table'})
+reportObjectId = np.array([], dtype=str)
+reportTable = QTable([reportFileName, reportSourceIdA, reportDr3DesignationA, reportDr3RaA, reportDr3DecA, reportDr3ParallaxA, reportDr3ParallaxErrorA, reportDr3PmRaA, reportDr3PmDecA, reportDr3gMagA, reportDr3bpMagA, reportDr3rpMagA, reportDr3RadVelA, reportDr3RadVelErrA, reportDr3TempA, reportRaMeasuredA, reportDecMeasuredA, reportMagMeasuredA, reportSourceIdB, reportDr3DesignationB, reportDr3RaB, reportDr3DecB, reportDr3ParallaxB, reportDr3ParallaxErrorB, reportDr3PmRaB, reportDr3PmDecB, reportDr3gMagB, reportDr3bpMagB, reportDr3rpMagB, reportDr3RadVelB, reportDr3RadVelErrB, reportDr3TempB, reportRaMeasuredB, reportDecMeasuredB, reportMagMeasuredB, reportThetaDr3, reportThetaMeasured, reportRhoDr3, reportRhoMeasured, reportObjectId], names=('filename', 'source_id_a', 'designation_a', 'ra_a', 'dec_a', 'parallax_a', 'parallax_error_a', 'pmra_a', 'pmdec_a', 'phot_g_mean_mag_a', 'phot_bp_mean_mag_a', 'phot_rp_mean_mag_a', 'radial_velocity_a', 'radial_velocity_error_a', 'teff_gspphot_a', 'rameasured_a', 'decmeasured_a', 'magmeasured_a', 'source_id_b', 'designation_b', 'ra_b', 'dec_b', 'parallax_b', 'parallax_error_b', 'pmra_b', 'pmdec_b', 'phot_g_mean_mag_b', 'phot_bp_mean_mag_b', 'phot_rp_mean_mag_b', 'radial_velocity_b', 'radial_velocity_error_b', 'teff_gspphot_b', 'rameasured_b', 'decmeasured_b', 'magmeasured_b', 'theta_dr3', "theta_measured", 'rho_dr3', 'rho_measured', 'object_id'), meta={'name': 'report table'})
 # , reportMassA, reportMassB, reportAbsMagA, reportAbsMagB, reportLumA, reportLumB, reportEscapeVelocity, reportRelativeVelocity, reportHarshawPhysicality, reportBinarity
 # , 'mass_a', 'mass_b', 'absmag_a', 'absmag_b', 'lum_a', 'lum_b', 'sys_esc_vel', 'sys_rel_vel', 'harshaw_physicality', 'binarity'
-
-# Create Qtable to list the measurements and the standard error per groups (double star)
-reportMeanTheta = np.array([], dtype=np.float64)
-reportMeanThetaErr = np.array([], dtype=np.float64)
-reportMeanRho = np.array([], dtype=np.float64)
-reportMeanRhoErr = np.array([], dtype=np.float64)
-meanTable = QTable([reportMeanTheta, reportMeanThetaErr, reportMeanRho, reportMeanRhoErr], names=('mean_theta', 'mean_theta_error', 'mean_rho', 'mean_rho_error'), meta={'name': 'mean table'})
 
 for fitsFile in files:
     # 1. Read the list of sources extracted from an image (fits) file
@@ -362,6 +356,7 @@ for key, group in zip(sourceTable_by_file.groups.keys, sourceTable_by_file.group
                     starActualRa2 = float(StarB[16])
                     starActualDec2 = float(StarB[17])
                     starActualMag2 = float(StarA[18])
+                    starObjectId = starId1 + '_' + starId2
 
                     # Value to modify Theta according to the appropriate quadrant
                     addThetaValue = ()
@@ -414,43 +409,70 @@ for key, group in zip(sourceTable_by_file.groups.keys, sourceTable_by_file.group
                     #Print data, if stars are close and share a common distance range
                     if distanceCommon == 'overlapping':
                         print(star[0], '|', starName1,'|',starName2,'|',thetaStar,'|',rhoStar,'|',starGMag1,'|',starGMag2,'|',starDistance1,'|',starDistanceMax1,'|',starDistanceMin1,'|',starDistanceRange1,'|',starDistance2,'|',starDistanceMax2,'|',starDistanceMin2,'|',starDistanceRange2,'|',distanceCommon,'|', thetaActual,'|',rhoActual)
-                        reportTable.add_row([star[0], starId1, starName1, starRa1, starDec1, starParallax1, starParallaxError1, starPmRa1, starPmDec1, starGMag1, starBpMag1, starRpMag1, starRadVel1, starRadVelErr1, starTemp1, starActualRa1, starActualDec1, starActualMag1, starId2, starName2, starRa2, starDec2, starParallax2, starParallaxError2, starPmRa2, starPmDec2, starGMag2, starBpMag2, starRpMag2, starRadVel2, starRadVelErr2, starTemp2, starActualRa2, starActualDec2, starActualMag2, thetaStar, thetaActual, rhoStar, rhoActual])
+                        reportTable.add_row([star[0], starId1, starName1, starRa1, starDec1, starParallax1, starParallaxError1, starPmRa1, starPmDec1, starGMag1, starBpMag1, starRpMag1, starRadVel1, starRadVelErr1, starTemp1, starActualRa1, starActualDec1, starActualMag1, starId2, starName2, starRa2, starDec2, starParallax2, starParallaxError2, starPmRa2, starPmDec2, starGMag2, starBpMag2, starRpMag2, starRadVel2, starRadVelErr2, starTemp2, starActualRa2, starActualDec2, starActualMag2, thetaStar, thetaActual, rhoStar, rhoActual, starObjectId])
 
 print(reportTable)
 tableFileName = (str('testQTab.csv'))
 reportTable.write(tableFileName, format='ascii', overwrite=True, delimiter=',')
 
-# Create QTable to calculate mean and mean error measurements and display data
+# Create Qtable to list the measurements and the standard error per groups (double star)
+measuredObject = np.array([], dtype=str)
+measuredStarA = np.array([], dtype=str)
+measuredStarB = np.array([], dtype=str)
+measuredArrayTheta = np.array([], dtype=np.float64)
+measuredArrayRho = np.array([], dtype=np.float64)
+measuredMeanTheta = np.array([], dtype=np.float64)
+measuredMeanThetaErr = np.array([], dtype=np.float64)
+measuredMeanRho = np.array([], dtype=np.float64)
+measuredMeanRhoErr = np.array([], dtype=np.float64)
+meanTable = QTable([measuredObject, measuredStarA, measuredStarB, measuredArrayTheta, measuredArrayRho, measuredMeanTheta, measuredMeanThetaErr, measuredMeanRho, measuredMeanRhoErr], names=('object_name', 'star_a', 'star_b', 'measurements_theta', 'measurements_rho','mean_theta', 'mean_theta_error', 'mean_rho', 'mean_rho_error'), meta={'name': 'measured table'})
+
+### Search double stars on the image sequence
+reportTable_by_object = reportTable.group_by('object_id')
+print(reportTable_by_object.groups.keys)
+
+for key, group in zip(reportTable_by_object.groups.keys, reportTable_by_object.groups):
+    objectId = group
+    objectStarA = 
+    objectStarB = 
+    objectArrayTheta = 
+    objectArrayRho = 
+    objectMeanTheta = reportTable_by_object['theta_measured'].groups.aggregate(np.mean)  
+    objectMeanThetaErr = reportTable_by_object['theta_measured'].groups.aggregate(np.std)
+    objectMeanRho = reportTable_by_object['rho_measured'].groups.aggregate(np.mean)
+    objectMeanRhoErr = reportTable_by_object['rho_measured'].groups.aggregate(np.std)
+
+
 
 # Create QTable to collect all data for the final record summary per object
 
 
 
-starParallaxFactor = calcParallaxFactor(starParallax1, starParallax2)
-starPmFactor = calcPmFactor(starPmRa1, starPmDec1, starPmRa2, starPmDec2)
-starAbsMag1 = calcAbsMag(starGMag1, starParallax1) # Calculate Absolute magnitude
-starAbsMag2 = calcAbsMag(starGMag2, starParallax2) # Calculate Absolute magnitude
-starLum1 = calcLuminosity(starAbsMag1)
-starLum2 = calcLuminosity(starAbsMag2)
-starMass1 = calcMass(starLum1)
-starMass2 = calcMass(starLum2)
-starSepPar = sepCalc(starDistanceMin1, starDistanceMin2, rhoStar) # Separation of the stars in parsecs
-starEscapeVelocity = calcEscapevelocity(starMass1, starMass2, starSepPar, gravConst)
-starRelativeVelocity = calcRelativeVelocity(starPmRa1, starPmDec1, starPmRa2, starPmDec2, starRadVel1, starRadVel2, starDistanceMin1, starDistanceMin2)
-starHarshawFactor = calcHarshaw(starParallaxFactor, starPmFactor)
-starHarshawPhysicality = calcHarshawPhysicality(starHarshawFactor)
-starBinarity = calcBinarity(starRelativeVelocity, starEscapeVelocity)
-reportMassA = np.array([], dtype=np.float64)
-reportMassB = np.array([], dtype=np.float64)
-reportAbsMagA = np.array([], dtype=np.float64)
-reportAbsMagB = np.array([], dtype=np.float64)
-reportLumA = np.array([], dtype=np.float64)
-reportLumB = np.array([], dtype=np.float64)
-reportEscapeVelocity = np.array([], dtype=np.float64)
-reportRelativeVelocity = np.array([], dtype=np.float64)
-reportHarshawPhysicality = np.array([], dtype=str)
-reportBinarity = np.array([], dtype=str)
-pmCommon = ()
+pairParallaxFactor = calcParallaxFactor(starParallax1, starParallax2)
+pairPmFactor = calcPmFactor(starPmRa1, starPmDec1, starPmRa2, starPmDec2)
+pairAbsMag1 = calcAbsMag(starGMag1, starParallax1) # Calculate Absolute magnitude
+pairAbsMag2 = calcAbsMag(starGMag2, starParallax2) # Calculate Absolute magnitude
+pairLum1 = calcLuminosity(starAbsMag1)
+pairLum2 = calcLuminosity(starAbsMag2)
+pairMass1 = calcMass(starLum1)
+pairMass2 = calcMass(starLum2)
+pairSepPar = sepCalc(starDistanceMin1, starDistanceMin2, rhoStar) # Separation of the stars in parsecs
+pairEscapeVelocity = calcEscapevelocity(starMass1, starMass2, starSepPar, gravConst)
+pairRelativeVelocity = calcRelativeVelocity(starPmRa1, starPmDec1, starPmRa2, starPmDec2, starRadVel1, starRadVel2, starDistanceMin1, starDistanceMin2)
+pairHarshawFactor = calcHarshaw(starParallaxFactor, starPmFactor)
+pairHarshawPhysicality = calcHarshawPhysicality(starHarshawFactor)
+pairBinarity = calcBinarity(starRelativeVelocity, starEscapeVelocity)
+pairMassA = np.array([], dtype=np.float64)
+pairMassB = np.array([], dtype=np.float64)
+pairAbsMagA = np.array([], dtype=np.float64)
+pairAbsMagB = np.array([], dtype=np.float64)
+pairLumA = np.array([], dtype=np.float64)
+pairLumB = np.array([], dtype=np.float64)
+pairEscapeVelocity = np.array([], dtype=np.float64)
+pairRelativeVelocity = np.array([], dtype=np.float64)
+pairHarshawPhysicality = np.array([], dtype=str)
+pairBinarity = np.array([], dtype=str)
+pairpmCommon = ()
 #, starMass1, starMass2, starAbsMag1, starAbsMag2, starLum1, starLum2, starEscapeVelocity, starRelativeVelocity, starHarshawPhysicality, starBinarity
 if starPmFactor >= 0.8:
     pmCommon = 'CPM'
