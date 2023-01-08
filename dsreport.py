@@ -546,17 +546,16 @@ pairHarshawPhysicality = np.array([], dtype=str)
 pairBinarity = np.array([], dtype=str) """
 
 """ for key, group in zip(reportTable_by_object.groups.keys, reportTable_by_object.groups):
-    for object in group:
-        objectId = str(object)
-        objectStarA = reportTable_by_object.groups['designation_a']
-        objectStarB = reportTable_by_object.groups['designation_b']
-        objectArrayTheta = reportTable_by_object.groups['theta_measured']
-        objectArrayRho = reportTable_by_object.groups['rho_measured']
-        objectMeanTheta = reportTable_by_object.groups.keys['theta_measured'].groups.aggregate(np.mean)
-        objectMeanThetaErr = reportTable_by_object.groups.keys['theta_measured'].groups.aggregate(np.std)
-        objectMeanRho = reportTable_by_object.groups.keys['rho_measured'].groups.aggregate(np.mean)
-        objectMeanRhoErr = reportTable_by_object.groups.keys['rho_measured'].groups.aggregate(np.std)
-
+for object in group:
+objectId = str(object)
+objectStarA = reportTable_by_object.groups['designation_a']
+objectStarB = reportTable_by_object.groups['designation_b']
+objectArrayTheta = reportTable_by_object.groups['theta_measured']
+objectArrayRho = reportTable_by_object.groups['rho_measured']
+objectMeanTheta = reportTable_by_object.groups.keys['theta_measured'].groups.aggregate(np.mean)
+objectMeanThetaErr = reportTable_by_object.groups.keys['theta_measured'].groups.aggregate(np.std)
+objectMeanRho = reportTable_by_object.groups.keys['rho_measured'].groups.aggregate(np.mean)
+objectMeanRhoErr = reportTable_by_object.groups.keys['rho_measured'].groups.aggregate(np.std)
 print(objectStarA)
 print(objectStarB)
 print(objectMeanTheta)
