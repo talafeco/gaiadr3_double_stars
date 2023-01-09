@@ -188,6 +188,12 @@ def calcPmCategory(pmfact):
         pmCommon = 'DPM'
     return pmCommon
 
+# Convert string to numpy 'nan'
+def convertStringToNan(str):
+    if str == 'null':
+        str = np.nan
+    return str
+
 ### Run source detection, collect star data to Qtable
 workingDirectory = sys.argv[1]
 directoryContent = os.listdir(workingDirectory)
@@ -266,6 +272,7 @@ reportTable = QTable([reportFileName, reportSourceIdA, reportDr3DesignationA, re
 # , reportMassA, reportMassB, reportAbsMagA, reportAbsMagB, reportLumA, reportLumB, reportEscapeVelocity, reportRelativeVelocity, reportHarshawPhysicality, reportBinarity
 # , 'mass_a', 'mass_b', 'absmag_a', 'absmag_b', 'lum_a', 'lum_b', 'sys_esc_vel', 'sys_rel_vel', 'harshaw_physicality', 'binarity'
 
+
 for fitsFile in files:
     # 1. Read the list of sources extracted from an image (fits) file
     print('Processing file: ', fitsFile)
@@ -279,7 +286,7 @@ for fitsFile in files:
 
     daofind = DAOStarFinder(fwhm=10.0, threshold=18.0*std)  
     sources = daofind(data - median)
-
+    #print(sources)
     # 2. Define the catalog file based on the source coordinate and read data from catalog file(s) to a catalog
     segments = []
     for star in sources:
@@ -295,8 +302,9 @@ for fitsFile in files:
     # Read all segments into an array
         #gaiaStarsNames = ['solution_id', 'designation', 'source_id', 'random_index', 'ref_epoch', 'ra', 'ra_error', 'dec', 'dec_error', 'parallax', 'parallax_error', 'parallax_over_error', 'pm', 'pmra', 'pmra_error', 'pmdec', 'pmdec_error', 'ra_dec_corr', 'ra_parallax_corr', 'ra_pmra_corr', 'ra_pmdec_corr', 'dec_parallax_corr', 'dec_pmra_corr', 'dec_pmdec_corr', 'parallax_pmra_corr', 'parallax_pmdec_corr', 'pmra_pmdec_corr', 'astrometric_n_obs_al', 'astrometric_n_obs_ac', 'astrometric_n_good_obs_al', 'astrometric_n_bad_obs_al', 'astrometric_gof_al', 'astrometric_chi2_al', 'astrometric_excess_noise', 'astrometric_excess_noise_sig', 'astrometric_params_solved', 'astrometric_primary_flag', 'nu_eff_used_in_astrometry', 'pseudocolour', 'pseudocolour_error', 'ra_pseudocolour_corr', 'dec_pseudocolour_corr', 'parallax_pseudocolour_corr', 'pmra_pseudocolour_corr', 'pmdec_pseudocolour_corr', 'astrometric_matched_transits', 'visibility_periods_used', 'astrometric_sigma5d_max', 'matched_transits', 'new_matched_transits', 'matched_transits_removed', 'ipd_gof_harmonic_amplitude', 'ipd_gof_harmonic_phase', 'ipd_frac_multi_peak', 'ipd_frac_odd_win', 'ruwe', 'scan_direction_strength_k1', 'scan_direction_strength_k2', 'scan_direction_strength_k3', 'scan_direction_strength_k4', 'scan_direction_mean_k1', 'scan_direction_mean_k2', 'scan_direction_mean_k3', 'scan_direction_mean_k4', 'duplicated_source', 'phot_g_n_obs', 'phot_g_mean_flux', 'phot_g_mean_flux_error', 'phot_g_mean_flux_over_error', 'phot_g_mean_mag', 'phot_bp_n_obs', 'phot_bp_mean_flux', 'phot_bp_mean_flux_error', 'phot_bp_mean_flux_over_error', 'phot_bp_mean_mag', 'phot_rp_n_obs', 'phot_rp_mean_flux', 'phot_rp_mean_flux_error', 'phot_rp_mean_flux_over_error', 'phot_rp_mean_mag', 'phot_bp_rp_excess_factor', 'phot_bp_n_contaminated_transits', 'phot_bp_n_blended_transits', 'phot_rp_n_contaminated_transits', 'phot_rp_n_blended_transits', 'phot_proc_mode', 'bp_rp', 'bp_g', 'g_rp', 'radial_velocity', 'radial_velocity_error', 'rv_method_used', 'rv_nb_transits', 'rv_nb_deblended_transits', 'rv_visibility_periods_used', 'rv_expected_sig_to_noise', 'rv_renormalised_gof', 'rv_chisq_pvalue', 'rv_time_duration', 'rv_amplitude_robust', 'rv_template_teff', 'rv_template_logg', 'rv_template_fe_h', 'rv_atm_param_origin', 'vbroad', 'vbroad_error', 'vbroad_nb_transits', 'grvs_mag', 'grvs_mag_error', 'grvs_mag_nb_transits', 'rvs_spec_sig_to_noise', 'phot_variable_flag', 'l', 'b', 'ecl_lon', 'ecl_lat', 'in_qso_candidates', 'in_galaxy_candidates', 'non_single_star', 'has_xp_continuous', 'has_xp_sampled', 'has_rvs', 'has_epoch_photometry', 'has_epoch_rv', 'has_mcmc_gspphot', 'has_mcmc_msc', 'in_andromeda_survey', 'classprob_dsc_combmod_quasar', 'classprob_dsc_combmod_galaxy', 'classprob_dsc_combmod_star', 'teff_gspphot', 'teff_gspphot_lower', 'teff_gspphot_upper', 'logg_gspphot', 'logg_gspphot_lower', 'logg_gspphot_upper', 'mh_gspphot', 'mh_gspphot_lower', 'mh_gspphot_upper', 'distance_gspphot', 'distance_gspphot_lower', 'distance_gspphot_upper', 'azero_gspphot', 'azero_gspphot_lower', 'azero_gspphot_upper', 'ag_gspphot', 'ag_gspphot_lower', 'ag_gspphot_upper', 'ebpminrp_gspphot', 'ebpminrp_gspphot_lower', 'ebpminrp_gspphot_upper', 'libname_gspphot']
         #gaiaStarsFormats = ["U20,U20,U20"]
+    # Read all segments into an array
     gaiaStars = np.empty((0, 152))
-    
+
     # Add all segments to the numpy array
     for seg in segments:
         #segmentpart = np.genfromtxt(f"/home/gergo/Documents/dr3_catalog/gaiadr3_15mag_catalog/{seg}", delimiter=',', skip_header=1, names=gaiaStarsNames, dtype=gaiaStarsFormats)
@@ -304,13 +312,15 @@ for fitsFile in files:
         #print(segmentpart)
         #gaiaStars = np.append(gaiaStars, segmentpart, axis=0)
         segmentpart = Table.read(f"/home/gergo/Documents/dr3_catalog/gaiadr3_15mag_catalog/{seg}", format='ascii')
-        gaiaStars = vstack([gaiaStars, segmentpart])
+        #gaiaStars = vstack([gaiaStars, segmentpart])
+        gaiaStars = segmentpart
 
 
-
-    print(gaiaStars)
+    #print('### Gaia Star List ###')
+    #print(gaiaStars)
     dr3TableFileName = (str('dr3stars.csv'))
     gaiaStars.write(dr3TableFileName, format='ascii.ecsv', overwrite=True, delimiter=',')
+    print(gaiaStars.info)
     #print(segmentpart)
     
     # Search sources in the segment catalog
@@ -324,8 +334,8 @@ for fitsFile in files:
         sep = c.separation(catalogstar)
         if sep < Angle('00d00m02s'):
             #sourceTable.add_row([fitsFile, gaiaStars[idx + 1][2], 'Gaia DR3 ' + str(int(gaiaStars[idx + 1][2])), gaiaStars[idx + 1][5], gaiaStars[idx + 1][7], gaiaStars[idx + 1][9], gaiaStars[idx + 1][10], gaiaStars[idx + 1][13], gaiaStars[idx + 1][15], gaiaStars[idx + 1][69], gaiaStars[idx + 1][74], gaiaStars[idx + 1][79], gaiaStars[idx + 1][89], gaiaStars[idx + 1][90], gaiaStars[idx + 1][130], star['id'], ra2, dec2, star['mag']])
-            sourceTable.add_row([fitsFile, gaiaStars[idx]['source_id'], gaiaStars[idx]['designation'], gaiaStars[idx]['ra'], gaiaStars[idx]['dec'], gaiaStars[idx]['parallax'], gaiaStars[idx]['parallax_error'], gaiaStars[idx]['pmra'], gaiaStars[idx]['pmdec'], gaiaStars[idx]['phot_g_mean_mag'], gaiaStars[idx]['phot_bp_mean_mag'], gaiaStars[idx]['phot_rp_mean_mag'], gaiaStars[idx]['radial_velocity'], gaiaStars[idx]['radial_velocity_error'], gaiaStars[idx]['teff_gspphot'], star['id'], ra2, dec2, star['mag']])
-            
+            sourceTable.add_row([fitsFile, gaiaStars[idx]['source_id'], gaiaStars[idx]['designation'], convertStringToNan(gaiaStars[idx]['ra']), convertStringToNan(gaiaStars[idx]['dec']), convertStringToNan(gaiaStars[idx]['parallax']), convertStringToNan(gaiaStars[idx]['parallax_error']), convertStringToNan(gaiaStars[idx]['pmra']), convertStringToNan(gaiaStars[idx]['pmdec']), convertStringToNan(gaiaStars[idx]['phot_g_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_bp_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_rp_mean_mag']), convertStringToNan(gaiaStars[idx]['radial_velocity']), convertStringToNan(gaiaStars[idx]['radial_velocity_error']), convertStringToNan(gaiaStars[idx]['teff_gspphot']), star['id'], ra2, dec2, star['mag']])
+            #sourceTable.add_row([fitsFile, gaiaStars[idx]['source_id'], gaiaStars[idx]['designation'], gaiaStars[idx]['ra'], gaiaStars[idx]['dec'], gaiaStars[idx]['parallax'], gaiaStars[idx]['parallax_error'], gaiaStars[idx]['pmra'], gaiaStars[idx]['pmdec'], gaiaStars[idx]['phot_g_mean_mag'], gaiaStars[idx]['phot_bp_mean_mag'], gaiaStars[idx]['phot_rp_mean_mag'], gaiaStars[idx]['radial_velocity'], gaiaStars[idx]['radial_velocity_error'], gaiaStars[idx]['teff_gspphot'], star['id'], ra2, dec2, star['mag']])
 
 gaiaStarsTableFileName = (str('gaiaStarsTab.csv'))
 #np.savetxt(gaiaStarsTableFileName, gaiaStars, delimiter=',')
@@ -338,6 +348,7 @@ sourceTable.write(tableFileName, format='ascii', overwrite=True, delimiter=',')
 sourceTable_by_file = sourceTable.group_by('filename')
 print('### Source Table ###')
 print(sourceTable)
+print(sourceTable.info)
 sourceTableFileName = (str('sourceTab.csv'))
 sourceTable.write(sourceTableFileName, format='ascii', overwrite=True, delimiter=',')
 
@@ -395,8 +406,8 @@ for group in sourceTable_by_file.groups:
                     starActualMag2 = float(StarB[18])
                     starObjectId = (str(starId1) + '_' + str(starId2))
                     
-                    print(starId1, starName1)
-                    print(starId2, starName2)
+                    #print(starId1, starName1)
+                    #print(starId2, starName2)
 
                     # Value to modify Theta according to the appropriate quadrant
                     addThetaValue = ()
@@ -584,5 +595,41 @@ print(objectMeanRhoErr)
 meanTable.add_row([objectId, objectMeanTheta, objectMeanThetaErr, objectMeanRho, objectMeanRhoErr]) # objectArrayTheta, objectArrayRho, 
 print(meanTable) """
         
+""" # Add all segments to the numpy array
+    for seg in segments:
+        #segmentpart = np.genfromtxt(f"/home/gergo/Documents/dr3_catalog/gaiadr3_15mag_catalog/{seg}", delimiter=',', skip_header=1, names=gaiaStarsNames, dtype=gaiaStarsFormats)
+        #segmentpart = np.genfromtxt(StringIO(f"/home/gergo/Documents/dr3_catalog/gaiadr3_15mag_catalog/{seg}"), delimiter=",", skip_header=1)
+        #print(segmentpart)
+        #gaiaStars = np.append(gaiaStars, segmentpart, axis=0)
+        segmentpart = Table.read(f"/home/gergo/Documents/dr3_catalog/gaiadr3_15mag_catalog/{seg}", format='ascii')
+        gaiaStars = vstack([gaiaStars, segmentpart])
 
 
+    print('### Gaia Star List ###')
+    print(gaiaStars)
+    dr3TableFileName = (str('dr3stars.csv'))
+    gaiaStars.write(dr3TableFileName, format='ascii.ecsv', overwrite=True, delimiter=',')
+    #print(segmentpart)
+    
+    # Search sources in the segment catalog
+    for star in sources:
+        ra2, dec2 = mywcs.all_pix2world([[star ['xcentroid'], star ['ycentroid']]], 0)[0]   
+        c = SkyCoord(ra=ra2*u.degree, dec=dec2*u.degree)  
+        #catalog = SkyCoord(ra=gaiaStars[1:, 5]*u.degree, dec=gaiaStars[1:, 7]*u.degree)  
+        catalog = SkyCoord(ra=gaiaStars['ra']*u.degree, dec=gaiaStars['dec']*u.degree)
+        idx, d2d, d3d = c.match_to_catalog_sky(catalog)
+        catalogstar = SkyCoord(ra=gaiaStars[idx]['ra']*u.degree, dec=gaiaStars[idx]['dec']*u.degree)
+        sep = c.separation(catalogstar)
+        if sep < Angle('00d00m02s'):
+            #sourceTable.add_row([fitsFile, gaiaStars[idx + 1][2], 'Gaia DR3 ' + str(int(gaiaStars[idx + 1][2])), gaiaStars[idx + 1][5], gaiaStars[idx + 1][7], gaiaStars[idx + 1][9], gaiaStars[idx + 1][10], gaiaStars[idx + 1][13], gaiaStars[idx + 1][15], gaiaStars[idx + 1][69], gaiaStars[idx + 1][74], gaiaStars[idx + 1][79], gaiaStars[idx + 1][89], gaiaStars[idx + 1][90], gaiaStars[idx + 1][130], star['id'], ra2, dec2, star['mag']])
+            sourceTable.add_row([fitsFile, gaiaStars[idx]['source_id'], gaiaStars[idx]['designation'], gaiaStars[idx]['ra'], gaiaStars[idx]['dec'], gaiaStars[idx]['parallax'], gaiaStars[idx]['parallax_error'], gaiaStars[idx]['pmra'], gaiaStars[idx]['pmdec'], gaiaStars[idx]['phot_g_mean_mag'], gaiaStars[idx]['phot_bp_mean_mag'], gaiaStars[idx]['phot_rp_mean_mag'], gaiaStars[idx]['radial_velocity'], gaiaStars[idx]['radial_velocity_error'], gaiaStars[idx]['teff_gspphot'], star['id'], ra2, dec2, star['mag']]) """
+
+    
+""" # Read segment files into a dictionary
+    filename = open(f"/home/gergo/Documents/dr3_catalog/gaiadr3_15mag_catalog/{seg}", 'r')
+    file = csv.DictReader(filename)
+    fieldnames = ['solution_id', 'designation', 'source_id', 'random_index', 'ref_epoch', 'ra', 'ra_error', 'dec', 'dec_error', 'parallax', 'parallax_error', 'parallax_over_error', 'pm', 'pmra', 'pmra_error', 'pmdec', 'pmdec_error', 'ra_dec_corr', 'ra_parallax_corr', 'ra_pmra_corr', 'ra_pmdec_corr', 'dec_parallax_corr', 'dec_pmra_corr', 'dec_pmdec_corr', 'parallax_pmra_corr', 'parallax_pmdec_corr', 'pmra_pmdec_corr', 'astrometric_n_obs_al', 'astrometric_n_obs_ac', 'astrometric_n_good_obs_al', 'astrometric_n_bad_obs_al', 'astrometric_gof_al', 'astrometric_chi2_al', 'astrometric_excess_noise', 'astrometric_excess_noise_sig', 'astrometric_params_solved', 'astrometric_primary_flag', 'nu_eff_used_in_astrometry', 'pseudocolour', 'pseudocolour_error', 'ra_pseudocolour_corr', 'dec_pseudocolour_corr', 'parallax_pseudocolour_corr', 'pmra_pseudocolour_corr', 'pmdec_pseudocolour_corr', 'astrometric_matched_transits', 'visibility_periods_used', 'astrometric_sigma5d_max', 'matched_transits', 'new_matched_transits', 'matched_transits_removed', 'ipd_gof_harmonic_amplitude', 'ipd_gof_harmonic_phase', 'ipd_frac_multi_peak', 'ipd_frac_odd_win', 'ruwe', 'scan_direction_strength_k1', 'scan_direction_strength_k2', 'scan_direction_strength_k3', 'scan_direction_strength_k4', 'scan_direction_mean_k1', 'scan_direction_mean_k2', 'scan_direction_mean_k3', 'scan_direction_mean_k4', 'duplicated_source', 'phot_g_n_obs', 'phot_g_mean_flux', 'phot_g_mean_flux_error', 'phot_g_mean_flux_over_error', 'phot_g_mean_mag', 'phot_bp_n_obs', 'phot_bp_mean_flux', 'phot_bp_mean_flux_error', 'phot_bp_mean_flux_over_error', 'phot_bp_mean_mag', 'phot_rp_n_obs', 'phot_rp_mean_flux', 'phot_rp_mean_flux_error', 'phot_rp_mean_flux_over_error', 'phot_rp_mean_mag', 'phot_bp_rp_excess_factor', 'phot_bp_n_contaminated_transits', 'phot_bp_n_blended_transits', 'phot_rp_n_contaminated_transits', 'phot_rp_n_blended_transits', 'phot_proc_mode', 'bp_rp', 'bp_g', 'g_rp', 'radial_velocity', 'radial_velocity_error', 'rv_method_used', 'rv_nb_transits', 'rv_nb_deblended_transits', 'rv_visibility_periods_used', 'rv_expected_sig_to_noise', 'rv_renormalised_gof', 'rv_chisq_pvalue', 'rv_time_duration', 'rv_amplitude_robust', 'rv_template_teff', 'rv_template_logg', 'rv_template_fe_h', 'rv_atm_param_origin', 'vbroad', 'vbroad_error', 'vbroad_nb_transits', 'grvs_mag', 'grvs_mag_error', 'grvs_mag_nb_transits', 'rvs_spec_sig_to_noise', 'phot_variable_flag', 'l', 'b', 'ecl_lon', 'ecl_lat', 'in_qso_candidates', 'in_galaxy_candidates', 'non_single_star', 'has_xp_continuous', 'has_xp_sampled', 'has_rvs', 'has_epoch_photometry', 'has_epoch_rv', 'has_mcmc_gspphot', 'has_mcmc_msc', 'in_andromeda_survey', 'classprob_dsc_combmod_quasar', 'classprob_dsc_combmod_galaxy', 'classprob_dsc_combmod_star', 'teff_gspphot', 'teff_gspphot_lower', 'teff_gspphot_upper', 'logg_gspphot', 'logg_gspphot_lower', 'logg_gspphot_upper', 'mh_gspphot', 'mh_gspphot_lower', 'mh_gspphot_upper', 'distance_gspphot', 'distance_gspphot_lower', 'distance_gspphot_upper', 'azero_gspphot', 'azero_gspphot_lower', 'azero_gspphot_upper', 'ag_gspphot', 'ag_gspphot_lower', 'ag_gspphot_upper', 'ebpminrp_gspphot', 'ebpminrp_gspphot_lower', 'ebpminrp_gspphot_upper', 'libname_gspphot']
+    # here an array definition needs to be inserted for the matrix
+    starList = []
+    for line in file:
+        starList.append(line) """
