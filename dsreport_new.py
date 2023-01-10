@@ -520,7 +520,7 @@ objectMean = reportTable_by_object.groups.aggregate(np.mean)
 count = 1
 for ds in reportTable_by_object.groups:
     print('\n### Group index:', count, '###')
-    print(ds)
+    #print(ds)
     count = count + 1
     rhoPairDr3 = rhoCalc(ds[1][3], ds[1][4], ds[1][20], ds[1][21])
     pairDistanceMinA = calcDistanceMin(ds[1][5], ds[1][6])
@@ -560,8 +560,9 @@ for ds in reportTable_by_object.groups:
     pairHarshawFactor = calcHarshaw(pairParallaxFactor, pairPmFactor)
     pairHarshawPhysicality = calcHarshawPhysicality(pairHarshawFactor)
     pairBinarity = calcBinarity(pairRelativeVelocity, pairEscapeVelocity)
-            
-    print('Component A:', pairDesignationA)
+
+    print('### COMPONENTS ###')        
+    print('\nComponent A:', pairDesignationA)
     print('Component B:', pairDesignationB)
     print('\nWDS Identifier:\n', pairWdsIdentifier)
     #print(pairWdsIdentifier)
