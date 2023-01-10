@@ -489,8 +489,8 @@ for group in sourceTable_by_file.groups:
                     if distanceCommon == 'overlapping':
                         print(star[0], '|', starName1,'|',starName2,'|',thetaStar,'|',rhoStar,'|',starGMag1,'|',starGMag2,'|',starDistance1,'|',starDistanceMax1,'|',starDistanceMin1,'|',starDistanceRange1,'|',starDistance2,'|',starDistanceMax2,'|',starDistanceMin2,'|',starDistanceRange2,'|',distanceCommon,'|', thetaActual,'|',rhoActual)
                         reportTable.add_row([star[0], starId1, starName1, starRa1, starDec1, starParallax1, starParallaxError1, starPmRa1, starPmDec1, starGMag1, starBpMag1, starRpMag1, starRadVel1, starRadVelErr1, starTemp1, starActualRa1, starActualDec1, starActualMag1, starId2, starName2, starRa2, starDec2, starParallax2, starParallaxError2, starPmRa2, starPmDec2, starGMag2, starBpMag2, starRpMag2, starRadVel2, starRadVelErr2, starTemp2, starActualRa2, starActualDec2, starActualMag2, thetaStar, thetaActual, rhoStar, rhoActual, starObjectId])
-print('### Report Table ###')
-print(reportTable)
+#print('### Report Table ###')
+#print(reportTable)
 tableFileName = (str('testQTab.csv'))
 reportTable.write(tableFileName, format='ascii', overwrite=True, delimiter=',')
 
@@ -509,11 +509,11 @@ meanTable = QTable([measuredObject, measuredMeanTheta, measuredMeanThetaErr, mea
 
 ### Search double stars on the image sequence
 reportTable_by_object = reportTable.group_by('object_id')
-print('\n### Report Table by object ###')
-print(reportTable_by_object)
+#print('\n### Report Table by object ###')
+#print(reportTable_by_object)
 
 objectMean = reportTable_by_object.groups.aggregate(np.mean)
-print(objectMean)
+#print(objectMean)
 
 
 
@@ -563,7 +563,7 @@ for ds in reportTable_by_object.groups:
             
     print('Component A:', pairDesignationA)
     print('Component B:', pairDesignationB)
-    print('WDS Identifier:\n', pairWdsIdentifier)
+    print('\nWDS Identifier:\n', pairWdsIdentifier)
     #print(pairWdsIdentifier)
     print('\nTheta measurements\n', ds['theta_measured'])
     print('Mean:', pairMeanTheta[0])
