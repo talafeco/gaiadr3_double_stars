@@ -21,6 +21,8 @@ import warnings
 from io import StringIO
 warnings.filterwarnings("ignore")
 
+# List of constances
+wdsFile = Table.read(f"/home/gergo/Documents/dr3_catalog/dr3-wds/dr3-wds.csv", format='ascii')
 
 ### Declare functions
 # Function to calculate Delta RA
@@ -193,6 +195,29 @@ def convertStringToNan(str):
     if str == 'null':
         str = np.nan
     return str
+
+# Search pair in Washington double Star Catalog
+def searchWds(pairadesig):
+    wdsIdx = np.where(pairadesig == wdsFile['designation'])
+    wdsRow = wdsFile[wdsIdx]
+    if wdsRow:
+        wdsPair = wdsRow[0]
+        #wdsDiscov = wdsRow['discovr']
+        #wdsComp = wdsRow['comp']
+        #wdsPair = wdsName
+    elif not wdsRow:
+        wdsPair = 'Not found'
+    return wdsPair
+
+
+#def evalRadVel(radvel, radvelerr):
+#    ratio = radvelerr / radvel
+#    result = ()
+#    if ratio >= 0.05:
+#        result = 'Inaccurate'
+#    else:
+#        result = 'Accurate'
+#    return result
 
 ### Run source detection, collect star data to Qtable
 workingDirectory = sys.argv[1]
@@ -492,7 +517,6 @@ print(objectMean)
 
 
 
-
 count = 1
 for ds in reportTable_by_object.groups:
     print('\n### Group index:', count, '###')
@@ -511,13 +535,18 @@ for ds in reportTable_by_object.groups:
     pairMagMeasuredBErr = ds['magmeasured_b'].groups.aggregate(np.std)
     pairDesignationA = ds[1][2]
     pairDesignationB = ds[1][19]
+    pairWdsIdentifier = searchWds(pairDesignationA)
     pairGMagnitudeA = ds[1][9]
     pairGMagnitudeB = ds[1][26]
     pairMagDiff = math.fabs(pairMagMeasuredA - pairMagMeasuredB)
     pairMagDiffDr3 = math.fabs(pairGMagnitudeA - pairGMagnitudeB)
-    
-    pairParallaxFactor = calcParallaxFactor(ds[1][5], ds[1][22])
-    pairPmFactor = calcPmFactor(ds[1][7], ds[1][8], ds[1][24], ds[1][25])
+    pairRadVelRatioA = math.fabs(ds[1][13] / ds[1][12]) * 100
+    pairRadVelRatioB = math.fabs(ds[1][30] / ds[1][29]) * 100
+    pairRadVelA, pairRadVelAErr, pairRadVelB, pairRadVelBErr = ds[1][12], ds[1][13], ds[1][29], ds[1][30]
+    #pairRadVelAccA = evalRadVel(ds[1][12], ds[1][13])
+    #pairRadVelAccB = evalRadVel(ds[1][29], ds[1][30])
+    pairParallaxFactor = (calcParallaxFactor(ds[1][5], ds[1][22])) * 100
+    pairPmFactor = (calcPmFactor(ds[1][7], ds[1][8], ds[1][24], ds[1][25])) * 100
     pairPmCommon = calcPmCategory(pairPmFactor)
     pairAbsMag1 = calcAbsMag(pairGMagnitudeA, ds[1][5]) # Calculate Absolute magnitude
     pairAbsMag2 = calcAbsMag(pairGMagnitudeB, ds[1][22]) # Calculate Absolute magnitude
@@ -534,6 +563,8 @@ for ds in reportTable_by_object.groups:
             
     print('Component A:', pairDesignationA)
     print('Component B:', pairDesignationB)
+    print('WDS Identifier:\n', pairWdsIdentifier)
+    #print(pairWdsIdentifier)
     print('\nTheta measurements\n', ds['theta_measured'])
     print('Mean:', pairMeanTheta[0])
     print('Error:', pairMeanThetaErr[0])
@@ -550,8 +581,8 @@ for ds in reportTable_by_object.groups:
     print('Error:', pairMagMeasuredBErr[0])
     print('\nMagnitude difference (DR3):', pairMagDiffDr3)
     print('Magnitude difference (measured):', pairMagDiff)
-    print('Parallax factor:', pairParallaxFactor)
-    print('Proper motion factor:', pairPmFactor)
+    print('Parallax factor:', pairParallaxFactor, '%')
+    print('Proper motion factor:', pairPmFactor, '%')
     print('Proper motion category:', pairPmCommon)
     print('Absolute magnitude A:', pairAbsMag1)
     print('Absolute magnitude B:', pairAbsMag2)
@@ -559,12 +590,52 @@ for ds in reportTable_by_object.groups:
     print('Luminosity B:', pairLum2)
     print('Mass A:', pairMass1)
     print('Mass B:', pairMass2)
+    print('Radial velocity of the stars', 'A:', pairRadVelA, 'km/s (Err:', pairRadVelAErr, 'km/s)', 'B:', pairRadVelB, 'km/s (Err:', pairRadVelBErr, 'km/s)')
+    print('Radial velocity ratio A:', pairRadVelRatioA, '%')
+    print('Radial velocity ratio B:', pairRadVelRatioB, '%')
+    #print('Radial velocity accuracy A:', pairRadVelAccA, 'B:', pairRadVelAccB)
     print('Separation:', pairSepPar, 'parsec,', pairSepPar * 206265, 'AU')
-    print('Pair Escape velocity:', pairEscapeVelocity)
-    print('Pair Relative velocity:', pairRelativeVelocity)
+    print('Pair Escape velocity:', pairEscapeVelocity, 'km/s')
+    print('Pair Relative velocity:', pairRelativeVelocity, 'km/s')
     print('Pair Harshaw factor:', pairHarshawFactor)
     print('Pair Harshaw physicality:', pairHarshawPhysicality)
     print('Pair binarity:', pairBinarity)
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 """ pairMassA = np.array([], dtype=np.float64)
 pairMassB = np.array([], dtype=np.float64)
