@@ -377,8 +377,8 @@ sourceTable_by_file = sourceTable.group_by('filename')
 #print('### Source Table ###')
 #print(sourceTable)
 #print(sourceTable.info)
-sourceTableFileName = (str('sourceTab.csv'))
-sourceTable.write(sourceTableFileName, format='ascii', overwrite=True, delimiter=',')
+#sourceTableFileName = (str('sourceTab.csv'))
+#sourceTable.write(sourceTableFileName, format='ascii', overwrite=True, delimiter=',')
 
 #for key, group in zip(sourceTable_by_file.groups.keys, sourceTable_by_file.groups):
 for group in sourceTable_by_file.groups:
@@ -487,7 +487,7 @@ for group in sourceTable_by_file.groups:
 
                     #Print data, if stars are close and share a common distance range
                     if distanceCommon == 'overlapping':
-                        print(star[0], '|', starName1,'|',starName2,'|',thetaStar,'|',rhoStar,'|',starGMag1,'|',starGMag2,'|',starDistance1,'|',starDistanceMax1,'|',starDistanceMin1,'|',starDistanceRange1,'|',starDistance2,'|',starDistanceMax2,'|',starDistanceMin2,'|',starDistanceRange2,'|',distanceCommon,'|', thetaActual,'|',rhoActual)
+                        #print(star[0], '|', starName1,'|',starName2,'|',thetaStar,'|',rhoStar,'|',starGMag1,'|',starGMag2,'|',starDistance1,'|',starDistanceMax1,'|',starDistanceMin1,'|',starDistanceRange1,'|',starDistance2,'|',starDistanceMax2,'|',starDistanceMin2,'|',starDistanceRange2,'|',distanceCommon,'|', thetaActual,'|',rhoActual)
                         reportTable.add_row([star[0], starId1, starName1, starRa1, starDec1, starParallax1, starParallaxError1, starPmRa1, starPmDec1, starGMag1, starBpMag1, starRpMag1, starRadVel1, starRadVelErr1, starTemp1, starActualRa1, starActualDec1, starActualMag1, starId2, starName2, starRa2, starDec2, starParallax2, starParallaxError2, starPmRa2, starPmDec2, starGMag2, starBpMag2, starRpMag2, starRadVel2, starRadVelErr2, starTemp2, starActualRa2, starActualDec2, starActualMag2, thetaStar, thetaActual, rhoStar, rhoActual, starObjectId])
 #print('### Report Table ###')
 #print(reportTable)
@@ -554,14 +554,18 @@ for ds in reportTable_by_object.groups:
     pairLum2 = calcLuminosity(pairAbsMag2)
     pairMass1 = calcMass(pairLum1)
     pairMass2 = calcMass(pairLum2)
+    pairBVIndexA = ds[1][10] - ds[1][11]
+    pairBVIndexB = ds[1][27] - ds[1][28]
     pairSepPar = sepCalc(pairDistanceMinA, pairDistanceMinB, rhoPairDr3) # Separation of the pairs in parsecs
     pairEscapeVelocity = calcEscapevelocity(pairMass1, pairMass2, pairSepPar, gravConst)
     pairRelativeVelocity = calcRelativeVelocity(ds[1][7], ds[1][8], ds[1][24], ds[1][25], ds[1][12], ds[1][29], pairDistanceMinA, pairDistanceMinB)
     pairHarshawFactor = calcHarshaw(pairParallaxFactor, pairPmFactor)
     pairHarshawPhysicality = calcHarshawPhysicality(pairHarshawFactor)
     pairBinarity = calcBinarity(pairRelativeVelocity, pairEscapeVelocity)
+    reportName = (workingDirectory + '/' + ds[0][39] + '.txt')
+    reportFile = open(reportName, "a")
 
-    print('### COMPONENTS ###')        
+    print('### COMPONENTS ###')
     print('\nComponent A:', pairDesignationA)
     print('Component B:', pairDesignationB)
     print('\nWDS Identifier:\n', pairWdsIdentifier)
@@ -591,6 +595,7 @@ for ds in reportTable_by_object.groups:
     print('Luminosity B:', pairLum2)
     print('Mass A:', pairMass1)
     print('Mass B:', pairMass2)
+    print('BV index A:', pairBVIndexA, 'B:', pairBVIndexB)
     print('Radial velocity of the stars', 'A:', pairRadVelA, 'km/s (Err:', pairRadVelAErr, 'km/s)', 'B:', pairRadVelB, 'km/s (Err:', pairRadVelBErr, 'km/s)')
     print('Radial velocity ratio A:', pairRadVelRatioA, '%')
     print('Radial velocity ratio B:', pairRadVelRatioB, '%')
@@ -602,40 +607,49 @@ for ds in reportTable_by_object.groups:
     print('Pair Harshaw physicality:', pairHarshawPhysicality)
     print('Pair binarity:', pairBinarity)
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    reportFile.write('### COMPONENTS ###')        
+    reportFile.write('\n\nComponent A: ' + pairDesignationA)
+    reportFile.write('\nComponent B: ' + pairDesignationB)
+    reportFile.write('\n\nWDS Identifier: \n')
+    reportFile.write(str(pairWdsIdentifier))
+    reportFile.write('\n\nTheta measurements\n' + str(ds['theta_measured']))
+    reportFile.write('\nMean: ' + str(pairMeanTheta[0]))
+    reportFile.write('\nError: ' + str(pairMeanThetaErr[0]))
+    reportFile.write('\n\nRho measurements\n' + str(ds['rho_measured']))
+    reportFile.write('\nMean: ' + str(pairMeanRho[0]))
+    reportFile.write('\nError: ' + str(pairMeanRhoErr[0]))
+    reportFile.write('\n\nMagnitude A DR3:  \n' + str(pairGMagnitudeA))
+    reportFile.write('\n\nMagnitude A measurements\n' + str(ds['magmeasured_a']))
+    reportFile.write('\nMean: ' + str(pairMagMeasuredA[0]))
+    reportFile.write('\nError: ' + str(pairMagMeasuredAErr[0]))
+    reportFile.write('\n\nMagnitude B DR3:  \n' + str(pairGMagnitudeB))
+    reportFile.write('\n\nMagnitude B measuremets\n' + str(ds['magmeasured_b']))
+    reportFile.write('\nMean: ' + str(pairMagMeasuredB[0]))
+    reportFile.write('\nError: ' + str(pairMagMeasuredBErr[0]))
+    reportFile.write('\n\nMagnitude difference (DR3): ' + str(pairMagDiffDr3))
+    reportFile.write('\nMagnitude difference (measured): ' + str(pairMagDiff))
+    reportFile.write('\n\nParallax factor: ' + str(pairParallaxFactor) + '%')
+    reportFile.write('\nProper motion factor: ' + str(pairPmFactor) + '%')
+    reportFile.write('\nProper motion category: ' + str(pairPmCommon))
+    reportFile.write('\nAbsolute magnitude A: ' + str(pairAbsMag1))
+    reportFile.write('\nAbsolute magnitude B: ' + str(pairAbsMag2))
+    reportFile.write('\nLuminosity A: ' + str(pairLum1))
+    reportFile.write('\nLuminosity B: ' + str(pairLum2))
+    reportFile.write('\nMass A: ' + str(pairMass1))
+    reportFile.write('\nMass B: ' + str(pairMass2))
+    reportFile.write('\nBV index A: ' + str(pairBVIndexA) + ' B: ' + str(pairBVIndexB))
+    reportFile.write('\nRadial velocity of the stars A: ' + str(pairRadVelA) + ' km/s (Err: ' + str(pairRadVelAErr) + ' km/s) B: ' + str(pairRadVelB) + ' km/s (Err: ' + str(pairRadVelBErr) + ' km/s)')
+    reportFile.write('\nRadial velocity ratio A: ' + str(pairRadVelRatioA) + ' %')
+    reportFile.write('\nRadial velocity ratio B: ' + str(pairRadVelRatioB) + ' %')
+    #reportFile.write('Radial velocity accuracy A: ' + pairRadVelAccA + 'B: ' + pairRadVelAccB)
+    reportFile.write('\nSeparation: ' + str(pairSepPar) + ' parsec, ' + str(pairSepPar * 206265) + ' AU')
+    reportFile.write('\nPair Escape velocity: ' + str(pairEscapeVelocity) + ' km/s')
+    reportFile.write('\nPair Relative velocity: ' + str(pairRelativeVelocity) + ' km/s')
+    reportFile.write('\nPair Harshaw factor: ' + str(pairHarshawFactor))
+    reportFile.write('\nPair Harshaw physicality: ' + str(pairHarshawPhysicality))
+    reportFile.write('\nPair binarity: ' + str(pairBinarity))
+    reportFile.close()
+    
 
 
 """ pairMassA = np.array([], dtype=np.float64)
