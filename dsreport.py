@@ -133,7 +133,7 @@ def calcHarshawPhysicality(harfac):
 # Function to calculate the Tangential speed components from proper motin in km/s
 # Excel formula to calculate the Proper motion in km/s =pm_ra(dec)/1000*distance from earth*4.74(au per year to km/s)
 def calcTangentialSpeedComponent(dist, pm):
-    tanspeed = (pm/1000)*dist*4.74372
+    tanspeed = pm/1000*dist*4.74372
     return tanspeed
 
 # Function to calculate the Relative velocity
