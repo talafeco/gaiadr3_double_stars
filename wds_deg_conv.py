@@ -37,7 +37,7 @@ decDeg = np.array([], dtype=np.float64)
 sourceTable = QTable([wdsIdentifier, discoverer, components, wdsTheta, wdsRho, magPri, magSec, wdsSpectra, pmARa, pmADec, pmBRa, pmBDec, raSysHrs, decSys, raDeg, decDeg], names=('wds_identifier', 'discovr', 'comp', 'theta', 'rho', 'mag_pri', 'mag_sec', 'spectra', 'pm_a_ra', 'pm_a_dec', 'pm_b_ra', 'pm_b_dec', 'ra_hrs', 'dec_deg', 'ra', 'dec'), meta={'name': 'first table'})
 
 for line in starList:
-    print(line['ra_hrs'])
+    print(dict.get['ra_hrs'])
     #print(line['dec'])
     raLine = (str(line['ra_hrs'][0:2]) + 'h' + str(line['ra_hrs'][2:4]) + 'm' + str(line['ra_hrs'][4:9]) + 's')
     decLine = line['dec'][0:3] + 'd' + line['dec'][3:5] + 'm' + line['dec'][5:9] + 's'
