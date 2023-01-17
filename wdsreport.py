@@ -111,11 +111,17 @@ for fitsFile in files:
 
     for star in sources:
         ra2, dec2 = mywcs.all_pix2world([[star ['xcentroid'], star ['ycentroid']]], 0)[0]   
-        c = SkyCoord(ra=ra2*u.degree, dec=dec2*u.degree)  
+        mainstar = SkyCoord(ra=ra2*u.degree, dec=dec2*u.degree)  
         #catalog = SkyCoord(ra=gaiaStars[1:, 5]*u.degree, dec=gaiaStars[1:, 7]*u.degree)  
-        catalog = SkyCoord(ra=wdsTable['ra (deg)']*u.degree, dec=wdsTable['dec (deg)']*u.degree)
-        idx, d2d, d3d = c.match_to_catalog_sky(catalog)
+        wdscatalog = SkyCoord(ra=wdsTable['ra (deg)']*u.degree, dec=wdsTable['dec (deg)']*u.degree)
+        idx, d2d, d3d = mainstar.match_to_catalog_sky(wdscatalog)
         catalogstar = SkyCoord(ra=wdsTable[idx]['ra']*u.degree, dec=wdsTable[idx]['dec']*u.degree)
-        sep = c.separation(catalogstar)
+        sep = mainstar.separation(catalogstar)
         if sep < Angle('00d01m00s'):
-            dsTable.add_row([fitsFile, wdsTable[idx]['wds_identifier'], wdsTable[idx]['discovr'], wdsTable[idx]['comp'], wdsTable[idx]['theta'], wdsTable[idx]['rho'], wdsTable[idx]['mag_pri'], wdsTable[idx]['mag_sec'], wdsTable[idx]['spectra'], wdsTable[idx]['pm_a_ra'], wdsTable[idx]['pm_a_dec'], wdsTable[idx]['pm_b_ra'], wdsTable[idx]['pm_b_dec'], wdsTable[idx]['ra (hms)'], wdsTable[idx]['dec (dms)'], wdsTable[idx]['ra (deg)'], wdsTable[idx]['dec (deg)']])
+            companion = mainstar.directional_offset_by(catalogstar['theta'], catalogstar['rho'])
+            #kikeresni a források közül a megfelelőt, ami ezen a pozíción van
+            #ha nincs, tágítani a keresést
+            #ellenőrizni a két forrás magnitúdó különbségét, összevetni a wds-el, csak akkor elfogadni, ha pl 1-en belül van
+            #megadni a források koordinátáit, kiszámítani a mért theta-t és rho-t
+        
+        
