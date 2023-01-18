@@ -22,7 +22,7 @@ from io import StringIO
 warnings.filterwarnings("ignore")
 
 # List of constances
-wdsFile = Table.read(f"/home/gergo/Documents/dr3_catalog/dr3-wds/dr3-wds.csv", format='ascii')
+wdsFile = Table.read(f"/usr/share/dr3map/dr3-wds/dr3-wds.csv", format='ascii')
 
 ### Declare functions
 # Function to calculate Delta RA
@@ -337,10 +337,10 @@ for fitsFile in files:
         #print(segmentpart)
         #gaiaStars = np.append(gaiaStars, segmentpart, axis=0)
         if len(segments) > 1:
-            segmentpart = Table.read(f"/home/gergo/Documents/dr3_catalog/gaiadr3_15mag_catalog/{seg}", format='ascii')
+            segmentpart = Table.read(f"/usr/share/dr3map/gaiadr3_15mag_catalog/{seg}", format='ascii')
             gaiaStars = vstack([gaiaStars, segmentpart])
         else:
-            segmentpart = Table.read(f"/home/gergo/Documents/dr3_catalog/gaiadr3_15mag_catalog/{seg}", format='ascii')
+            segmentpart = Table.read(f"/usr/share/dr3map/gaiadr3_15mag_catalog/{seg}", format='ascii')
             gaiaStars = segmentpart
 
 
@@ -491,8 +491,11 @@ for group in sourceTable_by_file.groups:
                         reportTable.add_row([star[0], starId1, starName1, starRa1, starDec1, starParallax1, starParallaxError1, starPmRa1, starPmDec1, starGMag1, starBpMag1, starRpMag1, starRadVel1, starRadVelErr1, starTemp1, starActualRa1, starActualDec1, starActualMag1, starId2, starName2, starRa2, starDec2, starParallax2, starParallaxError2, starPmRa2, starPmDec2, starGMag2, starBpMag2, starRpMag2, starRadVel2, starRadVelErr2, starTemp2, starActualRa2, starActualDec2, starActualMag2, thetaStar, thetaActual, rhoStar, rhoActual, starObjectId])
 #print('### Report Table ###')
 #print(reportTable)
-tableFileName = (str('testQTab.csv'))
-reportTable.write(tableFileName, format='ascii', overwrite=True, delimiter=',')
+#tableFileName = (str('testQTab.csv'))
+#reportTable.write(tableFileName, format='ascii', overwrite=True, delimiter=',')
+
+print('### Report Table ###')
+print(reportTable)
 
 # Create Qtable to list the measurements and the standard error per groups (double star)
 measuredObject = np.array([], dtype=str)
@@ -509,8 +512,8 @@ meanTable = QTable([measuredObject, measuredMeanTheta, measuredMeanThetaErr, mea
 
 ### Search double stars on the image sequence
 reportTable_by_object = reportTable.group_by('object_id')
-#print('\n### Report Table by object ###')
-#print(reportTable_by_object)
+print('\n### Report Table by object ###')
+print(reportTable_by_object)
 
 objectMean = reportTable_by_object.groups.aggregate(np.mean)
 #print(objectMean)
@@ -522,9 +525,9 @@ for ds in reportTable_by_object.groups:
     print('\n### Group index:', count, '###')
     #print(ds)
     count = count + 1
-    rhoPairDr3 = rhoCalc(ds[1][3], ds[1][4], ds[1][20], ds[1][21])
-    pairDistanceMinA = calcDistanceMin(ds[1][5], ds[1][6])
-    pairDistanceMinB = calcDistanceMin(ds[1][22], ds[1][23])
+    rhoPairDr3 = rhoCalc(ds[0][3], ds[0][4], ds[0][20], ds[0][21])
+    pairDistanceMinA = calcDistanceMin(ds[0][5], ds[0][6])
+    pairDistanceMinB = calcDistanceMin(ds[0][22], ds[0][23])
     pairMeanTheta = ds['theta_measured'].groups.aggregate(np.mean)
     pairMeanThetaErr = ds['theta_measured'].groups.aggregate(np.std)
     pairMeanRho = ds['rho_measured'].groups.aggregate(np.mean)
@@ -533,32 +536,32 @@ for ds in reportTable_by_object.groups:
     pairMagMeasuredAErr = ds['magmeasured_a'].groups.aggregate(np.std)
     pairMagMeasuredB = ds['magmeasured_b'].groups.aggregate(np.mean)
     pairMagMeasuredBErr = ds['magmeasured_b'].groups.aggregate(np.std)
-    pairDesignationA = ds[1][2]
-    pairDesignationB = ds[1][19]
+    pairDesignationA = ds[0][2]
+    pairDesignationB = ds[0][19]
     pairWdsIdentifier = searchWds(pairDesignationA)
-    pairGMagnitudeA = ds[1][9]
-    pairGMagnitudeB = ds[1][26]
+    pairGMagnitudeA = ds[0][9]
+    pairGMagnitudeB = ds[0][26]
     pairMagDiff = math.fabs(pairMagMeasuredA - pairMagMeasuredB)
     pairMagDiffDr3 = math.fabs(pairGMagnitudeA - pairGMagnitudeB)
-    pairRadVelRatioA = math.fabs(ds[1][13] / ds[1][12]) * 100
-    pairRadVelRatioB = math.fabs(ds[1][30] / ds[1][29]) * 100
-    pairRadVelA, pairRadVelAErr, pairRadVelB, pairRadVelBErr = ds[1][12], ds[1][13], ds[1][29], ds[1][30]
-    #pairRadVelAccA = evalRadVel(ds[1][12], ds[1][13])
-    #pairRadVelAccB = evalRadVel(ds[1][29], ds[1][30])
-    pairParallaxFactor = (calcParallaxFactor(ds[1][5], ds[1][22])) * 100
-    pairPmFactor = (calcPmFactor(ds[1][7], ds[1][8], ds[1][24], ds[1][25])) * 100
+    pairRadVelRatioA = math.fabs(ds[0][13] / ds[0][12]) * 100
+    pairRadVelRatioB = math.fabs(ds[0][30] / ds[0][29]) * 100
+    pairRadVelA, pairRadVelAErr, pairRadVelB, pairRadVelBErr = ds[0][12], ds[0][13], ds[0][29], ds[0][30]
+    #pairRadVelAccA = evalRadVel(ds[0][12], ds[0][13])
+    #pairRadVelAccB = evalRadVel(ds[0][29], ds[0][30])
+    pairParallaxFactor = (calcParallaxFactor(ds[0][5], ds[0][22])) * 100
+    pairPmFactor = (calcPmFactor(ds[0][7], ds[0][8], ds[0][24], ds[0][25])) * 100
     pairPmCommon = calcPmCategory(pairPmFactor)
-    pairAbsMag1 = calcAbsMag(pairGMagnitudeA, ds[1][5]) # Calculate Absolute magnitude
-    pairAbsMag2 = calcAbsMag(pairGMagnitudeB, ds[1][22]) # Calculate Absolute magnitude
+    pairAbsMag1 = calcAbsMag(pairGMagnitudeA, ds[0][5]) # Calculate Absolute magnitude
+    pairAbsMag2 = calcAbsMag(pairGMagnitudeB, ds[0][22]) # Calculate Absolute magnitude
     pairLum1 = calcLuminosity(pairAbsMag1)
     pairLum2 = calcLuminosity(pairAbsMag2)
     pairMass1 = calcMass(pairLum1)
     pairMass2 = calcMass(pairLum2)
-    pairBVIndexA = ds[1][10] - ds[1][11]
-    pairBVIndexB = ds[1][27] - ds[1][28]
+    pairBVIndexA = ds[0][10] - ds[0][11]
+    pairBVIndexB = ds[0][27] - ds[0][28]
     pairSepPar = sepCalc(pairDistanceMinA, pairDistanceMinB, rhoPairDr3) # Separation of the pairs in parsecs
     pairEscapeVelocity = calcEscapevelocity(pairMass1, pairMass2, pairSepPar, gravConst)
-    pairRelativeVelocity = calcRelativeVelocity(ds[1][7], ds[1][8], ds[1][24], ds[1][25], ds[1][12], ds[1][29], pairDistanceMinA, pairDistanceMinB)
+    pairRelativeVelocity = calcRelativeVelocity(ds[0][7], ds[0][8], ds[0][24], ds[0][25], ds[0][12], ds[0][29], pairDistanceMinA, pairDistanceMinB)
     pairHarshawFactor = calcHarshaw(pairParallaxFactor, pairPmFactor)
     pairHarshawPhysicality = calcHarshawPhysicality(pairHarshawFactor)
     pairBinarity = calcBinarity(pairRelativeVelocity, pairEscapeVelocity)

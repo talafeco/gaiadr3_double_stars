@@ -38,6 +38,7 @@ def convertDec(dec):
     decdeg = Angle(decline)
     return decdeg
 
+print('\n### Reading WDS database ###')
 doubleStars = np.genfromtxt(sys.argv[1], delimiter=',', skip_header=1, dtype=str)
 #print(doubleStars)
 
@@ -81,19 +82,22 @@ dsdegdec = np.array([], dtype=np.float64)
 dsTable = QTable([dsfilename, wds_identifier, dsdiscovr, dscomp, dstheta, dsrho, dsmag_pri, dsmag_sec, dsspectra, dspm_a_ra, dspm_a_dec, dspm_b_ra, dspm_b_dec, dsra, dsdec, dsdegra, dsdegdec], names=('filename', 'wds_identifier', 'discovr', 'comp', 'theta', 'rho', 'mag_pri', 'mag_sec', 'spectra', 'pm_a_ra', 'pm_a_dec', 'pm_b_ra', 'pm_b_dec', 'ra (hms)', 'dec (dms)', 'ra (deg)', 'dec (deg)'), meta={'name': 'wds table'})
 
 
-
+print('\n### Adding WDS Double stars to numpy array ###')
 for line in doubleStars:
     wdsTable.add_row([line[0], line[1], line[2], convertStringToNan(line[3]), convertStringToNan(line[4]), convertStringToNan(line[5]), convertStringToNan(line[6]), line[7], convertStringToNan(line[8]), convertStringToNan(line[9]), convertStringToNan(line[10]), convertStringToNan(line[11]), line[12], line[13], convertRa(line[12]), convertDec(line[13])])
 
 #print(wdsTable)
 
+print('\n### Creating filelist ###')
 ### Run source detection, collect star data to Qtable
-workingDirectory = sys.argv[1]
+workingDirectory = sys.argv[2]
 directoryContent = os.listdir(workingDirectory)
 print('Working directory: ', workingDirectory)
 
 files = [f for f in directoryContent if os.path.isfile(workingDirectory+'/'+f) and f.endswith('.new')]
 print(files)
+
+print('\n### Running source detection ###')
 
 for fitsFile in files:
     # 1. Read the list of sources extracted from an image (fits) file
@@ -115,10 +119,12 @@ for fitsFile in files:
         #catalog = SkyCoord(ra=gaiaStars[1:, 5]*u.degree, dec=gaiaStars[1:, 7]*u.degree)  
         wdscatalog = SkyCoord(ra=wdsTable['ra (deg)']*u.degree, dec=wdsTable['dec (deg)']*u.degree)
         idx, d2d, d3d = mainstar.match_to_catalog_sky(wdscatalog)
-        catalogstar = SkyCoord(ra=wdsTable[idx]['ra']*u.degree, dec=wdsTable[idx]['dec']*u.degree)
+        catalogstar = SkyCoord(ra=wdsTable[idx]['ra (deg)']*u.degree, dec=wdsTable[idx]['dec (deg)']*u.degree)
         sep = mainstar.separation(catalogstar)
         if sep < Angle('00d01m00s'):
             companion = mainstar.directional_offset_by(catalogstar['theta'], catalogstar['rho'])
+            print('Main star:', mainstar)
+            print('Companion:', companion)
             #kikeresni a források közül a megfelelőt, ami ezen a pozíción van
             #ha nincs, tágítani a keresést
             #ellenőrizni a két forrás magnitúdó különbségét, összevetni a wds-el, csak akkor elfogadni, ha pl 1-en belül van
