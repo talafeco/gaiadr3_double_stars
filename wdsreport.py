@@ -31,7 +31,7 @@ def convertStringToNan(str):
 def convertRa(ra):
     raline = (str(ra[0:2]) + 'h' + str(ra[2:4]) + 'm' + str(ra[4:9]) + 's')
     radeg = Angle(raline)
-    return radeg
+    return radeg.degree
 
 def convertDec(dec):
     decline = dec[0:3] + 'd' + dec[3:5] + 'm' + dec[5:9] + 's'
@@ -40,7 +40,7 @@ def convertDec(dec):
 
 print('\n### Reading WDS database ###')
 doubleStars = np.genfromtxt(sys.argv[1], delimiter=',', skip_header=1, dtype=str)
-#print(doubleStars)
+print(doubleStars)
 
 ### Define Qtable for WDS
 
@@ -60,7 +60,7 @@ wdsra = np.array([], dtype=str)
 wdsdec = np.array([], dtype=str)
 wdsdegra = np.array([], dtype=np.float64)
 wdsdegdec = np.array([], dtype=np.float64)
-wdsTable = QTable([wds_identifier, wdsdiscovr, wdscomp, wdstheta, wdsrho, wdsmag_pri, wdsmag_sec, wdsspectra, wdspm_a_ra, wdspm_a_dec, wdspm_b_ra, wdspm_b_dec, wdsra, wdsdec, wdsdegra, wdsdegdec], names=('wds_identifier', 'discovr', 'comp', 'theta', 'rho', 'mag_pri', 'mag_sec', 'spectra', 'pm_a_ra', 'pm_a_dec', 'pm_b_ra', 'pm_b_dec', 'ra (hms)', 'dec (dms)', 'ra (deg)', 'dec (deg)'), meta={'name': 'wds table'})
+wdsTable = QTable([wds_identifier, wdsdiscovr, wdscomp, wdstheta, wdsrho, wdsmag_pri, wdsmag_sec, wdsspectra, wdspm_a_ra, wdspm_a_dec, wdspm_b_ra, wdspm_b_dec, wdsra, wdsdec, wdsdegra, wdsdegdec], names=('wds_identifier', 'discovr', 'comp', 'theta', 'rho', 'mag_pri', 'mag_sec', 'spectra', 'pm_a_ra', 'pm_a_dec', 'pm_b_ra', 'pm_b_dec', 'ra(hms)', 'dec(dms)', 'ra(deg)', 'dec(deg)'), meta={'name': 'wds table'})
 
 dsfilename = np.array([], dtype=str)
 dswds_identifier = np.array([], dtype=str)
@@ -79,14 +79,14 @@ dsra = np.array([], dtype=str)
 dsdec = np.array([], dtype=str)
 dsdegra = np.array([], dtype=np.float64)
 dsdegdec = np.array([], dtype=np.float64)
-dsTable = QTable([dsfilename, wds_identifier, dsdiscovr, dscomp, dstheta, dsrho, dsmag_pri, dsmag_sec, dsspectra, dspm_a_ra, dspm_a_dec, dspm_b_ra, dspm_b_dec, dsra, dsdec, dsdegra, dsdegdec], names=('filename', 'wds_identifier', 'discovr', 'comp', 'theta', 'rho', 'mag_pri', 'mag_sec', 'spectra', 'pm_a_ra', 'pm_a_dec', 'pm_b_ra', 'pm_b_dec', 'ra (hms)', 'dec (dms)', 'ra (deg)', 'dec (deg)'), meta={'name': 'wds table'})
+dsTable = QTable([dsfilename, wds_identifier, dsdiscovr, dscomp, dstheta, dsrho, dsmag_pri, dsmag_sec, dsspectra, dspm_a_ra, dspm_a_dec, dspm_b_ra, dspm_b_dec, dsra, dsdec, dsdegra, dsdegdec], names=('filename', 'wds_identifier', 'discovr', 'comp', 'theta', 'rho', 'mag_pri', 'mag_sec', 'spectra', 'pm_a_ra', 'pm_a_dec', 'pm_b_ra', 'pm_b_dec', 'ra(hms)', 'dec(dms)', 'ra(deg)', 'dec(deg)'), meta={'name': 'wds table'})
 
 
 print('\n### Adding WDS Double stars to numpy array ###')
 for line in doubleStars:
     wdsTable.add_row([line[0], line[1], line[2], convertStringToNan(line[3]), convertStringToNan(line[4]), convertStringToNan(line[5]), convertStringToNan(line[6]), line[7], convertStringToNan(line[8]), convertStringToNan(line[9]), convertStringToNan(line[10]), convertStringToNan(line[11]), line[12], line[13], convertRa(line[12]), convertDec(line[13])])
 
-#print(wdsTable)
+print(wdsTable)
 
 print('\n### Creating filelist ###')
 ### Run source detection, collect star data to Qtable
@@ -98,6 +98,8 @@ files = [f for f in directoryContent if os.path.isfile(workingDirectory+'/'+f) a
 print(files)
 
 print('\n### Running source detection ###')
+
+wdscatalog = SkyCoord(ra=wdsTable['ra(deg)']*u.degree, dec=wdsTable['dec(deg)']*u.degree)
 
 for fitsFile in files:
     # 1. Read the list of sources extracted from an image (fits) file
@@ -117,14 +119,32 @@ for fitsFile in files:
         ra2, dec2 = mywcs.all_pix2world([[star ['xcentroid'], star ['ycentroid']]], 0)[0]   
         mainstar = SkyCoord(ra=ra2*u.degree, dec=dec2*u.degree)  
         #catalog = SkyCoord(ra=gaiaStars[1:, 5]*u.degree, dec=gaiaStars[1:, 7]*u.degree)  
-        wdscatalog = SkyCoord(ra=wdsTable['ra (deg)']*u.degree, dec=wdsTable['dec (deg)']*u.degree)
         idx, d2d, d3d = mainstar.match_to_catalog_sky(wdscatalog)
-        catalogstar = SkyCoord(ra=wdsTable[idx]['ra (deg)']*u.degree, dec=wdsTable[idx]['dec (deg)']*u.degree)
+        catalogstar = SkyCoord(ra=wdsTable[idx]['ra(deg)']*u.degree, dec=wdsTable[idx]['dec(deg)']*u.degree)
         sep = mainstar.separation(catalogstar)
-        if sep < Angle('00d01m00s'):
-            companion = mainstar.directional_offset_by(catalogstar['theta'], catalogstar['rho'])
-            print('Main star:', mainstar)
-            print('Companion:', companion)
+        #print('Catalogstar:', catalogstar)
+        #print('Separation:', sep)
+        if sep < Angle(0.005 * u.deg):
+            print('WDS Identifier:', wdsTable[idx][0], wdsTable[idx][1], wdsTable[idx][2])
+            print('Main star:', wdsTable[idx][0], wdsTable[idx][1], wdsTable[idx][3], wdsTable[idx][4])
+            print('Separation:', Angle(sep))
+            print('Companion:')
+            companion = mainstar.directional_offset_by(wdsTable[idx][3] * u.degree, (wdsTable[idx][4] / 3600) * u.deg)
+            print(companion)
+            separation = mainstar.separation(companion)
+            print('Separation check:', separation)
+            for star2 in sources:
+                ra3, dec3 = mywcs.all_pix2world([[star2['xcentroid'], star2['ycentroid']]], 0)[0]   
+                compstar = SkyCoord(ra=ra3*u.degree, dec=dec3*u.degree)  
+                #catalog = SkyCoord(ra=gaiaStars[1:, 5]*u.degree, dec=gaiaStars[1:, 7]*u.degree)  
+                sep2 = compstar.separation(companion)
+                if sep2 <= Angle(0.01 * u.deg):
+                    print('Comapnion star data:\n', star2)
+                    paactual = mainstar.position_angle(compstar).to(u.deg)
+                    sepactual = mainstar.separation(compstar)
+                    print('PA:', paactual.degree, 'Sep:', (sepactual.degree * 3600))
+
+            #print('Companion:', companion)
             #kikeresni a források közül a megfelelőt, ami ezen a pozíción van
             #ha nincs, tágítani a keresést
             #ellenőrizni a két forrás magnitúdó különbségét, összevetni a wds-el, csak akkor elfogadni, ha pl 1-en belül van
