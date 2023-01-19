@@ -28,7 +28,7 @@ def convertStringToNan(str):
         str = np.nan
     return str
 
-def convertRa(ra):
+""" def convertRa(ra):
     raline = (str(ra[0:2]) + 'h' + str(ra[2:4]) + 'm' + str(ra[4:9]) + 's')
     radeg = Angle(raline)
     return radeg.degree
@@ -36,15 +36,19 @@ def convertRa(ra):
 def convertDec(dec):
     decline = dec[0:3] + 'd' + dec[3:5] + 'm' + dec[5:9] + 's'
     decdeg = Angle(decline)
-    return decdeg
+    return decdeg """
 
 print('\n### Reading WDS database ###')
-doubleStars = np.genfromtxt(sys.argv[1], delimiter=',', skip_header=1, dtype=str)
-print(doubleStars)
+""" doubleStars = np.genfromtxt(sys.argv[1], delimiter=',', skip_header=1, dtype=str)
+print(doubleStars) """
+#wdsTable = np.genfromtxt(sys.argv[1], delimiter=',')
+wdsTable = Table.read(sys.argv[1], delimiter=',', format='ascii')
+print(wdsTable.info)
+
 
 ### Define Qtable for WDS
 
-wds_identifier = np.array([], dtype=str)
+""" wds_identifier = np.array([], dtype=str)
 wdsdiscovr = np.array([], dtype=str)
 wdscomp = np.array([], dtype=str)
 wdstheta = np.array([], dtype=np.float64)
@@ -60,7 +64,7 @@ wdsra = np.array([], dtype=str)
 wdsdec = np.array([], dtype=str)
 wdsdegra = np.array([], dtype=np.float64)
 wdsdegdec = np.array([], dtype=np.float64)
-wdsTable = QTable([wds_identifier, wdsdiscovr, wdscomp, wdstheta, wdsrho, wdsmag_pri, wdsmag_sec, wdsspectra, wdspm_a_ra, wdspm_a_dec, wdspm_b_ra, wdspm_b_dec, wdsra, wdsdec, wdsdegra, wdsdegdec], names=('wds_identifier', 'discovr', 'comp', 'theta', 'rho', 'mag_pri', 'mag_sec', 'spectra', 'pm_a_ra', 'pm_a_dec', 'pm_b_ra', 'pm_b_dec', 'ra(hms)', 'dec(dms)', 'ra(deg)', 'dec(deg)'), meta={'name': 'wds table'})
+wdsTable = QTable([wds_identifier, wdsdiscovr, wdscomp, wdstheta, wdsrho, wdsmag_pri, wdsmag_sec, wdsspectra, wdspm_a_ra, wdspm_a_dec, wdspm_b_ra, wdspm_b_dec, wdsra, wdsdec, wdsdegra, wdsdegdec], names=('wds_identifier', 'discovr', 'comp', 'theta', 'rho', 'mag_pri', 'mag_sec', 'spectra', 'pm_a_ra', 'pm_a_dec', 'pm_b_ra', 'pm_b_dec', 'ra_hms', 'dec_dms', 'ra_deg', 'dec_deg'), meta={'name': 'wds table'}) """
 
 dsfilename = np.array([], dtype=str)
 dswds_identifier = np.array([], dtype=str)
@@ -70,6 +74,7 @@ dstheta = np.array([], dtype=np.float64)
 dsrho = np.array([], dtype=np.float64)
 dsmag_pri = np.array([], dtype=np.float64)
 dsmag_sec = np.array([], dtype=np.float64)
+dsmag_diff = np.array([], dtype=np.float32)
 dsspectra = np.array([], dtype=str)
 dspm_a_ra = np.array([], dtype=np.float64)
 dspm_a_dec = np.array([], dtype=np.float64)
@@ -79,31 +84,37 @@ dsra = np.array([], dtype=str)
 dsdec = np.array([], dtype=str)
 dsdegra = np.array([], dtype=np.float64)
 dsdegdec = np.array([], dtype=np.float64)
-dsTable = QTable([dsfilename, wds_identifier, dsdiscovr, dscomp, dstheta, dsrho, dsmag_pri, dsmag_sec, dsspectra, dspm_a_ra, dspm_a_dec, dspm_b_ra, dspm_b_dec, dsra, dsdec, dsdegra, dsdegdec], names=('filename', 'wds_identifier', 'discovr', 'comp', 'theta', 'rho', 'mag_pri', 'mag_sec', 'spectra', 'pm_a_ra', 'pm_a_dec', 'pm_b_ra', 'pm_b_dec', 'ra(hms)', 'dec(dms)', 'ra(deg)', 'dec(deg)'), meta={'name': 'wds table'})
+dsobjectid = np.array([], dtype=str)
+dspaactual = np.array([], dtype=np.float64)
+dssepactual = np.array([], dtype=np.float64)
+dsmagdiff = np.array([], dtype=np.float64)
+dsTable = QTable([dswds_identifier, dsdiscovr, dscomp, dstheta, dsrho, dsmag_pri, dsmag_sec, dsmag_diff, dsspectra, dspm_a_ra, dspm_a_dec, dspm_b_ra, dspm_b_dec, dsra, dsdec, dsdegra, dsdegdec, dsobjectid, dspaactual, dssepactual, dsmagdiff], names=('wds_identifier', 'discovr', 'comp', 'theta', 'rho', 'mag_pri', 'mag_sec', 'dsmag_diff', 'spectra', 'pm_a_ra', 'pm_a_dec', 'pm_b_ra', 'pm_b_dec', 'ra_hms', 'dec_dms', 'ra_deg', 'dec_deg', 'object_id', 'dspaactual', 'dssepactual', 'dsmagdiff'), meta={'name': 'ds table'})
 
 
-print('\n### Adding WDS Double stars to numpy array ###')
-for line in doubleStars:
-    wdsTable.add_row([line[0], line[1], line[2], convertStringToNan(line[3]), convertStringToNan(line[4]), convertStringToNan(line[5]), convertStringToNan(line[6]), line[7], convertStringToNan(line[8]), convertStringToNan(line[9]), convertStringToNan(line[10]), convertStringToNan(line[11]), line[12], line[13], convertRa(line[12]), convertDec(line[13])])
+#print('\n### Adding WDS Double stars to numpy array ###')
+""" for line in doubleStars:
+    wdsTable.add_row([line[0], line[1], line[2], convertStringToNan(line[3]), convertStringToNan(line[4]), convertStringToNan(line[5]), convertStringToNan(line[6]), line[7], convertStringToNan(line[8]), convertStringToNan(line[9]), convertStringToNan(line[10]), convertStringToNan(line[11]), line[12], line[13], line[14], line[15]]) """
 
-print(wdsTable)
+""" print('\n### Print WDS table ###\n')
+print(wdsTable) """
 
 print('\n### Creating filelist ###')
-### Run source detection, collect star data to Qtable
+
 workingDirectory = sys.argv[2]
 directoryContent = os.listdir(workingDirectory)
 print('Working directory: ', workingDirectory)
 
 files = [f for f in directoryContent if os.path.isfile(workingDirectory+'/'+f) and f.endswith('.new')]
-print(files)
+print('Files:', files)
 
+wdscatalog = SkyCoord(ra=wdsTable['ra_deg']*u.degree, dec=wdsTable['dec_deg']*u.degree)
+print('WDS Catalog:\n', wdscatalog)
+
+### Run source detection, collect star data to Qtable
 print('\n### Running source detection ###')
-
-wdscatalog = SkyCoord(ra=wdsTable['ra(deg)']*u.degree, dec=wdsTable['dec(deg)']*u.degree)
-
 for fitsFile in files:
     # 1. Read the list of sources extracted from an image (fits) file
-    print('Processing file: ', fitsFile)
+    print('\n\n### Processing file: ', fitsFile, '###')
     fitsFileName = workingDirectory + '/' + fitsFile
     hdu = fits.open(fitsFileName)
     mywcs = WCS(hdu[0].header)
@@ -120,34 +131,35 @@ for fitsFile in files:
         mainstar = SkyCoord(ra=ra2*u.degree, dec=dec2*u.degree)  
         #catalog = SkyCoord(ra=gaiaStars[1:, 5]*u.degree, dec=gaiaStars[1:, 7]*u.degree)  
         idx, d2d, d3d = mainstar.match_to_catalog_sky(wdscatalog)
-        catalogstar = SkyCoord(ra=wdsTable[idx]['ra(deg)']*u.degree, dec=wdsTable[idx]['dec(deg)']*u.degree)
+        catalogstar = SkyCoord(ra=wdsTable[idx]['ra_deg']*u.degree, dec=wdsTable[idx]['dec_deg']*u.degree)
         sep = mainstar.separation(catalogstar)
         #print('Catalogstar:', catalogstar)
         #print('Separation:', sep)
-        if sep < Angle(0.005 * u.deg):
-            print('WDS Identifier:', wdsTable[idx][0], wdsTable[idx][1], wdsTable[idx][2])
-            print('Main star:', wdsTable[idx][0], wdsTable[idx][1], wdsTable[idx][3], wdsTable[idx][4])
-            print('Separation:', Angle(sep))
-            print('Companion:')
+        if sep < Angle(0.001 * u.deg):
             companion = mainstar.directional_offset_by(wdsTable[idx][3] * u.degree, (wdsTable[idx][4] / 3600) * u.deg)
-            print(companion)
+            #print(companion)
             separation = mainstar.separation(companion)
-            print('Separation check:', separation)
+            #print('Separation check:', separation)
             for star2 in sources:
                 ra3, dec3 = mywcs.all_pix2world([[star2['xcentroid'], star2['ycentroid']]], 0)[0]   
                 compstar = SkyCoord(ra=ra3*u.degree, dec=dec3*u.degree)  
                 #catalog = SkyCoord(ra=gaiaStars[1:, 5]*u.degree, dec=gaiaStars[1:, 7]*u.degree)  
                 sep2 = compstar.separation(companion)
-                if sep2 <= Angle(0.01 * u.deg):
+                if sep2 <= Angle(0.002 * u.deg) and star != star2:
+                    print('\nWDS Identifier:', wdsTable[idx][0], wdsTable[idx][1], wdsTable[idx][2])
+                    print('Main star:', wdsTable[idx][0], wdsTable[idx][1], wdsTable[idx][3], wdsTable[idx][4])
+                    print('Main star data:\n', star)
+                    print('Separation:', Angle(sep))
                     print('Comapnion star data:\n', star2)
                     paactual = mainstar.position_angle(compstar).to(u.deg)
-                    sepactual = mainstar.separation(compstar)
-                    print('PA:', paactual.degree, 'Sep:', (sepactual.degree * 3600))
+                    sepactual = mainstar.separation(compstar) * 3600
+                    print('\nPA:', paactual.degree, 'Sep:', (sepactual.degree))
+                    objectid = wdsTable[idx][0]
+                    wdsmag_diff = wdsTable[idx]['mag_pri'] - wdsTable[idx]['mag_sec']
+                    magdiff = star['mag'] - star2['mag']
+                    dsTable.add_row([wdsTable[idx][0], wdsTable[idx][1], wdsTable[idx][2], wdsTable[idx][3], wdsTable[idx][4], wdsTable[idx][5], wdsTable[idx][6], wdsmag_diff, wdsTable[idx][7], wdsTable[idx][8], wdsTable[idx][9], wdsTable[idx][10], wdsTable[idx][11], str(wdsTable[idx][12]), str(wdsTable[idx][13]), str(wdsTable[idx][14]), str(wdsTable[idx][15]), objectid, paactual.degree, sepactual.degree, magdiff])
 
-            #print('Companion:', companion)
-            #kikeresni a források közül a megfelelőt, ami ezen a pozíción van
-            #ha nincs, tágítani a keresést
-            #ellenőrizni a két forrás magnitúdó különbségét, összevetni a wds-el, csak akkor elfogadni, ha pl 1-en belül van
-            #megadni a források koordinátáit, kiszámítani a mért theta-t és rho-t
+print('\n### Double stars ###')
+print(dsTable)            
         
         
