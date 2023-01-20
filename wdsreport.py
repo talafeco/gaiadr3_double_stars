@@ -11,6 +11,7 @@ from astropy.io import fits
 from astropy.stats import sigma_clipped_stats
 from astropy.table import QTable
 from astropy.table import Table, vstack
+from astropy.table import Column, MaskedColumn
 from photutils.detection import DAOStarFinder
 import numpy as np
 from astropy.wcs import WCS
@@ -90,6 +91,27 @@ dssepactual = np.array([], dtype=np.float64)
 dsmagdiff = np.array([], dtype=np.float64)
 dsTable = QTable([dswds_identifier, dsdiscovr, dscomp, dstheta, dsrho, dsmag_pri, dsmag_sec, dsmag_diff, dsspectra, dspm_a_ra, dspm_a_dec, dspm_b_ra, dspm_b_dec, dsra, dsdec, dsdegra, dsdegdec, dsobjectid, dspaactual, dssepactual, dsmagdiff], names=('wds_identifier', 'discovr', 'comp', 'theta', 'rho', 'mag_pri', 'mag_sec', 'dsmag_diff', 'spectra', 'pm_a_ra', 'pm_a_dec', 'pm_b_ra', 'pm_b_dec', 'ra_hms', 'dec_dms', 'ra_deg', 'dec_deg', 'object_id', 'dspaactual', 'dssepactual', 'dsmagdiff'), meta={'name': 'ds table'})
 
+# Define Report table
+reportw_identifier = np.array([], dtype=str)
+reportdate = np.array([], dtype=str)
+reporttheta = np.array([], dtype=np.float64)
+reportthetaerr = np.array([], dtype=np.float64)
+reportrho = np.array([], dtype=np.float64)
+reportrhoerr = np.array([], dtype=np.float64)
+reportmag_pri = np.array([], dtype=np.float64)
+reportmag_prierr = np.array([], dtype=np.float64)
+reportmag_sec = np.array([], dtype=np.float64)
+reportmag_secerr = np.array([], dtype=np.float64)
+reportfilter =  np.array([], dtype=str)
+reportfilterfwhm = np.array([], dtype=str)
+reporttelescopeap = np.array([], dtype=str)
+reportnights = np.array([], dtype=str)
+reportrefcode = np.array([], dtype=str)
+reporttech = np.array([], dtype=str)
+reportcat = np.array([], dtype=str)
+reportTable = QTable([reportw_identifier, reportdate, reporttheta, reportthetaerr, reportrho, reportrhoerr, reportmag_pri, reportmag_prierr, reportmag_sec, reportmag_secerr, reportfilter, reportfilterfwhm, reporttelescopeap, reportnights, reportrefcode, reporttech, reportcat], names=('wds_identifier', 'date_of_obs', 'mean_theta', 'mean_theta_err', 'mean_rho', 'mean_rho_err', 'mag_pri', 'mag_pri_err', 'mag_sec', 'mag_sec_err', 'filter', 'filter_fwhm', 'telescope_ap', 'nights_of_obs', 'reference_code', 'tech_code', 'catalog_code'), meta={'name': 'report table'})
+
+
 
 #print('\n### Adding WDS Double stars to numpy array ###')
 """ for line in doubleStars:
@@ -154,7 +176,7 @@ for fitsFile in files:
                     paactual = mainstar.position_angle(compstar).to(u.deg)
                     sepactual = mainstar.separation(compstar) * 3600
                     print('\nPA:', paactual.degree, 'Sep:', (sepactual.degree))
-                    objectid = str(wdsTable[idx][12]) + str(wdsTable[idx][13])
+                    objectid = str(wdsTable[idx][0]) + '_' + str(wdsTable[idx][1]) + '_' + str(wdsTable[idx][2])
                     wdsmag_diff =  wdsTable[idx]['mag_sec'] - wdsTable[idx]['mag_pri']
                     magdiff = star2['mag'] - star['mag']
                     dsTable.add_row([wdsTable[idx][0], wdsTable[idx][1], wdsTable[idx][2], wdsTable[idx][3], wdsTable[idx][4], wdsTable[idx][5], wdsTable[idx][6], wdsmag_diff, wdsTable[idx][7], wdsTable[idx][8], wdsTable[idx][9], wdsTable[idx][10], wdsTable[idx][11], str(wdsTable[idx][12]), str(wdsTable[idx][13]), str(wdsTable[idx][14]), str(wdsTable[idx][15]), objectid, paactual.degree, sepactual.degree, magdiff])
@@ -166,6 +188,7 @@ print(dsTable)
 dsTable_by_object = dsTable.group_by('object_id')
 print('\n### Report Table by object ###')
 print(dsTable_by_object)
+print(dsTable.info)
 
 objectMean = dsTable_by_object.groups.aggregate(np.mean)
 print(objectMean)
@@ -183,32 +206,46 @@ for ds in dsTable_by_object.groups:
     pairMagnitudeB = ds[0]['mag_sec']
     pairMagDiff = ds['dsmagdiff'].groups.aggregate(np.mean)
     pairMagDiffErr = ds['dsmagdiff'].groups.aggregate(np.std)
-    pairMagDiffWDS = ds[0]['mag_sec'] - ds[0]['mag_pri']
+    pairMagDiffWDS = ds[0]['theta'] - ds[0]['rho']
     reportName = (workingDirectory + '/' + ds[0]['object_id'] + '.txt')
     reportFile = open(reportName, "a")
-
     print('### COMPONENTS ###')
     print('\nWDS Identifier:', ds[0]['wds_identifier'], ds[0]['discovr'], ds[0]['comp'])
-    #print(pairWdsIdentifier)
     print('\nTheta measurements\n', ds['dspaactual'])
     print('Mean:', pairMeanTheta[0])
     print('Error:', pairMeanThetaErr[0])
     print('\nRho measurements\n', ds['dssepactual'])
     print('Mean:', pairMeanRho[0])
     print('Error:', pairMeanRhoErr[0])
-    #print('\nMagnitude A measurements\n', ds['magmeasured_a'])
-    #print('Mean:', pairMagMeasuredA[0])
-    #print('Error:', pairMagMeasuredAErr[0])
-    #print('\nMagnitude B measuremets\n', ds['magmeasured_b'])
-    #print('Mean:', pairMagMeasuredB[0])
-    #print('Error:', pairMagMeasuredBErr[0])
     print('\nMagnitude measurements\n', ds['dsmagdiff'])
     print('Mean:', pairMagDiff[0])
     print('Error:', pairMagDiffErr[0])
+    reportTable.add_row([ds[0]['wds_identifier'], 'Date of observation', pairMeanTheta[0], pairMeanThetaErr[0], pairMeanRho[0], pairMeanRhoErr[0], np.nan, np.nan, pairMagDiff[0], pairMagDiffErr[0], 'Filter wawelenght', 'filter FWHM', '0.2', '1', 'TAL_2022', 'C', '7'])
+    reportFile.write('\n\nWDS Identifier: ' + ds[0]['wds_identifier'])
+    reportFile.write('\nDiscoverer and components: ' + str(ds[0]['discovr']) + ' ' + str(ds[0]['comp']))
+    reportFile.write('\nMagnitude(s) (Pri / Sec): ' + str(ds[0]['mag_pri']) + ' / ' +  str(ds[0]['mag_sec']))
+    reportFile.write('\nPA, Sep: ' + str(ds[0]['theta']) + ' / ' +  str(ds[0]['rho']))
+    reportFile.write('\nPosition angle: \n' + str(ds['dspaactual']))
+    reportFile.write('\nMean: ' + str(pairMeanTheta[0]))
+    reportFile.write('\nError: ' + str(pairMeanThetaErr[0]))
+    reportFile.write('\nSeparation: \n' + str(ds['dssepactual']))
+    reportFile.write('\nMean: ' + str(pairMeanRho[0]))
+    reportFile.write('\nError: ' + str(pairMeanRhoErr[0]))
+    reportFile.write('\nMagnitude measurements\n' + str(ds['dsmagdiff']))
+    reportFile.write('\nMean: ' + str(pairMagDiff[0]))
+    reportFile.write('\nError: ' + str(pairMagDiffErr[0]))
+    reportFile.write('\n\n### WDS form:\n')
+    wdsform = str(ds[0]['wds_identifier']) + ',' + 'Date of observation' + ',' +  str(pairMeanTheta[0]) + ',' +  str(pairMeanThetaErr[0]) + ',' +  str(pairMeanRho[0]) + ',' +  str(pairMeanRhoErr[0]) + ',' +  'nan' + ',' +  'nan' + ',' +  str(pairMagDiff[0]) + ',' +  str(pairMagDiffErr[0]) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TAL_2022' + ',' +  'C' + ',' + '7'
+    print(str(wdsform))
+    reportFile.write(str(wdsform))
+    
+print(reportTable)
+dsTable_by_object.write('double_stars.txt', format='ascii', overwrite=True, delimiter=',')
+reportTable.write('double_stars_wds_format.txt', format='ascii', overwrite=True, delimiter=',')
     
 # Össze kell rakni emészthető fájlba + páronként kiírni a megfelelő sort, hogy csak be kelljen illszteni a wds-es levélbe + a publikációba :)
 
-    """ reportFile.write('### COMPONENTS ###')        
+""" reportFile.write('### COMPONENTS ###')        
     reportFile.write('\n\nComponent A: ' + pairDesignationA)
     reportFile.write('\nComponent B: ' + pairDesignationB)
     reportFile.write('\n\nWDS Identifier: \n')
@@ -252,7 +289,7 @@ for ds in dsTable_by_object.groups:
     reportFile.close() """
 
 
-    """ pairMagMeasuredA = ds['magmeasured_a'].groups.aggregate(np.mean)
+""" pairMagMeasuredA = ds['magmeasured_a'].groups.aggregate(np.mean)
     pairMagMeasuredAErr = ds['magmeasured_a'].groups.aggregate(np.std)
     pairMagMeasuredB = ds['magmeasured_b'].groups.aggregate(np.mean)
     pairMagMeasuredBErr = ds['magmeasured_b'].groups.aggregate(np.std)
