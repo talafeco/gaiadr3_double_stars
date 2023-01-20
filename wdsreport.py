@@ -154,12 +154,108 @@ for fitsFile in files:
                     paactual = mainstar.position_angle(compstar).to(u.deg)
                     sepactual = mainstar.separation(compstar) * 3600
                     print('\nPA:', paactual.degree, 'Sep:', (sepactual.degree))
-                    objectid = wdsTable[idx][0]
-                    wdsmag_diff = wdsTable[idx]['mag_pri'] - wdsTable[idx]['mag_sec']
-                    magdiff = star['mag'] - star2['mag']
+                    objectid = str(wdsTable[idx][12]) + str(wdsTable[idx][13])
+                    wdsmag_diff =  wdsTable[idx]['mag_sec'] - wdsTable[idx]['mag_pri']
+                    magdiff = star2['mag'] - star['mag']
                     dsTable.add_row([wdsTable[idx][0], wdsTable[idx][1], wdsTable[idx][2], wdsTable[idx][3], wdsTable[idx][4], wdsTable[idx][5], wdsTable[idx][6], wdsmag_diff, wdsTable[idx][7], wdsTable[idx][8], wdsTable[idx][9], wdsTable[idx][10], wdsTable[idx][11], str(wdsTable[idx][12]), str(wdsTable[idx][13]), str(wdsTable[idx][14]), str(wdsTable[idx][15]), objectid, paactual.degree, sepactual.degree, magdiff])
 
 print('\n### Double stars ###')
 print(dsTable)            
         
-        
+### Search double stars on the image sequence
+dsTable_by_object = dsTable.group_by('object_id')
+print('\n### Report Table by object ###')
+print(dsTable_by_object)
+
+objectMean = dsTable_by_object.groups.aggregate(np.mean)
+print(objectMean)
+
+count = 1
+for ds in dsTable_by_object.groups:
+    print('\n### Group index:', count, '###')
+    #print(ds)
+    count = count + 1
+    pairMeanTheta = ds['dspaactual'].groups.aggregate(np.mean)
+    pairMeanThetaErr = ds['dspaactual'].groups.aggregate(np.std)
+    pairMeanRho = ds['dssepactual'].groups.aggregate(np.mean)
+    pairMeanRhoErr = ds['dssepactual'].groups.aggregate(np.std)
+    pairMagnitudeA = ds[0]['mag_pri']
+    pairMagnitudeB = ds[0]['mag_sec']
+    pairMagDiff = ds['dsmagdiff'].groups.aggregate(np.mean)
+    pairMagDiffErr = ds['dsmagdiff'].groups.aggregate(np.std)
+    pairMagDiffWDS = ds[0]['mag_sec'] - ds[0]['mag_pri']
+    reportName = (workingDirectory + '/' + ds[0]['object_id'] + '.txt')
+    reportFile = open(reportName, "a")
+
+    print('### COMPONENTS ###')
+    print('\nWDS Identifier:', ds[0]['wds_identifier'], ds[0]['discovr'], ds[0]['comp'])
+    #print(pairWdsIdentifier)
+    print('\nTheta measurements\n', ds['dspaactual'])
+    print('Mean:', pairMeanTheta[0])
+    print('Error:', pairMeanThetaErr[0])
+    print('\nRho measurements\n', ds['dssepactual'])
+    print('Mean:', pairMeanRho[0])
+    print('Error:', pairMeanRhoErr[0])
+    #print('\nMagnitude A measurements\n', ds['magmeasured_a'])
+    #print('Mean:', pairMagMeasuredA[0])
+    #print('Error:', pairMagMeasuredAErr[0])
+    #print('\nMagnitude B measuremets\n', ds['magmeasured_b'])
+    #print('Mean:', pairMagMeasuredB[0])
+    #print('Error:', pairMagMeasuredBErr[0])
+    print('\nMagnitude measurements\n', ds['dsmagdiff'])
+    print('Mean:', pairMagDiff[0])
+    print('Error:', pairMagDiffErr[0])
+    
+# Össze kell rakni emészthető fájlba + páronként kiírni a megfelelő sort, hogy csak be kelljen illszteni a wds-es levélbe + a publikációba :)
+
+    """ reportFile.write('### COMPONENTS ###')        
+    reportFile.write('\n\nComponent A: ' + pairDesignationA)
+    reportFile.write('\nComponent B: ' + pairDesignationB)
+    reportFile.write('\n\nWDS Identifier: \n')
+    reportFile.write(str(pairWdsIdentifier))
+    reportFile.write('\n\nTheta measurements\n' + str(ds['theta_measured']))
+    reportFile.write('\nMean: ' + str(pairMeanTheta[0]))
+    reportFile.write('\nError: ' + str(pairMeanThetaErr[0]))
+    reportFile.write('\n\nRho measurements\n' + str(ds['rho_measured']))
+    reportFile.write('\nMean: ' + str(pairMeanRho[0]))
+    reportFile.write('\nError: ' + str(pairMeanRhoErr[0]))
+    reportFile.write('\n\nMagnitude A DR3:  \n' + str(pairGMagnitudeA))
+    reportFile.write('\n\nMagnitude A measurements\n' + str(ds['magmeasured_a']))
+    reportFile.write('\nMean: ' + str(pairMagMeasuredA[0]))
+    reportFile.write('\nError: ' + str(pairMagMeasuredAErr[0]))
+    reportFile.write('\n\nMagnitude B DR3:  \n' + str(pairGMagnitudeB))
+    reportFile.write('\n\nMagnitude B measuremets\n' + str(ds['magmeasured_b']))
+    reportFile.write('\nMean: ' + str(pairMagMeasuredB[0]))
+    reportFile.write('\nError: ' + str(pairMagMeasuredBErr[0]))
+    reportFile.write('\n\nMagnitude difference (DR3): ' + str(pairMagDiffDr3))
+    reportFile.write('\nMagnitude difference (measured): ' + str(pairMagDiff))
+    reportFile.write('\n\nParallax factor: ' + str(pairParallaxFactor) + '%')
+    reportFile.write('\nProper motion factor: ' + str(pairPmFactor) + '%')
+    reportFile.write('\nProper motion category: ' + str(pairPmCommon))
+    reportFile.write('\nAbsolute magnitude A: ' + str(pairAbsMag1))
+    reportFile.write('\nAbsolute magnitude B: ' + str(pairAbsMag2))
+    reportFile.write('\nLuminosity A: ' + str(pairLum1))
+    reportFile.write('\nLuminosity B: ' + str(pairLum2))
+    reportFile.write('\nMass A: ' + str(pairMass1))
+    reportFile.write('\nMass B: ' + str(pairMass2))
+    reportFile.write('\nBV index A: ' + str(pairBVIndexA) + ' B: ' + str(pairBVIndexB))
+    reportFile.write('\nRadial velocity of the stars A: ' + str(pairRadVelA) + ' km/s (Err: ' + str(pairRadVelAErr) + ' km/s) B: ' + str(pairRadVelB) + ' km/s (Err: ' + str(pairRadVelBErr) + ' km/s)')
+    reportFile.write('\nRadial velocity ratio A: ' + str(pairRadVelRatioA) + ' %')
+    reportFile.write('\nRadial velocity ratio B: ' + str(pairRadVelRatioB) + ' %')
+    #reportFile.write('Radial velocity accuracy A: ' + pairRadVelAccA + 'B: ' + pairRadVelAccB)
+    reportFile.write('\nSeparation: ' + str(pairSepPar) + ' parsec, ' + str(pairSepPar * 206265) + ' AU')
+    reportFile.write('\nPair Escape velocity: ' + str(pairEscapeVelocity) + ' km/s')
+    reportFile.write('\nPair Relative velocity: ' + str(pairRelativeVelocity) + ' km/s')
+    reportFile.write('\nPair Harshaw factor: ' + str(pairHarshawFactor))
+    reportFile.write('\nPair Harshaw physicality: ' + str(pairHarshawPhysicality))
+    reportFile.write('\nPair binarity: ' + str(pairBinarity))
+    reportFile.close() """
+
+
+    """ pairMagMeasuredA = ds['magmeasured_a'].groups.aggregate(np.mean)
+    pairMagMeasuredAErr = ds['magmeasured_a'].groups.aggregate(np.std)
+    pairMagMeasuredB = ds['magmeasured_b'].groups.aggregate(np.mean)
+    pairMagMeasuredBErr = ds['magmeasured_b'].groups.aggregate(np.std)
+    pairDesignationA = ds[0][2]
+    pairDesignationB = ds[0][19] """
+    #pairWdsIdentifier = searchWds(pairDesignationA)
