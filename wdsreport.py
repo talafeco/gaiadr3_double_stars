@@ -7,6 +7,7 @@ import math
 import sys
 from astropy.coordinates import SkyCoord
 from astropy.coordinates import match_coordinates_sky
+from astropy.coordinates import search_around_sky
 from astropy import units as u
 from astropy.io import fits
 from astropy.stats import sigma_clipped_stats
@@ -29,6 +30,10 @@ def convertStringToNan(str):
     if str == '' or str == '.':
         str = np.nan
     return str
+
+def rhoCalc(raa, deca, rab, decb):
+    rhocalc = math.sqrt(((raa-rab) * math.cos(math.radians(deca))) ** 2 + (deca - decb) ** 2) * 3600
+    return rhocalc
 
 """ def convertRa(ra):
     raline = (str(ra[0:2]) + 'h' + str(ra[2:4]) + 'm' + str(ra[4:9]) + 's')
@@ -148,24 +153,47 @@ for fitsFile in files:
 
     daofind = DAOStarFinder(fwhm=10.0, threshold=18.0*std)  
     sources = daofind(data - median)
+    print(sources.info)
+    ra2, dec2 = mywcs.all_pix2world(sources['xcentroid'], sources['ycentroid'], 1)
+    sources.add_column(ra2, name='ra_deg') 
+    sources.add_column(dec2, name='dec_deg')
+    print(sources.info)
+    print(sources)
+
+    sources_ds = Table(np.empty((0, 4)))
+    wds_catalog = SkyCoord(ra=wdsTable['ra_deg']*u.degree, dec=wdsTable['dec_deg']*u.degree)
+    sources_catalog = SkyCoord(ra=sources['ra_deg']*u.degree, dec=sources['dec_deg']*u.degree)
+    #idxc, idxcatalog, wd2d, wd3d = wds_catalog.search_around_sky(sources_catalog, 0.001*u.deg)
+    idxw, idxs, wsd2d, wsd3d = search_around_sky(wds_catalog, sources_catalog, 0.001*u.deg)
+    #sources_ds.add_row([sources[idxs], wds_catalog[idxw]])
+    print('Matching sources list')
+    print(sources[idxs])
+    print(wdsTable[idxw])
 
     for star in sources:
-        ra2, dec2 = mywcs.all_pix2world([[star ['xcentroid'], star ['ycentroid']]], 0)[0]   
-        mainstar = SkyCoord(ra=ra2*u.degree, dec=dec2*u.degree)  
+        
+        #ra2, dec2 = mywcs.all_pix2world([[star ['xcentroid'], star ['ycentroid']]], 0)[0]   
+        #mainstar = SkyCoord(ra=ra2*u.degree, dec=dec2*u.degree)  
         #catalog = SkyCoord(ra=gaiaStars[1:, 5]*u.degree, dec=gaiaStars[1:, 7]*u.degree)  
+        mainstar = SkyCoord(ra=star['ra_deg']*u.degree, dec=star['dec_deg']*u.degree)
         idx, d2d, d3d = match_coordinates_sky(mainstar, wdscatalog)
         catalogstar = SkyCoord(ra=wdsTable[idx]['ra_deg']*u.degree, dec=wdsTable[idx]['dec_deg']*u.degree)
-        sep = mainstar.separation(catalogstar)
-        print('Catalogstar:', catalogstar)
-        print('WDS data:', wdsTable[idx][0], wdsTable[idx][1], wdsTable[idx][2])
-        print('Separation:', sep)
+        sep = catalogstar.separation(mainstar)
+        
+        #print(sources_ds)
+        
+
+        #print('Catalogstar:', catalogstar)
+        #print('WDS data:', wdsTable[idx][0], wdsTable[idx][1], wdsTable[idx][2])
+        #print('Separation:', sep)
+
         if sep < Angle(0.001 * u.deg):
             companion = mainstar.directional_offset_by(wdsTable[idx][3] * u.degree, (wdsTable[idx][4] / 3600) * u.deg)
             separation = mainstar.separation(companion)
-            print('Catalogstar:', wdsTable[idx][0], wdsTable[idx][1], wdsTable[idx][2])
-            print('Catalogstar coord:', catalogstar)
-            print('Companion:', companion)
-            print('Separation:', sep)
+            #print('Catalogstar:', wdsTable[idx][0], wdsTable[idx][1], wdsTable[idx][2])
+            #print('Catalogstar coord:', catalogstar)
+            #print('Companion:', companion)
+            #print('Separation:', sep)
             #print('Separation check:', separation)
             for star2 in sources:
                 ra3, dec3 = mywcs.all_pix2world([[star2['xcentroid'], star2['ycentroid']]], 0)[0]   
@@ -301,3 +329,10 @@ reportTable.write('double_stars_wds_format.txt', format='ascii', overwrite=True,
     pairDesignationA = ds[0][2]
     pairDesignationB = ds[0][19] """
     #pairWdsIdentifier = searchWds(pairDesignationA)
+""" doubles = []
+    for row in wdsTable:
+        for star in sources:
+            sep1 = rhoCalc(row['ra_deg'], row['dec_deg'], star['ra_deg'], star['dec_deg'])
+            if sep1 < 0.001:
+                print(row, star)
+ """
