@@ -6,6 +6,7 @@ import datetime
 import math
 import sys
 from astropy.coordinates import SkyCoord
+from astropy.coordinates import match_coordinates_sky
 from astropy import units as u
 from astropy.io import fits
 from astropy.stats import sigma_clipped_stats
@@ -152,15 +153,19 @@ for fitsFile in files:
         ra2, dec2 = mywcs.all_pix2world([[star ['xcentroid'], star ['ycentroid']]], 0)[0]   
         mainstar = SkyCoord(ra=ra2*u.degree, dec=dec2*u.degree)  
         #catalog = SkyCoord(ra=gaiaStars[1:, 5]*u.degree, dec=gaiaStars[1:, 7]*u.degree)  
-        idx, d2d, d3d = mainstar.match_to_catalog_sky(wdscatalog)
+        idx, d2d, d3d = match_coordinates_sky(mainstar, wdscatalog)
         catalogstar = SkyCoord(ra=wdsTable[idx]['ra_deg']*u.degree, dec=wdsTable[idx]['dec_deg']*u.degree)
         sep = mainstar.separation(catalogstar)
-        #print('Catalogstar:', catalogstar)
-        #print('Separation:', sep)
+        print('Catalogstar:', catalogstar)
+        print('WDS data:', wdsTable[idx][0], wdsTable[idx][1], wdsTable[idx][2])
+        print('Separation:', sep)
         if sep < Angle(0.001 * u.deg):
             companion = mainstar.directional_offset_by(wdsTable[idx][3] * u.degree, (wdsTable[idx][4] / 3600) * u.deg)
-            #print(companion)
             separation = mainstar.separation(companion)
+            print('Catalogstar:', wdsTable[idx][0], wdsTable[idx][1], wdsTable[idx][2])
+            print('Catalogstar coord:', catalogstar)
+            print('Companion:', companion)
+            print('Separation:', sep)
             #print('Separation check:', separation)
             for star2 in sources:
                 ra3, dec3 = mywcs.all_pix2world([[star2['xcentroid'], star2['ycentroid']]], 0)[0]   
