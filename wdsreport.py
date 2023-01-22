@@ -12,7 +12,7 @@ from astropy import units as u
 from astropy.io import fits
 from astropy.stats import sigma_clipped_stats
 from astropy.table import QTable
-from astropy.table import Table, vstack
+from astropy.table import Table, vstack, hstack
 from astropy.table import Column, MaskedColumn
 from photutils.detection import DAOStarFinder
 import numpy as np
@@ -138,6 +138,8 @@ print('Files:', files)
 wdscatalog = SkyCoord(ra=wdsTable['ra_deg']*u.degree, dec=wdsTable['dec_deg']*u.degree)
 print('WDS Catalog:\n', wdscatalog)
 
+sources_ds = Table()
+
 ### Run source detection, collect star data to Qtable
 print('\n### Running source detection ###')
 for fitsFile in files:
@@ -160,15 +162,45 @@ for fitsFile in files:
     print(sources.info)
     print(sources)
 
-    sources_ds = Table(np.empty((0, 4)))
+    
     wds_catalog = SkyCoord(ra=wdsTable['ra_deg']*u.degree, dec=wdsTable['dec_deg']*u.degree)
     sources_catalog = SkyCoord(ra=sources['ra_deg']*u.degree, dec=sources['dec_deg']*u.degree)
-    #idxc, idxcatalog, wd2d, wd3d = wds_catalog.search_around_sky(sources_catalog, 0.001*u.deg)
     idxw, idxs, wsd2d, wsd3d = search_around_sky(wds_catalog, sources_catalog, 0.001*u.deg)
-    #sources_ds.add_row([sources[idxs], wds_catalog[idxw]])
+    composit_catalog = hstack([wdsTable[idxw]['wds_identifier', 'discovr', 'comp', 'theta', 'rho'], sources[idxs]['id', 'mag', 'ra_deg', 'dec_deg']])
+    companion_catalog = SkyCoord(ra=composit_catalog['ra_deg']*u.degree, dec=composit_catalog['dec_deg']*u.degree).directional_offset_by(composit_catalog['theta'] * u.degree, composit_catalog['rho'] * u.arcsec)
+    
+    print('Companion catalog\n', companion_catalog)
+    #print('Companion catalog separations:\n', SkyCoord(ra=composit_catalog['ra_deg']*u.degree, dec=composit_catalog['dec_deg']*u.degree).separation(companion_catalog).to(u.arcsec))
+    #print(composit_catalog.info)
+    print('Composit catalog\n', composit_catalog)
+    #idxs2, idxc2, d2d, d3d = search_around_sky(sources_catalog, companion_catalog, 0.001*u.deg) #idxc2
+    #print(idxc2)
+    #print('Composit catalog idxc2\n', composit_catalog[idxc2])
+    idxs2, d2ds2, d3ds2 = match_coordinates_sky(companion_catalog, sources_catalog)
+    print(idxs2)
+    print('Companion catalog idxs2\n', sources[idxs2])
+
+
+    composit_catalog2 = hstack([composit_catalog, sources[idxs2]]) #['id', 'mag', 'ra_deg', 'dec_deg']
+    print(composit_catalog2.info)
+    print('Composit catalog 2.\n', composit_catalog2)
+
+    sources_pa = SkyCoord(ra=composit_catalog2['ra_deg_1']*u.degree, dec=composit_catalog2['dec_deg_1']*u.degree).position_angle(SkyCoord(ra=composit_catalog2['ra_deg_2']*u.degree, dec=composit_catalog2['dec_deg_2']*u.degree)).to(u.deg)
+
+    sources_sep = SkyCoord(ra=composit_catalog2['ra_deg_1']*u.degree, dec=composit_catalog2['dec_deg_1']*u.degree).separation(SkyCoord(ra=composit_catalog2['ra_deg_2']*u.degree, dec=composit_catalog2['dec_deg_2']*u.degree)).to(u.arcsec)
+
+    composit_catalog2.add_column(sources_pa, name='theta_measured')
+    composit_catalog2.add_column(sources_sep, name='rho_measured')
+
+
     print('Matching sources list')
     print(sources[idxs])
     print(wdsTable[idxw])
+    print('Composit catalog 2. extended\n', composit_catalog2)
+
+    sources_ds = vstack([sources_ds, composit_catalog2])
+
+    #print('Companions\n', companion_coord)
 
     for star in sources:
         
@@ -213,6 +245,14 @@ for fitsFile in files:
                     wdsmag_diff =  wdsTable[idx]['mag_sec'] - wdsTable[idx]['mag_pri']
                     magdiff = star2['mag'] - star['mag']
                     dsTable.add_row([wdsTable[idx][0], wdsTable[idx][1], wdsTable[idx][2], wdsTable[idx][3], wdsTable[idx][4], wdsTable[idx][5], wdsTable[idx][6], wdsmag_diff, wdsTable[idx][7], wdsTable[idx][8], wdsTable[idx][9], wdsTable[idx][10], wdsTable[idx][11], str(wdsTable[idx][12]), str(wdsTable[idx][13]), str(wdsTable[idx][14]), str(wdsTable[idx][15]), objectid, paactual.degree, sepactual.degree, magdiff])
+
+print('### Sources DS ###')
+print(sources_ds)
+
+upd_sources_ds = sources_ds[sources_ds['rho_measured'] != 0]
+print('### Updated sources DS ###')
+print(upd_sources_ds)
+#Ide kell egy source_id generáló algoritmus!!!
 
 print('\n### Double stars ###')
 print(dsTable)            
