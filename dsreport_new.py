@@ -323,8 +323,8 @@ for fitsFile in files:
             segmentpart = Table.read(f"/usr/share/dr3map/gaiadr3_15mag_catalog/{seg}", format='ascii')
             gaiaStars = segmentpart
 
-    dr3TableFileName = (str('dr3stars.csv'))
-    gaiaStars.write(dr3TableFileName, format='ascii.ecsv', overwrite=True, delimiter=',')
+    #dr3TableFileName = (str('dr3stars.csv'))
+    #gaiaStars.write(dr3TableFileName, format='ascii.ecsv', overwrite=True, delimiter=',')
     
     # Search sources in the segment catalog
     for star in sources:
@@ -338,7 +338,7 @@ for fitsFile in files:
         if sep < Angle('00d00m02s'):
             sourceTable.add_row([fitsFile, gaiaStars[idx]['source_id'], gaiaStars[idx]['designation'], convertStringToNan(gaiaStars[idx]['ra']), convertStringToNan(gaiaStars[idx]['dec']), convertStringToNan(gaiaStars[idx]['parallax']), convertStringToNan(gaiaStars[idx]['parallax_error']), convertStringToNan(gaiaStars[idx]['pmra']), convertStringToNan(gaiaStars[idx]['pmdec']), convertStringToNan(gaiaStars[idx]['phot_g_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_bp_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_rp_mean_mag']), convertStringToNan(gaiaStars[idx]['radial_velocity']), convertStringToNan(gaiaStars[idx]['radial_velocity_error']), convertStringToNan(gaiaStars[idx]['teff_gspphot']), star['id'], ra2, dec2, star['mag']])
 
-gaiaStarsTableFileName = (str('gaiaStarsTab.csv'))
+#gaiaStarsTableFileName = (str('gaiaStarsTab.csv'))
 
 # Write found sources into file
 tableFileName = (workingDirectory + '/' + str(fitsFile[:-4] + '.csv'))
