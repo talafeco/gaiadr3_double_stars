@@ -1,3 +1,10 @@
+#! /usr/bin/python3
+
+# DSReport tool to find phisical double stars on astronomical images based on Gaia DR3 data
+# Version: 1.0
+# Install: copy file to /usr/local/bin folder
+# Usage: dsreport <image_folder>
+
 import csv
 import os
 import sys
@@ -557,8 +564,8 @@ for ds in reportTable_by_object.groups:
     pairLum2 = calcLuminosity(pairAbsMag2)
     pairMass1 = calcMass(pairLum1)
     pairMass2 = calcMass(pairLum2)
-    pairBVIndexA = ds[0][10] - ds[0][11]
-    pairBVIndexB = ds[0][27] - ds[0][28]
+    pairBVIndexA = ds[0][10] - ds[0][9]
+    pairBVIndexB = ds[0][27] - ds[0][26]
     pairSepPar = sepCalc(pairDistanceMinA, pairDistanceMinB, rhoPairDr3) # Separation of the pairs in parsecs
     pairEscapeVelocity = calcEscapevelocity(pairMass1, pairMass2, pairSepPar, gravConst)
     pairRelativeVelocity = calcRelativeVelocity(ds[0][7], ds[0][8], ds[0][24], ds[0][25], ds[0][12], ds[0][29], pairDistanceMinA, pairDistanceMinB)
