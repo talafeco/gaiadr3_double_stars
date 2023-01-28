@@ -62,7 +62,7 @@ gaiaStars = np.empty((0, 152), float)
 
 # Add all segments to the numpy array
 for seg in segments:
-    segmentpart = np.genfromtxt(f"/home/gergo/Documents/dr3_catalog/gaiadr3_15mag_catalog/{seg}", delimiter=",", skip_header=1)
+    segmentpart = np.genfromtxt(f"/usr/share/dr3map/gaiadr3_15mag_catalog/{seg}", delimiter=",", skip_header=1)
     gaiaStars = np.append(gaiaStars, segmentpart, axis=0)
 
 # Search sources in the segment catalog
