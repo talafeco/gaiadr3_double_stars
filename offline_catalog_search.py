@@ -39,7 +39,7 @@ for star in sources:
         segments.append(segmentName)
 
 #print(segments)
-#print(sources)
+#print(sources) #
 
 # Define Qtable for results
 dr3Designation = np.array([], dtype=str)
