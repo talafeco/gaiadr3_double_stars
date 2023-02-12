@@ -17,7 +17,7 @@ warnings.filterwarnings("ignore")
 fitsFileName = sys.argv[1]
 hdu = fits.open(fitsFileName)
 mywcs = WCS(hdu[0].header)
-
+ 
 # Estimate the background and background noise
 data = hdu[0].data
 mean, median, std = sigma_clipped_stats(data, sigma=5.0)  
