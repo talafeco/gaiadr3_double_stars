@@ -10,3 +10,5 @@ Search visual double star candidates in Gaia DR3. Mag &lt; 15, par > 0.5.
 5. Calculate sep and pa based on positions for the selected sources
 6. Write data into ascii text file
 7. Create plotted image file about the pair
+
+Test update. 2023-04-01
