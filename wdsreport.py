@@ -1,3 +1,5 @@
+#! /usr/bin/python3
+
 import csv
 import os
 import sys
@@ -25,6 +27,12 @@ from io import StringIO
 from astropy.io import ascii
 warnings.filterwarnings("ignore")
 
+# Constant variables
+# WDS table to be used to identify double stars on the image
+wdsTable = Table.read(sys.argv[1], delimiter=',', format='ascii')
+print(wdsTable.info)
+# Set working directory to read Double Star images
+workingDirectory = sys.argv[2]
 
 def convertStringToNan(str):
     if str == '' or str == '.':
@@ -49,8 +57,7 @@ print('\n### Reading WDS database ###')
 """ doubleStars = np.genfromtxt(sys.argv[1], delimiter=',', skip_header=1, dtype=str)
 print(doubleStars) """
 #wdsTable = np.genfromtxt(sys.argv[1], delimiter=',')
-wdsTable = Table.read(sys.argv[1], delimiter=',', format='ascii')
-print(wdsTable.info)
+
 
 
 ### Define Qtable for WDS
@@ -128,7 +135,7 @@ print(wdsTable) """
 
 print('\n### Creating filelist ###')
 
-workingDirectory = sys.argv[2]
+
 directoryContent = os.listdir(workingDirectory)
 print('Working directory: ', workingDirectory)
 
