@@ -270,7 +270,7 @@ for ds in upd_sources_ds_by_object.groups:
     print('\nMagnitude measurements\n') # , ds['dsmagdiff']
     print('Mean:', pairMagDiff)
     print('Error:', pairMagDiffErr)
-    reportTable.add_row([ds[0]['wds_identifier'], 'Date of observation', pairMeanTheta, pairMeanThetaErr, pairMeanRho, pairMeanRhoErr, np.nan, np.nan, pairMagDiff, pairMagDiffErr, 'Filter wawelenght', 'filter FWHM', '0.2', '1', 'TAL_2022', 'C', '7'])
+    reportTable.add_row([ds[0]['wds_identifier'] + ds[0]['discovr'] + ds[0]['comp'], 'Date of observation', pairMeanTheta, pairMeanThetaErr, pairMeanRho, pairMeanRhoErr, np.nan, np.nan, pairMagDiff, pairMagDiffErr, 'Filter wawelenght', 'filter FWHM', '0.2', '1', 'TAL_2022', 'C', '7'])
     reportFile.write('\n\nWDS Identifier: ' + ds[0]['wds_identifier'])
     reportFile.write('\nDiscoverer and components: ' + str(ds[0]['discovr']) + ' ' + str(ds[0]['comp']))
     reportFile.write('\nMagnitude(s) (Pri / Sec): ' + str(ds[0]['mag_1']) + ' / ' +  str(ds[0]['mag_2']))
@@ -290,5 +290,5 @@ for ds in upd_sources_ds_by_object.groups:
     reportFile.write(str(wdsform))
     
 #print(reportTable)
-dsTable_by_object.write('double_stars.txt', format='ascii', overwrite=True, delimiter=',')
+upd_sources_ds_by_object.write('double_stars.txt', format='ascii', overwrite=True, delimiter=',')
 reportTable.write('double_stars_wds_format.txt', format='ascii', overwrite=True, delimiter=',')
