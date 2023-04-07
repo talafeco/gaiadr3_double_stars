@@ -126,10 +126,10 @@ for fitsFile in files:
 
     daofind = DAOStarFinder(fwhm=10.0, threshold=18.0*std)  
     sources = daofind(data - median)
-    print(sources.info)
     ra2, dec2 = mywcs.all_pix2world(sources['xcentroid'], sources['ycentroid'], 1)
     sources.add_column(ra2, name='ra_deg') 
     sources.add_column(dec2, name='dec_deg')
+    
     print(sources.info)
     print(sources)
     
@@ -137,7 +137,7 @@ for fitsFile in files:
     sources_catalog = SkyCoord(ra=sources['ra_deg']*u.degree, dec=sources['dec_deg']*u.degree)
     idxw, idxs, wsd2d, wsd3d = search_around_sky(wds_catalog, sources_catalog, 0.001*u.deg)
     composit_catalog = hstack([wdsTable[idxw]['wds_identifier', 'discovr', 'comp', 'theta', 'rho'], sources[idxs]['id', 'mag', 'ra_deg', 'dec_deg']])
-    companion_catalog = SkyCoord(ra=composit_catalog['ra_deg']*u.degree, dec=composit_catalog['dec_deg']*u.degree).directional_offset_by(composit_catalog['theta'] * u.degree, composit_catalog['rho'] * u.arcsec)
+    companion_catalog = SkyCoord(ra=composit_catalog['ra_deg'] * u.degree, dec=composit_catalog['dec_deg'] * u.degree).directional_offset_by(composit_catalog['theta'] * u.degree, composit_catalog['rho'] * u.arcsec)
     
     print('Companion catalog\n', companion_catalog)
     print('Composit catalog\n', composit_catalog)
@@ -186,7 +186,7 @@ for fitsFile in files:
                     sepactual = mainstar.separation(compstar) * 3600
                     print('\nPA:', paactual.degree, 'Sep:', (sepactual.degree))
                     objectid = str(wdsTable[idx][0]) + '_' + str(wdsTable[idx][1]) + '_' + str(wdsTable[idx][2])
-                    wdsmag_diff =  wdsTable[idx]['mag_sec'] - wdsTable[idx]['mag_pri']
+                    wdsmag_diff =  floaf(wdsTable[idx]['mag_sec']) - float(wdsTable[idx]['mag_pri']
                     magdiff = star2['mag'] - star['mag']
                     dsTable.add_row([wdsTable[idx][0], wdsTable[idx][1], wdsTable[idx][2], wdsTable[idx][3], wdsTable[idx][4], wdsTable[idx][5], wdsTable[idx][6], wdsmag_diff, wdsTable[idx][7], wdsTable[idx][8], wdsTable[idx][9], wdsTable[idx][10], wdsTable[idx][11], str(wdsTable[idx][12]), str(wdsTable[idx][13]), str(wdsTable[idx][14]), str(wdsTable[idx][15]), objectid, paactual.degree, sepactual.degree, magdiff])
 
