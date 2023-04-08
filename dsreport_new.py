@@ -135,7 +135,7 @@ def calcHarshawPhysicality(harfac):
     elif 0.0 <= harfac < 0.35:
         HarshawPhysicality = 'No'
     elif harfac <= 0:
-        HarshawPhysicality = 'Something went wrong...'
+        HarshawPhysicality = 'Something went wrong... (so NO)'
     return HarshawPhysicality
 
 # Function to calculate the Tangential speed components from proper motin in km/s
