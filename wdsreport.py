@@ -87,7 +87,7 @@ def sepCalc(dist_a, dist_b, rho):
 
 # Function to calculate the distance of the star based on the parallax
 def calcDistance(par):
-    dist = 1 / (par/1000)
+    dist = 1 / (math.fabs(par/1000))
     return dist
 
 # Function to calculate the minimum distance of the star based on the parallax error
@@ -389,7 +389,7 @@ for ds in upd_sources_ds_by_object.groups:
     print('\n### Group index:', count, '###')
     print(ds)
     count = count + 1
-    pairObjectId = ds[0]['wds_identifier'] + ds[0]['discovr'] + ds[0]['comp']
+    pairObjectId = ds[0]['wds_identifier'] + ds[0]['discovr'] + str(ds[0]['comp'])
     
     # Search component in the Gaia DR3 database
     pairACoord = SkyCoord(ra=ds[0]['ra_deg_1'], dec=ds[0]['dec_deg_1'], unit=(u.degree, u.degree), frame='icrs')
@@ -502,7 +502,7 @@ for ds in upd_sources_ds_by_object.groups:
     pairSepPar = sepCalc(pairDistanceMinA, pairDistanceMinB, rhoStar) # Separation of the pairs in parsecs
     pairEscapeVelocity = calcEscapevelocity(pairMass1, pairMass2, pairSepPar, gravConst)
     pairRelativeVelocity = calcRelativeVelocity(gaiaAStar[0]['pmra'], gaiaAStar[0]['pmdec'], gaiaBStar[0]['pmra'], gaiaBStar[0]['pmdec'], gaiaAStar[0]['radial_velocity'], gaiaBStar[0]['radial_velocity'], pairDistanceMinA, pairDistanceMinB)
-    pairHarshawFactor = calcHarshaw(pairParallaxFactor, pairPmFactor)
+    pairHarshawFactor = calcHarshaw((pairParallaxFactor / 100), (pairPmFactor /100))
     pairHarshawPhysicality = calcHarshawPhysicality(pairHarshawFactor)
     pairBinarity = calcBinarity(pairRelativeVelocity, pairEscapeVelocity)
     
@@ -551,7 +551,7 @@ for ds in upd_sources_ds_by_object.groups:
     print('Pair binarity:', pairBinarity)
     
     # Write results to file
-    reportTable.add_row([ds[0]['wds_identifier'] + ds[0]['discovr'] + ds[0]['comp'], 'Date of observation', pairMeanTheta, pairMeanThetaErr, pairMeanRho, pairMeanRhoErr, np.nan, np.nan, pairMagDiff, pairMagDiffErr, 'Filter wawelenght', 'filter FWHM', '0.2', '1', 'TAL_2022', 'C', '7'])
+    reportTable.add_row([ds[0]['wds_identifier'] + ds[0]['discovr'] + str(ds[0]['comp']), 'Date of observation', pairMeanTheta, pairMeanThetaErr, pairMeanRho, pairMeanRhoErr, np.nan, np.nan, pairMagDiff, pairMagDiffErr, 'Filter wawelenght', 'filter FWHM', '0.2', '1', 'TAL_2022', 'C', '7'])
     reportFile.write('\n\nWDS Identifier: ' + ds[0]['wds_identifier'])
     reportFile.write('\nDiscoverer and components: ' + str(ds[0]['discovr']) + ' ' + str(ds[0]['comp']))
     reportFile.write('\nMagnitude(s) (Pri / Sec): ' + str(ds[0]['mag_1']) + ' / ' +  str(ds[0]['mag_2']))

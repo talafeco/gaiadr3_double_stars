@@ -11,23 +11,36 @@ Search visual double star candidates in Gaia DR3. Mag &lt; 15, par > 0.5.
 6. Write data into ascii text file
 7. Create plotted image file about the pair
 
-# Changelog 2023-04-07
+# Changelog 2023-04-08
 (wdsreport.py)
 1. All component are measured on images
+    - Done
 2. Mean and error values are calculated for each component measurements: theta, rho, magnitude difference
+    - Done
 
 ## TBD
 1. Clean up code
 2. Extend data table with additional useful columns
 3. Extend reports: list of individual measurements
-    - Added, to be formated
+    - Done
 4. Add Gaia DR3 identification of the components
     - Done
 5. Calculate Physical properties of the double star: mass, absolute magnitude, luminosity, gravitational bound
-    - calculations added, report generation tbd
-6. Create image of each components, comments on the image is optional
+    - Done
+6. Extend star mass calculation with alternate equatione based on measured temperature
 7. Create HRD diagram of the components
 8. Update report file path to be created in the image directory
 9. Fix magnitude error calculation algorithm
 10. Add magnitude difference to the updated table
-11. Extend star mass calculation with alternate equatione based on measured temperature
+
+
+# New functions
+## Create image of each components
+1. Stack fits images, process dark, flat and bias images
+2. Find center pixel of the double star
+3. Crop image to a reasonable size of the double star
+4. Draw lines towards components, write the component designation over the line
+5. Mark north and east on the image (lower left corner)
+6. Write the Double star name to the image (upper left corner)
+7. Write observation date and time (upper right corner)
+8. Write measurements of the components: designation, theta, rho (lower right corner)
