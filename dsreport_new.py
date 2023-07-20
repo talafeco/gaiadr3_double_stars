@@ -9,7 +9,6 @@ import os
 import sys
 import numpy as np
 import math
-import sys
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 from astropy.io import fits
