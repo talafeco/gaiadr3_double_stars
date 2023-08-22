@@ -1,17 +1,23 @@
 # BASH alias to plate-solve the complete directory: solvedir (.bashrc)
 alias solvedircr2='for i in $(find -name '*.cr2'); do solve-field --downsample 4 --timestamp --no-plots --overwrite $i; done | tee -a solved_$(date +%Y-%m-%d).log'
+
 # BASH alias to plate-solve the complete directory: solvedir (.bashrc)
 alias solvedirfits='for i in $(find -name '*.fits'); do solve-field --downsample 4 --timestamp --no-plots --overwrite $i; done | tee -a solved_$(date +%Y-%m-%d).log'
+
 # BASH alias to detect sources in a parrticular fits file: solvext +(file name)
 alias solvext='python3 /home/gergo/Documents/dev/github/fits_double_star_measurement/fits_source_detection_dr3.py'
+
 # BASH alias to detect sources in all fits (.new) files in a parrticular directory solvextdir: solvextof +(file name)
 alias solvextof='python3 /home/gergo/Documents/dev/github/gaiadr3_double_stars/offline_catalog_search.py'
+
 # BASH alias to get double stars from a given solution (.csv) file and measure actial separatin and position angle: meds +(solution.csv file name)
 alias meds='python3 ~/Documents/dev/github/gaiadr3_double_stars/search_doubles_gaiadr3_onfly.py'
 
 # BASH alias to detect sources in all fits (.new) files in a parrticular directory solvextdir: solvextdir
 alias solvextdir='for i in $(find -name '*.new'); do echo $i ; python3 /home/gergo/Documents/dev/github/fits_double_star_measurement/fits_source_detection_dr3.py $i; done | tee -a source_extracted_$(date +%Y-%m-%d).log'
+
 # BASH alias to detect sources in all fits (.new) files in a parrticular directory solvextdir: medsdir
 alias medsdir='for i in $(find -name '*.csv'); do python3 ~/Documents/dev/github/gaiadr3_double_stars/search_doubles_gaiadr3_onfly.py $i; done | tee -a double_stars_measured.txt'
+
 # BASH alias to detect sources in all fits (.new) files in a parrticular directory solvextdir: solvextdirof
 alias solvextdirof='for i in $(find -name '*.new'); do echo $i ; python3 /home/gergo/Documents/dev/github/gaiadr3_double_stars/offline_catalog_search.py $i; done | tee -a source_extracted_$(date +%Y-%m-%d).log'
