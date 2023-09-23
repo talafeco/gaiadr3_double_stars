@@ -56,13 +56,14 @@ def delete_invalid_lines_wds(catalog):
 # Function to search coordinates in the WDS catalog file
 def search_in_wds(ra_source, dec_source):
     coordinates = SkyCoord(ra=ra_source, dec=dec_source)
-    print('Target coordinates: ' + str(coordinates))
+    
     catalog = SkyCoord(ra=wds_catalog['Coord (RA) hms'], dec=Angle(wds_catalog['Coord (DEC) dms']), unit='hour, degree', frame="icrs")
     idx, d2d, d3d = coordinates.match_to_catalog_sky(catalog)
     star_coord = SkyCoord(ra=ra_source, dec=dec_source)
-    #sep = coordinates.separation(d2d)*u.degree
-    print(wds_catalog[idx])
     print('Coordinates: ' + str(ra_source) + '(Ra), ' + str(dec_source) + '(Dec), Separation: ' + str(d2d))
+    #sep = coordinates.separation(d2d)*u.degree
+    print(wds_catalog[idx]['2000 Coord'])
+    
 
 def filter_catalog(catalog_name, key_colnames):
     print(str(Angle(star_ra)) + ", " + str(Angle(star_dec)))
@@ -160,8 +161,8 @@ wds_catalog.rename_column('col0', 'Coord (DEC) dms')
 wds_catalog = hstack([wds_catalog, create_unique_id(wds_data['2000 Coord'], wds_data['Discov'])])
 wds_catalog.rename_column('col0', 'Unique ID')
 wds_catalog = delete_invalid_lines_wds(wds_catalog)
-print(wds_catalog)
-print(wds_catalog.info)
+#print(wds_catalog)
+#print(wds_catalog.info)
 #print('# Timestamp, start wds catalog filter: ' + str(datetime.now()))
 #wds_catalog.group_by('Unique ID')
 #wds_catalog.groups.filter(filter_catalog)
