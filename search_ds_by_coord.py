@@ -138,6 +138,7 @@ wds_data = Table.read(wds_file,
                              'PM_B_ra', 'PM_B_dec', 'D. Number', 'Notes', 'Coord (RA)',
                              'Coord (DEC)'
                             ),
+                      fill_values=[('.', '0', 'PM_A_ra'), ('.', '0', 'PM_A_dec'), ('.', '0', 'PM_B_ra'), ('.', '0', 'PM_B_dec')],
                       converters=wds_converters,
                       format='ascii.fixed_width',
                       header_start=2, data_start=5,
