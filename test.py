@@ -10,3 +10,5 @@ star_dec = sys.argv[2].replace(",",".")
 
 print(star_ra + ' ' + star_dec)
 print(SkyCoord(star_ra, star_dec, unit='hour, degree'))
+
+# tert
