@@ -44,3 +44,10 @@ Search visual double star candidates in Gaia DR3. Mag &lt; 15, par > 0.5.
 6. Write the Double star name to the image (upper left corner)
 7. Write observation date and time (upper right corner)
 8. Write measurements of the components: designation, theta, rho (lower right corner)
+
+## Function externsions
+1. Gaia data collection in one line
+2. Calculate hrd placement based on temperature & luminosity
+3. Create HRD plot
+4. Calculate orbit period
+5. Check, if absolute magnitude measurement is possible on the images

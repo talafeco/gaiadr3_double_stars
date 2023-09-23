@@ -360,17 +360,13 @@ reportTable = QTable([reportw_identifier, reportdate, reporttheta, reportthetaer
 
 print('\n### Creating filelist ###')
 
-
 directoryContent = os.listdir(workingDirectory)
 print('Working directory: ', workingDirectory)
 
 files = [f for f in directoryContent if os.path.isfile(workingDirectory+'/'+f) and f.endswith('.new')]
 print('Files:', files)
 
-#wdscatalog = SkyCoord(ra=wdsTable['ra_deg']*u.degree, dec=wdsTable['dec_deg']*u.degree)
-
 # Create the WDS catalog table
-#wds_catalog = SkyCoord(ra=wdsTable['ra_deg']*u.degree, dec=wdsTable['dec_deg']*u.degree)
 
 wdsTable = hstack([wds_data, calculate_wds_ra_hourangle(wds_data['Coord (RA)'])])
 wdsTable.rename_column('col0', 'Coord (RA) hms')
@@ -397,33 +393,20 @@ for fitsFile in files:
 
     # Estimate the background and background noise
     data = hdu[0].data
-    mean, median, std = sigma_clipped_stats(data, sigma=5.0)  
+    mean, median, std = sigma_clipped_stats(data, sigma=2.0)  
 
-    daofind = DAOStarFinder(fwhm=10.0, threshold=18.0*std)  
+    daofind = DAOStarFinder(fwhm=5.0, threshold=9.0*std)  
     sources = daofind(data - median)
     ra2, dec2 = mywcs.all_pix2world(sources['xcentroid'], sources['ycentroid'], 1)
     sources.add_column(ra2, name='ra_deg') 
     sources.add_column(dec2, name='dec_deg')
-    
-    #print(sources.info)
-    #print(sources)
-    
-    # wds_catalog = SkyCoord(ra=wdsTable['ra_deg']*u.degree, dec=wdsTable['dec_deg']*u.degree)
 
     sources_catalog = SkyCoord(ra=sources['ra_deg']*u.degree, dec=sources['dec_deg']*u.degree)
     idxw, idxs, wsd2d, wsd3d = search_around_sky(wds_catalog, sources_catalog, 0.001*u.deg)
     composit_catalog = hstack([wdsTable[idxw]['2000 Coord', 'Discov', 'Comp', 'PA_l', 'Sep_l'], sources[idxs]['id', 'mag', 'ra_deg', 'dec_deg']])
     companion_catalog = SkyCoord(ra=composit_catalog['ra_deg'] * u.degree, dec=composit_catalog['dec_deg'] * u.degree).directional_offset_by(composit_catalog['PA_l']*u.degree, composit_catalog['Sep_l']*u.arcsec)
-    
-    #print('Companion catalog\n', companion_catalog)
-    #print('Composit catalog\n', composit_catalog)
     idxs2, d2ds2, d3ds2 = match_coordinates_sky(companion_catalog, sources_catalog)
-    #print('Companion catalog idxs2\n', sources[idxs2])
-    #print(idxs2)
-
     composit_catalog2 = hstack([composit_catalog, sources[idxs2]]) #['id', 'mag', 'ra_deg', 'dec_deg']
-    # print(composit_catalog2.info)
-    #print('Composit catalog 2.\n', composit_catalog2)
 
     sources_pa = SkyCoord(ra=composit_catalog2['ra_deg_1']*u.degree, dec=composit_catalog2['dec_deg_1']*u.degree).position_angle(SkyCoord(ra=composit_catalog2['ra_deg_2']*u.degree, dec=composit_catalog2['dec_deg_2']*u.degree)).to(u.deg)
     sources_sep = SkyCoord(ra=composit_catalog2['ra_deg_1']*u.degree, dec=composit_catalog2['dec_deg_1']*u.degree).separation(SkyCoord(ra=composit_catalog2['ra_deg_2']*u.degree, dec=composit_catalog2['dec_deg_2']*u.degree)).to(u.arcsec)
@@ -432,51 +415,19 @@ for fitsFile in files:
     composit_catalog2.add_column(sources_pa, name='theta_measured')
     composit_catalog2.add_column(sources_sep, name='rho_measured')
     composit_catalog2.add_column(sources_mag_diff, name='mag_diff')
-
-
-    #print('Matching sources list')
-    #print(sources[idxs])
-    #print(wdsTable[idxw])
-    #print('Composit catalog 2. extended\n', composit_catalog2)
-
     sources_ds = vstack([sources_ds, composit_catalog2])
 
 print('### Sources DS ###')
 print(sources_ds)
 
 upd_sources_ds = sources_ds[sources_ds['rho_measured'] != 0]
-#upd_sources_ds.add_column(str(sources_ds['wds_identifier']) + '_' + str(sources_ds['discovr']) + '_' + str(sources_ds['comp']), name='object_id')
 upd_sources_ds_by_object = upd_sources_ds.group_by(['2000 Coord', 'Discov', 'Comp'])
-
-# Create object ID array
-# upd_sources_ds_object_id = str(sources_ds['wds_identifier']) + '_' + str(sources_ds['discovr']) + '_' + str(sources_ds['comp'])
-#upd_sources_ds_object_id = np.empty(0,dtype=str)
-
-#for line in sources_ds:
-#    upd_sources_ds_object_id_instance = str(line['wds_identifier']) + '_' + str(line['discovr']) + '_' + str(line['comp'])
-#    np.char.replace(upd_sources_ds_object_id_instance,' ','_')
-#    print(upd_sources_ds_object_id_instance)
-#    np.append(upd_sources_ds_object_id, upd_sources_ds_object_id_instance)
 
 print(upd_sources_ds.info)
 print('### Updated sources DS table grouped by WDS Identifier, Discoverer and Components ###')
 print(upd_sources_ds_by_object)
 
-#Ide kell egy source_id generáló algoritmus!!!
-
-#print('\n### Double stars ###')
-#print(dsTable)
-#print('\n### Double stars table info ###')
-#print(dsTable.info)       
-        
-### Search double stars on the image sequence
-#dsTable_by_object = dsTable.group_by('object_id')
-#print('\n### Report Table by object ###')
-#print(dsTable_by_object)
-
-
 objectMean = upd_sources_ds_by_object.groups.aggregate(np.mean)
-#print(objectMean)
 
 count = 1
 for ds in upd_sources_ds_by_object.groups:
@@ -492,8 +443,6 @@ for ds in upd_sources_ds_by_object.groups:
     b = Gaia.cone_search_async(pairBCoord, radius=u.Quantity(0.001, u.deg))
     gaiaAStar = a.get_results()
     gaiaBStar = b.get_results()
-    print(gaiaAStar[0]['DESIGNATION'])
-    print(gaiaBStar[0]['DESIGNATION'])
     pairDistanceMinA = calcDistanceMin(float(gaiaAStar[0]['parallax']), float(gaiaAStar[0]['parallax_error']))
     pairDistanceMinB = calcDistanceMin(float(gaiaBStar[0]['parallax']), float(gaiaBStar[0]['parallax_error']))
     
@@ -518,29 +467,10 @@ for ds in upd_sources_ds_by_object.groups:
         starName2 = gaiaBStar[0]['DESIGNATION']
         starParallax2 = float(gaiaBStar[0]['parallax'])
         starParallaxError2 = float(gaiaBStar[0]['parallax_error'])
-        #starPmRa1 = float(gaiaAStar['pmra'])
-        #starPmDec1 = float(gaiaAStar['pmdec'])
-        #starPmRa2 = float(gaiaBStar['pmra'])
-        #starPmDec2 = float(gaiaBStar['pmdec'])
-        #starGMag1 = float(gaiaAStar['phot_g_mean_mag'])
-        #starGMag2 = float(gaiaBStar['phot_g_mean_mag'])
-        #starBpMag1 = float(gaiaAStar['phot_bp_mean_mag'])
-        #starBpMag2 = float(gaiaBStar['phot_bp_mean_mag'])
-        #starRpMag1 = float(gaiaAStar['phot_rp_mean_mag'])
-        #starRpMag2 = float(gaiaBStar['phot_rp_mean_mag'])
-        #starRadVel1 = float(gaiaAStar['radial_velocity'])
-        #starRadVelErr1 = float(gaiaAStar['radial_velocity_error'])
-        #starRadVel2 = float(gaiaBStar['radial_velocity'])
-        #starRadVelErr2 = float(gaiaBStar['radial_velocity_error'])
-        #starTemp1 = float(gaiaAStar['teff_gspphot'])
-        #starTemp2 = float(gaiaBStar['teff_gspphot'])
-        #starImageIdA = float(gaiaBStar[15])
-        #starImageIdB = float(gaiaBStar[15])
         starActualRa1 = float(ds['ra_deg_1'].mean())
         starActualDec1 = float(ds[0]['dec_deg_1'].mean())
         starActualRa2 = float(ds[0]['ra_deg_2'].mean())
         starActualDec2 = float(ds[0]['dec_deg_2'].mean())
-        #starObjectId = (str(starId1) + '_' + str(starId2))
 
         # Value to modify Theta according to the appropriate quadrant
         addThetaValue = ()
@@ -579,15 +509,8 @@ for ds in upd_sources_ds_by_object.groups:
             distanceCommon = 'overlapping'
         else:
             distanceCommon = 'no'
-        
-        # Check if the pair is a Common Proper Motion pairs (CPM), Similar Proper Motion (SPM) or Different Proper Motion (DPM)
-
-
-        #Print data, if stars are close and share a common distance range
-        #if distanceCommon == 'overlapping':
-        #    reportTable.add_row([star[0], starId1, starName1, starRa1, starDec1, starParallax1, starParallaxError1, starPmRa1, starPmDec1, starGMag1, starBpMag1, starRpMag1, starRadVel1, starRadVelErr1, starTemp1, starActualRa1, starActualDec1, starActualMag1, starId2, starName2, starRa2, starDec2, starParallax2, starParallaxError2, starPmRa2, starPmDec2, starGMag2, starBpMag2, starRpMag2, starRadVel2, starRadVelErr2, starTemp2, starActualRa2, starActualDec2, starActualMag2, thetaStar, thetaActual, rhoStar, rhoActual, starObjectId])
     
-    
+    # Calculate attributes
     pairParallaxFactor = (calcParallaxFactor(gaiaAStar[0]['parallax'], gaiaBStar[0]['parallax'])) * 100
     pairPmFactor = (calcPmFactor(gaiaAStar[0]['pmra'], gaiaAStar[0]['pmdec'], gaiaBStar[0]['pmra'], gaiaBStar[0]['pmdec'])) * 100
     pairPmCommon = calcPmCategory(pairPmFactor)
@@ -652,8 +575,10 @@ for ds in upd_sources_ds_by_object.groups:
     
     # Write results to file
     reportTable.add_row([ds[0]['2000 Coord'] + ds[0]['Discov'] + str(ds[0]['Comp']), 'Date of observation', pairMeanTheta, pairMeanThetaErr, pairMeanRho, pairMeanRhoErr, np.nan, np.nan, pairMagDiff, pairMagDiffErr, 'Filter wawelenght', 'filter FWHM', '0.2', '1', 'TAL_2022', 'C', '7'])
-    reportFile.write('\n\nWDS Identifier: ' + ds[0]['2000 Coord'])
+    reportFile.write('WDS Identifier: ' + ds[0]['2000 Coord'])
     reportFile.write('\nDiscoverer and components: ' + str(ds[0]['Discov']) + ' ' + str(ds[0]['Comp']))
+    reportFile.write('\nMain star: ' + str(gaiaAStar[0]['DESIGNATION']))
+    reportFile.write('\nCompanion: ' + str(gaiaBStar[0]['DESIGNATION']))
     reportFile.write('\nMagnitude(s) (Pri / Sec): ' + str(ds[0]['mag_1']) + ' / ' +  str(ds[0]['mag_2']))
     reportFile.write('\nPA, Sep: ' + str(ds[0]['PA_l']) + ' / ' +  str(ds[0]['Sep_l']))
     reportFile.write('\nPosition angle:')
@@ -688,9 +613,10 @@ for ds in upd_sources_ds_by_object.groups:
     reportFile.write('\nPair binarity: ' + str(pairBinarity))
     reportFile.write('\n\n### WDS form:\n')
     wdsform = str(ds[0]['2000 Coord']) + ',' + 'Date of observation' + ',' +  str(pairMeanTheta) + ',' +  str(pairMeanThetaErr) + ',' +  str(pairMeanRho) + ',' +  str(pairMeanRhoErr) + ',' +  'nan' + ',' +  'nan' + ',' +  str(pairMagDiff) + ',' +  str(pairMagDiffErr) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TAL_2022' + ',' +  'C' + ',' + '7'
-    #print(str(wdsform))
     reportFile.write(str(wdsform))
+    gaiaData = str(ds[0]['2000 Coord']) + ',' + str(ds[0]['Discov']) + ',' + str(gaiaAStar[0]['pmra']) + ',' + str(gaiaAStar[0]['pmdec']) + ',' + str(gaiaBStar[0]['pmra']) + ',' + str(gaiaBStar[0]['pmdec']) + ',' + str(gaiaAStar[0]['parallax']) + ',' + str(gaiaBStar[0]['parallax']) + ',' + str(calcDistance(gaiaAStar[0]['parallax'])) + ',' + str(calcDistance(gaiaBStar[0]['parallax'])) + ',' + str(gaiaAStar[0]['radial_velocity']) + ',' + str(gaiaBStar[0]['radial_velocity']) + ',' + 'Radius A' + ',' + 'Radius B' + ',' + str(pairLum1) + ',' + str(pairLum2) + ',' + str(gaiaAStar[0]['teff_gspphot']) + ',' + str(gaiaBStar[0]['teff_gspphot']) + ',' + str(gaiaAStar[0]['phot_g_mean_mag']) + ',' + str(gaiaBStar[0]['phot_g_mean_mag']) + ',' + str(gaiaAStar[0]['phot_bp_mean_mag']) + ',' + str(gaiaBStar[0]['phot_bp_mean_mag']) + ',' + str(gaiaAStar[0]['phot_rp_mean_mag']) + ',' + str(gaiaBStar[0]['phot_rp_mean_mag']) + ',' + str(thetaCalc(deltaRa(gaiaAStar[0]['ra'], gaiaBStar[0]['ra'], gaiaBStar[0]['dec']), deltaDec(gaiaBStar[0]['dec'], gaiaAStar[0]['dec']))) + ',' + str(rhoCalc(gaiaAStar[0]['ra'], gaiaAStar[0]['dec'], gaiaBStar[0]['ra'], gaiaBStar[0]['dec'])) + ',' + str(gaiaAStar[0]['ra']) + ',' + str(gaiaAStar[0]['dec']) + ',' + str(gaiaBStar[0]['ra']) + ',' + str(gaiaBStar[0]['dec']) + ',' + str(gaiaAStar[0]['parallax_error']) + ',' + str(gaiaBStar[0]['parallax_error'])
+    reportFile.write('\n\n### Gaia data:\n')
+    reportFile.write(str(gaiaData))
     
-#print(reportTable)
-upd_sources_ds_by_object.write('double_stars.txt', format='ascii', overwrite=True, delimiter=',')
-reportTable.write('double_stars_wds_format.txt', format='ascii', overwrite=True, delimiter=',')
+#upd_sources_ds_by_object.write('double_stars.txt', format='ascii', overwrite=True, delimiter=',')
+#reportTable.write('double_stars_wds_format.txt', format='ascii', overwrite=True, delimiter=',')
