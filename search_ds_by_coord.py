@@ -17,6 +17,10 @@ from astropy.table import QTable
 from astropy.table import Table, vstack, hstack
 from datetime import datetime
 
+# Configuration
+# Insert the downloaded wds file path here
+wds_file = "C:\Astro\catalogs\WDS\wdsweb_summ2.txt"
+
 # Get coordinates
 star_ra = float(sys.argv[1].replace(",","."))*u.degree
 star_dec = float(sys.argv[2].replace(",","."))*u.degree
@@ -52,7 +56,7 @@ def search_in_wds(ra_source, dec_source):
     idx, d2d, d3d = coordinates.match_to_catalog_sky(catalog)
     star_coord = SkyCoord(ra=ra_source, dec=dec_source)
     #sep = coordinates.separation(d2d)*u.degree
-    print(wds_file[idx])
+    print(wds_data[idx])
     print('Coordinates: ' + str(ra_source) + '(Ra), ' + str(dec_source) + '(Dec), Separation: ' + str(d2d))
 
 def filter_catalog(catalog_name, key_colnames):
@@ -79,7 +83,7 @@ def filter_catalog(catalog_name, key_colnames):
     new_data = data[mask]
     return new_data
     '''
-
+'''
 # Function to search coordinates in the WDS catalog file
 def search_in_wdss(ra_source, dec_source):
     coordinates = SkyCoord(ra=ra_source, dec=dec_source)
@@ -100,6 +104,7 @@ def search_in_million(ra_source, dec_source):
     star_coord = SkyCoord(ra=ra_source*u.degree, dec=dec_source*u.degree)
     sep = Angle(coordinates.separation(star_coord))
     print(a_millio_binaries_file[idx], sep)
+'''
 
 ## Read catalogs
 # WDS
@@ -126,7 +131,7 @@ wds_converters = {  '2000 Coord': np.str_,
                     'Coord (RA)': np.str_,
                     'Coord (DEC)': np.str_
                     }
-wds_file = Table.read(f"~/Library/astro/catalogs/wds/2023-05-12/wdsweb_summ2.txt",
+wds_data = Table.read(wds_file,
                       names=('2000 Coord', 'Discov', 'Comp', 'Date (first)', 'Date (last)', 'Obs',
                              'PA_f', 'PA_l', 'Sep_f', 'Sep_l', 'Mag_A',
                              'Mag_B', 'Spectral A/B', 'PM_A_ra', 'PM_A_dec',
@@ -139,14 +144,14 @@ wds_file = Table.read(f"~/Library/astro/catalogs/wds/2023-05-12/wdsweb_summ2.txt
                       col_starts=(0, 10, 17, 23, 28, 33, 38, 42, 46, 52, 58, 64, 70, 80, 84, 89, 93, 98, 107, 112, 121),
                       col_ends=(9, 16, 21, 26, 31, 36, 40, 44, 50, 56, 61, 68, 78, 83, 87, 92, 96, 105, 110, 120, 129),
                       )
-#print(wds_file)
-#print(wds_file.info)
+#print(wds_data)
+#print(wds_data.info)
 print('# Timestamp, creating wds_catalog: ' + str(datetime.now()))
-wds_catalog = hstack([wds_file, calculate_wds_ra_hourangle(wds_file['Coord (RA)'])])
+wds_catalog = hstack([wds_data, calculate_wds_ra_hourangle(wds_data['Coord (RA)'])])
 wds_catalog.rename_column('col0', 'Coord (RA) hms')
-wds_catalog = hstack([wds_catalog, calculate_wds_dec_hourangle(wds_file['Coord (DEC)'])])
+wds_catalog = hstack([wds_catalog, calculate_wds_dec_hourangle(wds_data['Coord (DEC)'])])
 wds_catalog.rename_column('col0', 'Coord (DEC) dms')
-wds_catalog = hstack([wds_catalog, create_unique_id(wds_file['2000 Coord'], wds_file['Discov'])])
+wds_catalog = hstack([wds_catalog, create_unique_id(wds_data['2000 Coord'], wds_data['Discov'])])
 wds_catalog.rename_column('col0', 'Unique ID')
 print(wds_catalog)
 print(wds_catalog.info)

@@ -17,7 +17,7 @@ Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"
 
 filename = open(sys.argv[1], 'r')
 file = csv.DictReader(filename)
-fieldnames = ['wds_identifier', 'discoverer', 'component', 'epoch_first', 'epoch_last', 'observations', 'theta_first', 'theta_last', 'rho_first', 'rho_lat', 'magnitude_pri', 'magnitude_sec', 'spectral_type', 'pm_ra_pri', 'mp_dec_pri', 'pm_ra_sec', 'pm_dec_sec', 'note', 'ra_h', 'ra_m', 'ra_s', 'dec_d', 'dec_m', 'dec_s']
+fieldnames = ['wds_identifier', 'discoverer', 'component', 'epoch_first', 'epoch_last', 'observations', 'theta_first', 'theta_last', 'rho_first', 'rho_last', 'magnitude_pri', 'magnitude_sec', 'spectral_type', 'pm_ra_pri', 'mp_dec_pri', 'pm_ra_sec', 'pm_dec_sec', 'note', 'ra_h', 'ra_m', 'ra_s', 'dec_d', 'dec_m', 'dec_s']
 
 # Define Qtable for results
 dr3Designation = np.array([], dtype=str)
