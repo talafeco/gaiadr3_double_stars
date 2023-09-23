@@ -19,7 +19,7 @@ from datetime import datetime
 
 # Configuration
 # Insert the downloaded wds file path here
-wds_file = "C:\Astro\catalogs\WDS\wdsweb_summ.txt"
+wds_file = "C:\Astro\catalogs\WDS\wdsweb_summ2.txt"
 
 # Get coordinates
 star_ra = float(sys.argv[1].replace(",","."))*u.degree
@@ -46,17 +46,22 @@ def create_unique_id(wds_id, discov):
     id_array = [i + j for i, j in zip(wds_id, discov)]
     return id_array
 
-#def delete_invalid_ines_wds(wds_catalog):
-    
+
+def delete_invalid_lines_wds(catalog):
+    rows_to_delete = np.where(catalog['Coord (RA) hms'] == '.hms')
+    catalog.remove_rows(rows_to_delete)
+    return catalog
+
 
 # Function to search coordinates in the WDS catalog file
 def search_in_wds(ra_source, dec_source):
-    coordinates = SkyCoord(ra=ra_source, dec=dec_source) 
-    catalog = SkyCoord(ra=wds_catalog['Coord (RA) hms'], dec=Angle(wds_catalog['Coord (DEC) dms']), unit='hour, degree')
+    coordinates = SkyCoord(ra=ra_source, dec=dec_source)
+    print('Target coordinates: ' + str(coordinates))
+    catalog = SkyCoord(ra=wds_catalog['Coord (RA) hms'], dec=Angle(wds_catalog['Coord (DEC) dms']), unit='hour, degree', frame="icrs")
     idx, d2d, d3d = coordinates.match_to_catalog_sky(catalog)
     star_coord = SkyCoord(ra=ra_source, dec=dec_source)
     #sep = coordinates.separation(d2d)*u.degree
-    print(wds_data[idx])
+    print(wds_catalog[idx])
     print('Coordinates: ' + str(ra_source) + '(Ra), ' + str(dec_source) + '(Dec), Separation: ' + str(d2d))
 
 def filter_catalog(catalog_name, key_colnames):
@@ -143,7 +148,7 @@ wds_data = Table.read(wds_file,
                       header_start=2, data_start=5,
                       col_starts=(0, 10, 17, 23, 28, 33, 38, 42, 46, 52, 58, 64, 70, 80, 84, 89, 93, 98, 107, 112, 121),
                       col_ends=(9, 16, 21, 26, 31, 36, 40, 44, 50, 56, 61, 68, 78, 83, 87, 92, 96, 105, 110, 120, 129),
-                      fill_values=[('.', 'N/A', 'Coord (RA)', ), ('.', 'N/A', 'Coord (DEC)')],
+                      
                       )
 #print(wds_data)
 #print(wds_data.info)
@@ -154,12 +159,13 @@ wds_catalog = hstack([wds_catalog, calculate_wds_dec_hourangle(wds_data['Coord (
 wds_catalog.rename_column('col0', 'Coord (DEC) dms')
 wds_catalog = hstack([wds_catalog, create_unique_id(wds_data['2000 Coord'], wds_data['Discov'])])
 wds_catalog.rename_column('col0', 'Unique ID')
+wds_catalog = delete_invalid_lines_wds(wds_catalog)
 print(wds_catalog)
 print(wds_catalog.info)
-print('# Timestamp, start wds catalog filter: ' + str(datetime.now()))
+#print('# Timestamp, start wds catalog filter: ' + str(datetime.now()))
 #wds_catalog.group_by('Unique ID')
 #wds_catalog.groups.filter(filter_catalog)
-print('# Timestamp, wds catalog filter complete: ' + str(datetime.now()))
+#print('# Timestamp, wds catalog filter complete: ' + str(datetime.now()))
 
 #wds_catalog['Coord (RA) hms'].mask = [True]
 print('# Timestamp, start coordinate search in wds catalog: ' + str(datetime.now()))
