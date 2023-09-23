@@ -19,7 +19,7 @@ from datetime import datetime
 
 # Configuration
 # Insert the downloaded wds file path here
-wds_file = "C:\Astro\catalogs\WDS\wdsweb_summ2.txt"
+wds_file = "C:\Astro\catalogs\WDS\wdsweb_summ.txt"
 
 # Get coordinates
 star_ra = float(sys.argv[1].replace(",","."))*u.degree
@@ -137,13 +137,13 @@ wds_data = Table.read(wds_file,
                              'Mag_B', 'Spectral A/B', 'PM_A_ra', 'PM_A_dec',
                              'PM_B_ra', 'PM_B_dec', 'D. Number', 'Notes', 'Coord (RA)',
                              'Coord (DEC)'
-                            ),
-                      fill_values=[('.', '0', 'PM_A_ra'), ('.', '0', 'PM_A_dec'), ('.', '0', 'PM_B_ra'), ('.', '0', 'PM_B_dec')],
+                        ),
                       converters=wds_converters,
                       format='ascii.fixed_width',
                       header_start=2, data_start=5,
                       col_starts=(0, 10, 17, 23, 28, 33, 38, 42, 46, 52, 58, 64, 70, 80, 84, 89, 93, 98, 107, 112, 121),
                       col_ends=(9, 16, 21, 26, 31, 36, 40, 44, 50, 56, 61, 68, 78, 83, 87, 92, 96, 105, 110, 120, 129),
+                      fill_values=[('.', 'N/A', 'Coord (RA)', ), ('.', 'N/A', 'Coord (DEC)')],
                       )
 #print(wds_data)
 #print(wds_data.info)
