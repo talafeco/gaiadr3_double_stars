@@ -56,13 +56,13 @@ def delete_invalid_lines_wds(catalog):
 # Function to search coordinates in the WDS catalog file
 def search_in_wds(ra_source, dec_source):
     coordinates = SkyCoord(ra=ra_source, dec=dec_source)
-    
     catalog = SkyCoord(ra=wds_catalog['Coord (RA) hms'], dec=Angle(wds_catalog['Coord (DEC) dms']), unit='hour, degree', frame="icrs")
     idx, d2d, d3d = coordinates.match_to_catalog_sky(catalog)
     star_coord = SkyCoord(ra=ra_source, dec=dec_source)
     print('Coordinates: ' + str(ra_source) + '(Ra), ' + str(dec_source) + '(Dec), Separation: ' + str(d2d))
     #sep = coordinates.separation(d2d)*u.degree
     print(wds_catalog[idx]['2000 Coord'])
+    print(wds_catalog[np.where(wds_catalog['2000 Coord'] == wds_catalog[idx]['2000 Coord'])])
     
 
 def filter_catalog(catalog_name, key_colnames):
