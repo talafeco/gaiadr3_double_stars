@@ -33,52 +33,11 @@ from astroquery.gaia import Gaia
 Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"  # Reselect Data Release 3, default
 
 # Constant variables
-# Insert the downloaded wds file path here
-wds_file = "C:\Astro\catalogs\WDS\wdsweb_summ2.txt"
 
 # WDS table to be used to identify double stars on the image
 # wdsTable = Table.read(sys.argv[1], delimiter=',', format='ascii')
-
-#wdsTable = Table.read(f"/usr/share/dr3map/dr3-wds/wdsweb_summ2.dat", format='ascii')
-#print(wdsTable.info)
-
-
-# Create WDS table
-wds_converters = {  '2000 Coord': np.str_,
-                    'Discov': np.str_,
-                    'Comp': np.str_,
-                    'Date (first)': np.str_,
-                    'Date (last)': np.str_,
-                    'Obs': np.str_,
-                    'PA_f': np.float64,
-                    'PA_l': np.float64,
-                    'Sep_f': np.float64,
-                    'Sep_l': np.float64,
-                    'Mag_A': np.str_,
-                    'Mag_B': np.str_,
-                    'Spectral A/B': np.str_,
-                    'PM_A_ra': np.str_,
-                    'PM_A_dec': np.str_,
-                    'PM_B_ra': np.str_,
-                    'PM_B_dec': np.str_,
-                    'D. Number': np.str_,
-                    'Notes': np.str_,
-                    'Coord (RA)': np.str_,
-                    'Coord (DEC)': np.str_
-                    }
-wds_data = Table.read(wds_file,
-                      names=('2000 Coord', 'Discov', 'Comp', 'Date (first)', 'Date (last)', 'Obs',
-                             'PA_f', 'PA_l', 'Sep_f', 'Sep_l', 'Mag_A',
-                             'Mag_B', 'Spectral A/B', 'PM_A_ra', 'PM_A_dec',
-                             'PM_B_ra', 'PM_B_dec', 'D. Number', 'Notes', 'Coord (RA)',
-                             'Coord (DEC)'
-                        ),
-                      converters=wds_converters,
-                      format='ascii.fixed_width',
-                      header_start=2, data_start=5,
-                      col_starts=(0, 10, 17, 23, 28, 33, 38, 42, 46, 52, 58, 64, 70, 80, 84, 89, 93, 98, 107, 112, 121),
-                      col_ends=(9, 16, 21, 26, 31, 36, 40, 44, 50, 56, 61, 68, 78, 83, 87, 92, 96, 105, 110, 120, 129),
-                      )
+wdsTable = Table.read(f"/usr/share/dr3map/dr3-wds/wdsweb_summ2.dat", format='ascii')
+print(wdsTable.info)
 
 # Set working directory to read Double Star images
 workingDirectory = sys.argv[1]
@@ -108,10 +67,7 @@ def deltaDec(decb, deca):
 
 # Function to calculate Theta (position angle)
 def thetaCalc(deltara,deltadec):
-    if (deltara != 0 and deltadec != 0):
-        thetacalc = math.degrees(math.atan(deltara/deltadec))
-    else:
-        thetacalc = 0
+    thetacalc = math.degrees(math.atan(deltara/deltadec))
     return thetacalc
 
 # Function to calculate Rho (separation)
@@ -266,7 +222,6 @@ def calcPmCategory(pmfact):
     return pmCommon
 
 # Search pair in Washington double Star Catalog
-'''
 def searchWds(pairadesig):
     wdsIdx = np.where(pairadesig == wdsFile['designation'])
     wdsRow = wdsFile[wdsIdx]
@@ -275,40 +230,6 @@ def searchWds(pairadesig):
     elif not wdsRow:
         wdsPair = 'Not found'
     return wdsPair
-'''
-    
-# Function to search coordinates in the WDS catalog file
-def search_in_wds(ra_source, dec_source):
-    coordinates = SkyCoord(ra=ra_source, dec=dec_source)
-    idx, d2d, d3d = coordinates.match_to_catalog_sky(wds_catalog)
-    star_coord = SkyCoord(ra=ra_source, dec=dec_source)
-    print('Coordinates: ' + str(ra_source) + '(Ra), ' + str(dec_source) + '(Dec), Separation: ' + str(d2d))
-    #sep = coordinates.separation(d2d)*u.degree
-    print(wdsTable[idx]['2000 Coord'])
-    print(wdsTable[np.where(wds_catalog['2000 Coord'] == wdsTable[idx]['2000 Coord'])])
-
-def create_unique_id(wds_id, discov):
-    id_array = [i + j for i, j in zip(wds_id, discov)]
-    return id_array
-
-def delete_invalid_lines_wds(catalog):
-    rows_to_delete = np.where(catalog['Coord (RA) hms'] == '.hms')
-    catalog.remove_rows(rows_to_delete)
-    return catalog
-
-def calculate_wds_ra_hourangle(wds_ra_array):
-    #print(wds_ra_array)
-    wds_ra_hms = []
-    for star in wds_ra_array:
-        wds_ra_hms.append(str(star[0:2]) + 'h' + str(star[2:4]) + 'm' + str(star[4:9]) + 's')
-    return wds_ra_hms
-
-def calculate_wds_dec_hourangle(wds_dec_array):
-    #print(wds_dec_array)
-    wds_dec_dms = []
-    for star in wds_dec_array:
-        wds_dec_dms.append(str(star[0:3]) + 'd' + str(star[3:5]) + 'm' + str(star[5:9]) + 's')
-    return wds_dec_dms
 
 ###################################################################################################################################
 
@@ -367,22 +288,8 @@ print('Working directory: ', workingDirectory)
 files = [f for f in directoryContent if os.path.isfile(workingDirectory+'/'+f) and f.endswith('.new')]
 print('Files:', files)
 
-#wdscatalog = SkyCoord(ra=wdsTable['ra_deg']*u.degree, dec=wdsTable['dec_deg']*u.degree)
-
-# Create the WDS catalog table
-#wds_catalog = SkyCoord(ra=wdsTable['ra_deg']*u.degree, dec=wdsTable['dec_deg']*u.degree)
-
-wdsTable = hstack([wds_data, calculate_wds_ra_hourangle(wds_data['Coord (RA)'])])
-wdsTable.rename_column('col0', 'Coord (RA) hms')
-wdsTable = hstack([wdsTable, calculate_wds_dec_hourangle(wds_data['Coord (DEC)'])])
-wdsTable.rename_column('col0', 'Coord (DEC) dms')
-wdsTable = hstack([wdsTable, create_unique_id(wds_data['2000 Coord'], wds_data['Discov'])])
-wdsTable.rename_column('col0', 'Unique ID')
-wdsTable = delete_invalid_lines_wds(wdsTable)
-
-wds_catalog = SkyCoord(ra=wdsTable['Coord (RA) hms'], dec=Angle(wdsTable['Coord (DEC) dms']), unit='hour, degree', frame="icrs")
-
-print('WDS Catalog:\n', wds_catalog)
+wdscatalog = SkyCoord(ra=wdsTable['ra_deg']*u.degree, dec=wdsTable['dec_deg']*u.degree)
+print('WDS Catalog:\n', wdscatalog)
 
 sources_ds = Table()
 
@@ -408,12 +315,11 @@ for fitsFile in files:
     #print(sources.info)
     #print(sources)
     
-    # wds_catalog = SkyCoord(ra=wdsTable['ra_deg']*u.degree, dec=wdsTable['dec_deg']*u.degree)
-
+    wds_catalog = SkyCoord(ra=wdsTable['ra_deg']*u.degree, dec=wdsTable['dec_deg']*u.degree)
     sources_catalog = SkyCoord(ra=sources['ra_deg']*u.degree, dec=sources['dec_deg']*u.degree)
     idxw, idxs, wsd2d, wsd3d = search_around_sky(wds_catalog, sources_catalog, 0.001*u.deg)
-    composit_catalog = hstack([wdsTable[idxw]['2000 Coord', 'Discov', 'Comp', 'PA_l', 'Sep_l'], sources[idxs]['id', 'mag', 'ra_deg', 'dec_deg']])
-    companion_catalog = SkyCoord(ra=composit_catalog['ra_deg'] * u.degree, dec=composit_catalog['dec_deg'] * u.degree).directional_offset_by(composit_catalog['PA_l']*u.degree, composit_catalog['Sep_l']*u.arcsec)
+    composit_catalog = hstack([wdsTable[idxw]['wds_identifier', 'discovr', 'comp', 'theta', 'rho'], sources[idxs]['id', 'mag', 'ra_deg', 'dec_deg']])
+    companion_catalog = SkyCoord(ra=composit_catalog['ra_deg'] * u.degree, dec=composit_catalog['dec_deg'] * u.degree).directional_offset_by(composit_catalog['theta'] * u.degree, composit_catalog['rho'] * u.arcsec)
     
     #print('Companion catalog\n', companion_catalog)
     #print('Composit catalog\n', composit_catalog)
@@ -446,7 +352,7 @@ print(sources_ds)
 
 upd_sources_ds = sources_ds[sources_ds['rho_measured'] != 0]
 #upd_sources_ds.add_column(str(sources_ds['wds_identifier']) + '_' + str(sources_ds['discovr']) + '_' + str(sources_ds['comp']), name='object_id')
-upd_sources_ds_by_object = upd_sources_ds.group_by(['2000 Coord', 'Discov', 'Comp'])
+upd_sources_ds_by_object = upd_sources_ds.group_by(['wds_identifier', 'discovr', 'comp'])
 
 # Create object ID array
 # upd_sources_ds_object_id = str(sources_ds['wds_identifier']) + '_' + str(sources_ds['discovr']) + '_' + str(sources_ds['comp'])
@@ -483,7 +389,7 @@ for ds in upd_sources_ds_by_object.groups:
     print('\n### Group index:', count, '###')
     print(ds)
     count = count + 1
-    pairObjectId = ds[0]['2000 Coord'] + ds[0]['Discov'] + str(ds[0]['Comp'])
+    pairObjectId = ds[0]['wds_identifier'] + ds[0]['discovr'] + str(ds[0]['comp'])
     
     # Search component in the Gaia DR3 database
     pairACoord = SkyCoord(ra=ds[0]['ra_deg_1'], dec=ds[0]['dec_deg_1'], unit=(u.degree, u.degree), frame='icrs')
@@ -552,14 +458,8 @@ for ds in upd_sources_ds_by_object.groups:
             addThetaValue = 180
         elif deltaRa(starRa1, starRa2, starDec2) < 0 and deltaDec(starDec2, starDec1) > 0:
             addThetaValue = 360
-        elif deltaRa(starRa1, starRa2, starDec2) == 0 or deltaDec(starDec2, starDec1) == 0:
-            addThetaValue = 0
         
         # Calculate actual data based on functions
-        print(thetaCalc(deltaRa(starRa1, starRa2, starDec2), deltaDec(starDec2, starDec1)))
-        print(type(thetaCalc(deltaRa(starRa1, starRa2, starDec2), deltaDec(starDec2, starDec1))))
-        print(addThetaValue)
-        print(type(addThetaValue))
         thetaStar = thetaCalc(deltaRa(starRa1, starRa2, starDec2), deltaDec(starDec2, starDec1)) + addThetaValue
         thetaActual = thetaCalc(deltaRa(starActualRa1, starActualRa2, starActualDec2), deltaDec(starActualDec2, starActualDec1)) + addThetaValue
         rhoActual = rhoCalc(starActualRa1, starActualDec1, starActualRa2, starActualDec2)
@@ -620,7 +520,7 @@ for ds in upd_sources_ds_by_object.groups:
     
     # Print temp data
     print('### COMPONENTS ###')
-    print('\nWDS Identifier:', ds[0]['2000 Coord'], ds[0]['Discov'], ds[0]['Comp'])
+    print('\nWDS Identifier:', ds[0]['wds_identifier'], ds[0]['discovr'], ds[0]['comp'])
     print('\nTheta measurements\n') # , ds['dspaactual']
     print('Mean:', pairMeanTheta)
     print('Error:', pairMeanThetaErr)
@@ -651,11 +551,11 @@ for ds in upd_sources_ds_by_object.groups:
     print('Pair binarity:', pairBinarity)
     
     # Write results to file
-    reportTable.add_row([ds[0]['2000 Coord'] + ds[0]['Discov'] + str(ds[0]['Comp']), 'Date of observation', pairMeanTheta, pairMeanThetaErr, pairMeanRho, pairMeanRhoErr, np.nan, np.nan, pairMagDiff, pairMagDiffErr, 'Filter wawelenght', 'filter FWHM', '0.2', '1', 'TAL_2022', 'C', '7'])
-    reportFile.write('\n\nWDS Identifier: ' + ds[0]['2000 Coord'])
-    reportFile.write('\nDiscoverer and components: ' + str(ds[0]['Discov']) + ' ' + str(ds[0]['Comp']))
+    reportTable.add_row([ds[0]['wds_identifier'] + ds[0]['discovr'] + str(ds[0]['comp']), 'Date of observation', pairMeanTheta, pairMeanThetaErr, pairMeanRho, pairMeanRhoErr, np.nan, np.nan, pairMagDiff, pairMagDiffErr, 'Filter wawelenght', 'filter FWHM', '0.2', '1', 'TAL_2022', 'C', '7'])
+    reportFile.write('\n\nWDS Identifier: ' + ds[0]['wds_identifier'])
+    reportFile.write('\nDiscoverer and components: ' + str(ds[0]['discovr']) + ' ' + str(ds[0]['comp']))
     reportFile.write('\nMagnitude(s) (Pri / Sec): ' + str(ds[0]['mag_1']) + ' / ' +  str(ds[0]['mag_2']))
-    reportFile.write('\nPA, Sep: ' + str(ds[0]['PA_l']) + ' / ' +  str(ds[0]['Sep_l']))
+    reportFile.write('\nPA, Sep: ' + str(ds[0]['theta']) + ' / ' +  str(ds[0]['rho']))
     reportFile.write('\nPosition angle:')
     reportFile.write('\nTheta measurements' + str(ds['theta_measured'].degree))
     reportFile.write('\nMean: ' + str(pairMeanTheta))
@@ -687,7 +587,7 @@ for ds in upd_sources_ds_by_object.groups:
     reportFile.write('\nPair Harshaw physicality: ' + str(pairHarshawPhysicality))
     reportFile.write('\nPair binarity: ' + str(pairBinarity))
     reportFile.write('\n\n### WDS form:\n')
-    wdsform = str(ds[0]['2000 Coord']) + ',' + 'Date of observation' + ',' +  str(pairMeanTheta) + ',' +  str(pairMeanThetaErr) + ',' +  str(pairMeanRho) + ',' +  str(pairMeanRhoErr) + ',' +  'nan' + ',' +  'nan' + ',' +  str(pairMagDiff) + ',' +  str(pairMagDiffErr) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TAL_2022' + ',' +  'C' + ',' + '7'
+    wdsform = str(ds[0]['wds_identifier']) + ',' + 'Date of observation' + ',' +  str(pairMeanTheta) + ',' +  str(pairMeanThetaErr) + ',' +  str(pairMeanRho) + ',' +  str(pairMeanRhoErr) + ',' +  'nan' + ',' +  'nan' + ',' +  str(pairMagDiff) + ',' +  str(pairMagDiffErr) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TAL_2022' + ',' +  'C' + ',' + '7'
     #print(str(wdsform))
     reportFile.write(str(wdsform))
     

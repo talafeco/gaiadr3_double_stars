@@ -75,7 +75,7 @@ def filter_catalog(catalog_name, key_colnames):
     if ((coord_ra_lower < Angle(catalog_name['Coord (RA) hms']) < coord_ra_upper) and (coord_dec_lower < Angle(catalog_name['Coord (DEC) dms']) < coord_dec_upper)).any():
         return True
     return False
-'''
+
 
 # Function to search coordinates in the WDS catalog file
 def search_in_wdss(source_id, ra_source, dec_source):
@@ -96,6 +96,7 @@ def search_in_million(ra_source, dec_source):
     star_coord = SkyCoord(ra=ra_source*u.degree, dec=dec_source*u.degree)
     sep = Angle(coordinates.separation(star_coord))
     print(a_millio_binaries_file[idx], sep)
+'''
 
 ## Read catalogs
 # WDS

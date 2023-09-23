@@ -14,7 +14,7 @@ import astropy.units as u
 from astropy.coordinates import Angle
 import warnings
 from astropy.table import QTable
-from astropy.table import Table, vstack, hstack
+from astropy.table import Table, hstack
 from datetime import datetime
 
 # Configuration
