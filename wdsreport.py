@@ -187,6 +187,16 @@ def calcMass(lum):
         mass = mass_ex
     return mass
 
+# Calculate the radius of the star
+# Excel formula =SQRT(Luminosity/(T eff/5778))
+def calcRadius(luminosity, teffStar):
+    if bool(luminosity) and bool(teffStar):
+        teffSun = 5778
+        radius = math.sqrt(luminosity / ((teffStar / teffSun) ** 4))
+    else:
+        radius = 'Cannot be calculated, T(eff) or Luminosity is missing'
+    return radius
+
 # Function to calculate Harshaw probapility of duplicity based on the parallax and proper motion factors
 def calcHarshaw(parallaxFactor, pmFactor):
     HarshawFactor = (parallaxFactor * 0.75) + (pmFactor * 0.15)
@@ -403,7 +413,7 @@ for fitsFile in files:
 
     sources_catalog = SkyCoord(ra=sources['ra_deg']*u.degree, dec=sources['dec_deg']*u.degree)
     idxw, idxs, wsd2d, wsd3d = search_around_sky(wds_catalog, sources_catalog, 0.001*u.deg)
-    composit_catalog = hstack([wdsTable[idxw]['2000 Coord', 'Discov', 'Comp', 'PA_l', 'Sep_l'], sources[idxs]['id', 'mag', 'ra_deg', 'dec_deg']])
+    composit_catalog = hstack([wdsTable[idxw]['2000 Coord', 'Discov', 'Comp', 'PA_l', 'Sep_l', 'Mag_A', 'Mag_B'], sources[idxs]['id', 'mag', 'ra_deg', 'dec_deg']])
     companion_catalog = SkyCoord(ra=composit_catalog['ra_deg'] * u.degree, dec=composit_catalog['dec_deg'] * u.degree).directional_offset_by(composit_catalog['PA_l']*u.degree, composit_catalog['Sep_l']*u.arcsec)
     idxs2, d2ds2, d3ds2 = match_coordinates_sky(companion_catalog, sources_catalog)
     composit_catalog2 = hstack([composit_catalog, sources[idxs2]]) #['id', 'mag', 'ra_deg', 'dec_deg']
@@ -426,6 +436,9 @@ upd_sources_ds_by_object = upd_sources_ds.group_by(['2000 Coord', 'Discov', 'Com
 print(upd_sources_ds.info)
 print('### Updated sources DS table grouped by WDS Identifier, Discoverer and Components ###')
 print(upd_sources_ds_by_object)
+
+upd_sources_ds_by_object.write(workingDirectory + '/double_stars.txt', format='ascii', overwrite=True, delimiter=',')
+
 
 objectMean = upd_sources_ds_by_object.groups.aggregate(np.mean)
 
@@ -456,6 +469,19 @@ for ds in upd_sources_ds_by_object.groups:
     starDec2 = float(gaiaBStar[0]['dec'])
     starParallax1 = float(gaiaAStar[0]['parallax'])
     starParallaxError1 = float(gaiaAStar[0]['parallax_error'])
+
+    # Value to modify Theta according to the appropriate quadrant
+    addThetaValue = ()
+    if deltaRa(starRa1, starRa2, starDec2) > 0 and deltaDec(starDec2, starDec1) > 0:
+        addThetaValue = 0
+    elif deltaRa(starRa1, starRa2, starDec2) > 0 and deltaDec(starDec2, starDec1) < 0:
+        addThetaValue = 180
+    elif deltaRa(starRa1, starRa2, starDec2) < 0 and deltaDec(starDec2, starDec1) < 0:
+        addThetaValue = 180
+    elif deltaRa(starRa1, starRa2, starDec2) < 0 and deltaDec(starDec2, starDec1) > 0:
+        addThetaValue = 360
+    elif deltaRa(starRa1, starRa2, starDec2) == 0 or deltaDec(starDec2, starDec1) == 0:
+        addThetaValue = 0
                 
     # Calculate the widest possible separation for StarA
     possSep1 = 10000 / calcDistanceMax(starParallax1, starParallaxError1)
@@ -472,19 +498,6 @@ for ds in upd_sources_ds_by_object.groups:
         starActualRa2 = float(ds[0]['ra_deg_2'].mean())
         starActualDec2 = float(ds[0]['dec_deg_2'].mean())
 
-        # Value to modify Theta according to the appropriate quadrant
-        addThetaValue = ()
-        if deltaRa(starRa1, starRa2, starDec2) > 0 and deltaDec(starDec2, starDec1) > 0:
-            addThetaValue = 0
-        elif deltaRa(starRa1, starRa2, starDec2) > 0 and deltaDec(starDec2, starDec1) < 0:
-            addThetaValue = 180
-        elif deltaRa(starRa1, starRa2, starDec2) < 0 and deltaDec(starDec2, starDec1) < 0:
-            addThetaValue = 180
-        elif deltaRa(starRa1, starRa2, starDec2) < 0 and deltaDec(starDec2, starDec1) > 0:
-            addThetaValue = 360
-        elif deltaRa(starRa1, starRa2, starDec2) == 0 or deltaDec(starDec2, starDec1) == 0:
-            addThetaValue = 0
-        
         # Calculate actual data based on functions
         print(thetaCalc(deltaRa(starRa1, starRa2, starDec2), deltaDec(starDec2, starDec1)))
         print(type(thetaCalc(deltaRa(starRa1, starRa2, starDec2), deltaDec(starDec2, starDec1))))
@@ -518,6 +531,10 @@ for ds in upd_sources_ds_by_object.groups:
     pairAbsMag2 = calcAbsMag(gaiaBStar[0]['phot_g_mean_mag'], gaiaBStar[0]['parallax']) # Calculate Absolute magnitude
     pairLum1 = calcLuminosity(pairAbsMag1)
     pairLum2 = calcLuminosity(pairAbsMag2)
+    pairRad1 = calcRadius(pairLum1, gaiaAStar[0]['teff_gspphot'])
+    pairRad2 = calcRadius(pairLum2, gaiaBStar[0]['teff_gspphot'])
+    pairDR3Theta = thetaCalc(deltaRa(gaiaAStar[0]['ra'], gaiaBStar[0]['ra'], gaiaBStar[0]['dec']), deltaDec(gaiaBStar[0]['dec'], gaiaAStar[0]['dec'])) + addThetaValue
+    pairDR3Rho = rhoCalc(gaiaAStar[0]['ra'], gaiaAStar[0]['dec'], gaiaBStar[0]['ra'], gaiaBStar[0]['dec'])
     pairMass1 = calcMass(pairLum1)
     pairMass2 = calcMass(pairLum2)
     pairBVIndexA = gaiaAStar[0]['phot_bp_mean_mag'] - gaiaAStar[0]['phot_g_mean_mag']
@@ -575,12 +592,20 @@ for ds in upd_sources_ds_by_object.groups:
     
     # Write results to file
     reportTable.add_row([ds[0]['2000 Coord'] + ds[0]['Discov'] + str(ds[0]['Comp']), 'Date of observation', pairMeanTheta, pairMeanThetaErr, pairMeanRho, pairMeanRhoErr, np.nan, np.nan, pairMagDiff, pairMagDiffErr, 'Filter wawelenght', 'filter FWHM', '0.2', '1', 'TAL_2022', 'C', '7'])
+    reportFile.write('### WDS Data ###')
     reportFile.write('WDS Identifier: ' + ds[0]['2000 Coord'])
     reportFile.write('\nDiscoverer and components: ' + str(ds[0]['Discov']) + ' ' + str(ds[0]['Comp']))
+    reportFile.write('\nMagnitude Pri: ' + str(ds[0]['Mag_A']))
+    reportFile.write('\nMagnitude Sec: ' + str(ds[0]['Mag_B']))
+    reportFile.write('\nPA last: ' + str(ds[0]['PA_l']))
+    reportFile.write('\nSep last: ' +  str(ds[0]['Sep_l']))
+    reportFile.write('\n\n### Gaia DR3 Data ###')
     reportFile.write('\nMain star: ' + str(gaiaAStar[0]['DESIGNATION']))
     reportFile.write('\nCompanion: ' + str(gaiaBStar[0]['DESIGNATION']))
-    reportFile.write('\nMagnitude(s) (Pri / Sec): ' + str(ds[0]['mag_1']) + ' / ' +  str(ds[0]['mag_2']))
-    reportFile.write('\nPA, Sep: ' + str(ds[0]['PA_l']) + ' / ' +  str(ds[0]['Sep_l']))
+    reportFile.write('\nPosition angle: ' + str(pairDR3Theta))
+    reportFile.write('\nSeparation: ' + str(pairDR3Rho))
+    reportFile.write('\nMagnitude difference: ' + str(pairAbsMag1))
+    reportFile.write('\n\n### Measurements ###')
     reportFile.write('\nPosition angle:')
     reportFile.write('\nTheta measurements' + str(ds['theta_measured'].degree))
     reportFile.write('\nMean: ' + str(pairMeanTheta))
@@ -592,31 +617,37 @@ for ds in upd_sources_ds_by_object.groups:
     reportFile.write('\nMagnitude measurements\n'  + str(ds['mag_diff']))
     reportFile.write('\nMean: ' + str(pairMagDiff))
     reportFile.write('\nError: ' + str(pairMagDiffErr))
-    reportFile.write('\n\nParallax factor: ' + str(pairParallaxFactor) + ' %')
-    reportFile.write('\nProper motion factor: ' + str(pairPmFactor) + ' %')
-    reportFile.write('\nProper motion category: '+ str(pairPmCommon))
+    reportFile.write('\n\n### Calculated attributes ###')
+    reportFile.write('\nSeparation (Measured): ' + str(pairMeanRho))
+    reportFile.write('\nPosition angle (Measured): ' + str(pairMeanTheta))
+    reportFile.write('\nMagnitude difference (Measured): ' + str(pairMagDiff) + ' (Err: ' + str(pairMagDiffErr) + ')')
     reportFile.write('\nAbsolute magnitude A: ' + str(pairAbsMag1))
     reportFile.write('\nAbsolute magnitude B: ' + str(pairAbsMag2))
     reportFile.write('\nLuminosity A: ' + str(pairLum1))
     reportFile.write('\nLuminosity B: ' + str(pairLum2))
+    reportFile.write('\nRad A: ' + str(pairRad1))
+    reportFile.write('\nRad B: ' + str(pairRad2))
     reportFile.write('\nMass A: ' + str(pairMass1))
     reportFile.write('\nMass B: ' + str(pairMass2))
-    reportFile.write('\nBV index A: ' + str(pairBVIndexA) + 'B: ' + str(pairBVIndexB))
+    reportFile.write('\nBV index A: ' + str(pairBVIndexA) + ' B: ' + str(pairBVIndexB))
     reportFile.write('\nRadial velocity of the stars A: ' + str(gaiaAStar[0]['radial_velocity']) + ' km/s (Err: ' + str(gaiaAStar[0]['radial_velocity_error']) + ' km/s) B: ' + str(gaiaBStar[0]['radial_velocity']) + ' km/s (Err: ' + str(gaiaBStar[0]['radial_velocity_error']) + ' km/s)')
     reportFile.write('\nRadial velocity ratio A: ' + str((math.fabs(gaiaAStar[0]['radial_velocity_error'] / gaiaAStar[0]['radial_velocity'])) * 100) + ' %')
     reportFile.write('\nRadial velocity ratio B: ' + str((math.fabs(gaiaBStar[0]['radial_velocity_error'] / gaiaBStar[0]['radial_velocity'])) * 100) + ' %')
     reportFile.write('\nSeparation: ' + str(pairSepPar) + ' parsec, ' + str((pairSepPar * 206265)) + ' AU')
     reportFile.write('\nPair Escape velocity: ' + str(pairEscapeVelocity) + ' km/s')
     reportFile.write('\nPair Relative velocity: ' + str(pairRelativeVelocity) + ' km/s')
+    reportFile.write('\n\n### Analysis ###')
+    reportFile.write('\n\nParallax factor: ' + str(pairParallaxFactor) + ' %')
+    reportFile.write('\nProper motion factor: ' + str(pairPmFactor) + ' %')
+    reportFile.write('\nProper motion category: '+ str(pairPmCommon))
     reportFile.write('\nPair Harshaw factor: ' + str(pairHarshawFactor))
     reportFile.write('\nPair Harshaw physicality: ' + str(pairHarshawPhysicality))
     reportFile.write('\nPair binarity: ' + str(pairBinarity))
     reportFile.write('\n\n### WDS form:\n')
     wdsform = str(ds[0]['2000 Coord']) + ',' + 'Date of observation' + ',' +  str(pairMeanTheta) + ',' +  str(pairMeanThetaErr) + ',' +  str(pairMeanRho) + ',' +  str(pairMeanRhoErr) + ',' +  'nan' + ',' +  'nan' + ',' +  str(pairMagDiff) + ',' +  str(pairMagDiffErr) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TAL_2022' + ',' +  'C' + ',' + '7'
     reportFile.write(str(wdsform))
-    gaiaData = str(ds[0]['2000 Coord']) + ',' + str(ds[0]['Discov']) + ',' + str(gaiaAStar[0]['pmra']) + ',' + str(gaiaAStar[0]['pmdec']) + ',' + str(gaiaBStar[0]['pmra']) + ',' + str(gaiaBStar[0]['pmdec']) + ',' + str(gaiaAStar[0]['parallax']) + ',' + str(gaiaBStar[0]['parallax']) + ',' + str(calcDistance(gaiaAStar[0]['parallax'])) + ',' + str(calcDistance(gaiaBStar[0]['parallax'])) + ',' + str(gaiaAStar[0]['radial_velocity']) + ',' + str(gaiaBStar[0]['radial_velocity']) + ',' + 'Radius A' + ',' + 'Radius B' + ',' + str(pairLum1) + ',' + str(pairLum2) + ',' + str(gaiaAStar[0]['teff_gspphot']) + ',' + str(gaiaBStar[0]['teff_gspphot']) + ',' + str(gaiaAStar[0]['phot_g_mean_mag']) + ',' + str(gaiaBStar[0]['phot_g_mean_mag']) + ',' + str(gaiaAStar[0]['phot_bp_mean_mag']) + ',' + str(gaiaBStar[0]['phot_bp_mean_mag']) + ',' + str(gaiaAStar[0]['phot_rp_mean_mag']) + ',' + str(gaiaBStar[0]['phot_rp_mean_mag']) + ',' + str(thetaCalc(deltaRa(gaiaAStar[0]['ra'], gaiaBStar[0]['ra'], gaiaBStar[0]['dec']), deltaDec(gaiaBStar[0]['dec'], gaiaAStar[0]['dec']))) + ',' + str(rhoCalc(gaiaAStar[0]['ra'], gaiaAStar[0]['dec'], gaiaBStar[0]['ra'], gaiaBStar[0]['dec'])) + ',' + str(gaiaAStar[0]['ra']) + ',' + str(gaiaAStar[0]['dec']) + ',' + str(gaiaBStar[0]['ra']) + ',' + str(gaiaBStar[0]['dec']) + ',' + str(gaiaAStar[0]['parallax_error']) + ',' + str(gaiaBStar[0]['parallax_error'])
+    gaiaData = str(ds[0]['2000 Coord']) + ',' + str(ds[0]['Discov']) + ',' + str(gaiaAStar[0]['pmra']) + ',' + str(gaiaAStar[0]['pmdec']) + ',' + str(gaiaBStar[0]['pmra']) + ',' + str(gaiaBStar[0]['pmdec']) + ',' + str(gaiaAStar[0]['parallax']) + ',' + str(gaiaBStar[0]['parallax']) + ',' + str(calcDistance(gaiaAStar[0]['parallax'])) + ',' + str(calcDistance(gaiaBStar[0]['parallax'])) + ',' + str(gaiaAStar[0]['radial_velocity']) + ',' + str(gaiaBStar[0]['radial_velocity']) + ',' + 'pairRad1' + ',' + 'pairRad2' + ',' + str(pairLum1) + ',' + str(pairLum2) + ',' + str(gaiaAStar[0]['teff_gspphot']) + ',' + str(gaiaBStar[0]['teff_gspphot']) + ',' + str(gaiaAStar[0]['phot_g_mean_mag']) + ',' + str(gaiaBStar[0]['phot_g_mean_mag']) + ',' + str(gaiaAStar[0]['phot_bp_mean_mag']) + ',' + str(gaiaBStar[0]['phot_bp_mean_mag']) + ',' + str(gaiaAStar[0]['phot_rp_mean_mag']) + ',' + str(gaiaBStar[0]['phot_rp_mean_mag']) + ',' + str(pairDR3Theta) + ',' + str(pairDR3Rho) + ',' + str(gaiaAStar[0]['ra']) + ',' + str(gaiaAStar[0]['dec']) + ',' + str(gaiaBStar[0]['ra']) + ',' + str(gaiaBStar[0]['dec']) + ',' + str(gaiaAStar[0]['parallax_error']) + ',' + str(gaiaBStar[0]['parallax_error'])
     reportFile.write('\n\n### Gaia data:\n')
     reportFile.write(str(gaiaData))
-    
-#upd_sources_ds_by_object.write('double_stars.txt', format='ascii', overwrite=True, delimiter=',')
-#reportTable.write('double_stars_wds_format.txt', format='ascii', overwrite=True, delimiter=',')
+
+reportTable.write(workingDirectory + '/double_stars_wds_format.txt', format='ascii', overwrite=False, delimiter=',')
