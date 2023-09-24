@@ -30,6 +30,7 @@ Search visual double star candidates in Gaia DR3. Mag &lt; 15, par > 0.5.
 6. Extend star mass calculation with alternate equatione based on measured temperature
 7. Create HRD diagram of the components
 8. Update report file path to be created in the image directory
+    - Done
 9. Fix magnitude error calculation algorithm
 10. Add magnitude difference to the updated table
 
@@ -47,6 +48,7 @@ Search visual double star candidates in Gaia DR3. Mag &lt; 15, par > 0.5.
 
 ## Function externsions
 1. Gaia data collection in one line
+    - Done
 2. Calculate hrd placement based on temperature & luminosity
 3. Create HRD plot
 4. Calculate orbit period
