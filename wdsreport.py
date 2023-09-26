@@ -242,6 +242,7 @@ def calcRelativeVelocity(pmraa, pmdeca, pmrab, pmdecb, radvela, radvelb, dista, 
 # Function to calculate the Escape velocity of the system, separation should be calculated in parsec!
 gravConst = 0.0043009 # Gravitational constant is convenient if measure distances in parsecs (pc), velocities in kilometres per second (km/s) and masses in solar units M
 def calcEscapevelocity(mass_a, mass_b, separation, gravconst):
+    print('calcEscapevelocity: ' + str(mass_a) + ' ' + str(mass_b) + ' ' + str(separation) + ' ' + str(gravconst))
     escvel = math.sqrt((2 * gravconst * (mass_a + mass_b)) / separation)
     return escvel
 
@@ -412,7 +413,7 @@ for fitsFile in files:
     sources.add_column(dec2, name='dec_deg')
 
     sources_catalog = SkyCoord(ra=sources['ra_deg']*u.degree, dec=sources['dec_deg']*u.degree)
-    idxw, idxs, wsd2d, wsd3d = search_around_sky(wds_catalog, sources_catalog, 0.001*u.deg)
+    idxw, idxs, wsd2d, wsd3d = search_around_sky(wds_catalog, sources_catalog, 0.002*u.deg)
     composit_catalog = hstack([wdsTable[idxw]['2000 Coord', 'Discov', 'Comp', 'PA_l', 'Sep_l', 'Mag_A', 'Mag_B'], sources[idxs]['id', 'mag', 'ra_deg', 'dec_deg']])
     companion_catalog = SkyCoord(ra=composit_catalog['ra_deg'] * u.degree, dec=composit_catalog['dec_deg'] * u.degree).directional_offset_by(composit_catalog['PA_l']*u.degree, composit_catalog['Sep_l']*u.arcsec)
     idxs2, d2ds2, d3ds2 = match_coordinates_sky(companion_catalog, sources_catalog)
@@ -452,10 +453,12 @@ for ds in upd_sources_ds_by_object.groups:
     # Search component in the Gaia DR3 database
     pairACoord = SkyCoord(ra=ds[0]['ra_deg_1'], dec=ds[0]['dec_deg_1'], unit=(u.degree, u.degree), frame='icrs')
     pairBCoord = SkyCoord(ra=ds[0]['ra_deg_2'], dec=ds[0]['dec_deg_2'], unit=(u.degree, u.degree), frame='icrs')
-    a = Gaia.cone_search_async(pairACoord, radius=u.Quantity(0.001, u.deg))
-    b = Gaia.cone_search_async(pairBCoord, radius=u.Quantity(0.001, u.deg))
+    a = Gaia.cone_search_async(pairACoord, radius=u.Quantity(0.002, u.deg))
+    b = Gaia.cone_search_async(pairBCoord, radius=u.Quantity(0.002, u.deg))
     gaiaAStar = a.get_results()
     gaiaBStar = b.get_results()
+    print(gaiaAStar[0]['DESIGNATION'])
+    print(gaiaBStar[0]['DESIGNATION'])
     pairDistanceMinA = calcDistanceMin(float(gaiaAStar[0]['parallax']), float(gaiaAStar[0]['parallax_error']))
     pairDistanceMinB = calcDistanceMin(float(gaiaBStar[0]['parallax']), float(gaiaBStar[0]['parallax_error']))
     
@@ -499,10 +502,6 @@ for ds in upd_sources_ds_by_object.groups:
         starActualDec2 = float(ds[0]['dec_deg_2'].mean())
 
         # Calculate actual data based on functions
-        print(thetaCalc(deltaRa(starRa1, starRa2, starDec2), deltaDec(starDec2, starDec1)))
-        print(type(thetaCalc(deltaRa(starRa1, starRa2, starDec2), deltaDec(starDec2, starDec1))))
-        print(addThetaValue)
-        print(type(addThetaValue))
         thetaStar = thetaCalc(deltaRa(starRa1, starRa2, starDec2), deltaDec(starDec2, starDec1)) + addThetaValue
         thetaActual = thetaCalc(deltaRa(starActualRa1, starActualRa2, starActualDec2), deltaDec(starActualDec2, starActualDec1)) + addThetaValue
         rhoActual = rhoCalc(starActualRa1, starActualDec1, starActualRa2, starActualDec2)
@@ -555,7 +554,7 @@ for ds in upd_sources_ds_by_object.groups:
     pairMagnitudeB = ds[0]['mag_2']
     pairMagDiff = (ds['mag_diff']).mean()
     pairMagDiffErr = (ds['mag_diff']).std()
-    reportName = (workingDirectory + '/' + pairObjectId + '.txt')
+    reportName = (workingDirectory + '/' + pairObjectId + '.csv')
     reportFile = open(reportName, "a")
     
     # Print temp data
