@@ -32,6 +32,13 @@ warnings.filterwarnings("ignore")
 from astroquery.gaia import Gaia
 Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"  # Reselect Data Release 3, default
 
+dao_sigma = 2.0
+dao_fwhm = 3.0
+dao_threshold = 5.0
+possible_distance = 10000.0 # AU
+search_cone = 0.001 # Decimal degree
+
+
 # Constant variables
 # Insert the downloaded wds file path here
 wds_file = "C:\Astro\catalogs\WDS\wdsweb_summ2.txt"
@@ -216,6 +223,8 @@ def calcHarshawPhysicality(harfac):
         HarshawPhysicality = 'No'
     elif harfac <= 0:
         HarshawPhysicality = 'Something went wrong... (so NO)'
+    else:
+        HarshawPhysicality = 'Something went wrong... (so NO)'
     return HarshawPhysicality
 
 # Function to calculate the Tangential speed components from proper motin in km/s
@@ -242,8 +251,11 @@ def calcRelativeVelocity(pmraa, pmdeca, pmrab, pmdecb, radvela, radvelb, dista, 
 # Function to calculate the Escape velocity of the system, separation should be calculated in parsec!
 gravConst = 0.0043009 # Gravitational constant is convenient if measure distances in parsecs (pc), velocities in kilometres per second (km/s) and masses in solar units M
 def calcEscapevelocity(mass_a, mass_b, separation, gravconst):
-    print('calcEscapevelocity: ' + str(mass_a) + ' ' + str(mass_b) + ' ' + str(separation) + ' ' + str(gravconst))
-    escvel = math.sqrt((2 * gravconst * (mass_a + mass_b)) / separation)
+    if bool(mass_a) and bool(mass_b) and bool(separation) and bool(gravconst):
+        print('calcEscapevelocity: ' + str(mass_a) + ' ' + str(mass_b) + ' ' + str(separation) + ' ' + str(gravconst))
+        escvel = math.sqrt((2 * gravconst * (mass_a + mass_b)) / separation)
+    else:
+        escvel = 0.0
     return escvel
 
 # Function to calculate the Probability of binarity based on the Relative and the escape velocity
@@ -404,16 +416,16 @@ for fitsFile in files:
 
     # Estimate the background and background noise
     data = hdu[0].data
-    mean, median, std = sigma_clipped_stats(data, sigma=2.0)  
+    mean, median, std = sigma_clipped_stats(data, sigma = dao_sigma)  
 
-    daofind = DAOStarFinder(fwhm=5.0, threshold=9.0*std)  
+    daofind = DAOStarFinder(fwhm=dao_fwhm, threshold=dao_threshold*std)  
     sources = daofind(data - median)
     ra2, dec2 = mywcs.all_pix2world(sources['xcentroid'], sources['ycentroid'], 1)
     sources.add_column(ra2, name='ra_deg') 
     sources.add_column(dec2, name='dec_deg')
 
     sources_catalog = SkyCoord(ra=sources['ra_deg']*u.degree, dec=sources['dec_deg']*u.degree)
-    idxw, idxs, wsd2d, wsd3d = search_around_sky(wds_catalog, sources_catalog, 0.002*u.deg)
+    idxw, idxs, wsd2d, wsd3d = search_around_sky(wds_catalog, sources_catalog, search_cone*u.deg)
     composit_catalog = hstack([wdsTable[idxw]['2000 Coord', 'Discov', 'Comp', 'PA_l', 'Sep_l', 'Mag_A', 'Mag_B'], sources[idxs]['id', 'mag', 'ra_deg', 'dec_deg']])
     companion_catalog = SkyCoord(ra=composit_catalog['ra_deg'] * u.degree, dec=composit_catalog['dec_deg'] * u.degree).directional_offset_by(composit_catalog['PA_l']*u.degree, composit_catalog['Sep_l']*u.arcsec)
     idxs2, d2ds2, d3ds2 = match_coordinates_sky(companion_catalog, sources_catalog)
@@ -438,7 +450,7 @@ print(upd_sources_ds.info)
 print('### Updated sources DS table grouped by WDS Identifier, Discoverer and Components ###')
 print(upd_sources_ds_by_object)
 
-upd_sources_ds_by_object.write(workingDirectory + '/double_stars.txt', format='ascii', overwrite=True, delimiter=',')
+upd_sources_ds_by_object.write(workingDirectory + '/double_stars.csv', format='ascii', overwrite=True, delimiter=',')
 
 
 objectMean = upd_sources_ds_by_object.groups.aggregate(np.mean)
@@ -453,12 +465,12 @@ for ds in upd_sources_ds_by_object.groups:
     # Search component in the Gaia DR3 database
     pairACoord = SkyCoord(ra=ds[0]['ra_deg_1'], dec=ds[0]['dec_deg_1'], unit=(u.degree, u.degree), frame='icrs')
     pairBCoord = SkyCoord(ra=ds[0]['ra_deg_2'], dec=ds[0]['dec_deg_2'], unit=(u.degree, u.degree), frame='icrs')
-    a = Gaia.cone_search_async(pairACoord, radius=u.Quantity(0.002, u.deg))
-    b = Gaia.cone_search_async(pairBCoord, radius=u.Quantity(0.002, u.deg))
+    a = Gaia.cone_search_async(pairACoord, radius=u.Quantity(search_cone, u.deg))
+    b = Gaia.cone_search_async(pairBCoord, radius=u.Quantity(search_cone, u.deg))
     gaiaAStar = a.get_results()
     gaiaBStar = b.get_results()
-    print(gaiaAStar[0]['DESIGNATION'])
-    print(gaiaBStar[0]['DESIGNATION'])
+    print('Gaia A star: ' + str(bool(gaiaAStar[0]['DESIGNATION'])))
+    print('Gaia B star: ' + str(bool(gaiaBStar[0]['DESIGNATION'])))
     pairDistanceMinA = calcDistanceMin(float(gaiaAStar[0]['parallax']), float(gaiaAStar[0]['parallax_error']))
     pairDistanceMinB = calcDistanceMin(float(gaiaBStar[0]['parallax']), float(gaiaBStar[0]['parallax_error']))
     
@@ -487,7 +499,7 @@ for ds in upd_sources_ds_by_object.groups:
         addThetaValue = 0
                 
     # Calculate the widest possible separation for StarA
-    possSep1 = 10000 / calcDistanceMax(starParallax1, starParallaxError1)
+    possSep1 = possible_distance / calcDistanceMax(starParallax1, starParallaxError1)
     rhoStar = rhoCalc(starRa1, starDec1, starRa2, starDec2)
     if possSep1 > rhoStar:
         starId1 = gaiaAStar[0]['solution_id']
@@ -523,6 +535,10 @@ for ds in upd_sources_ds_by_object.groups:
             distanceCommon = 'no'
     
     # Calculate attributes
+    pairParallaxFactor, pairPmFactor, pairPmFactor, pairPmCommon, pairAbsMag1, pairAbsMag2, pairLum1, pairLum2, pairRad1, pairRad2, pairDR3Theta, pairDR3Rho, pairMass1, pairMass2, pairBVIndexA, pairBVIndexB, pairSepPar, pairEscapeVelocity, pairRelativeVelocity, pairHarshawFactor, pairHarshawPhysicality, pairBinarity = 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 
+
+    #if bool(gaiaAStar[0]['parallax']) and bool(gaiaBStar[0]['parallax']) and bool(gaiaAStar[0]['pmra']) and bool(gaiaAStar[0]['pmdec']) and bool(gaiaBStar[0]['pmra']) and bool(gaiaBStar[0]['pmdec']) and bool(gaiaAStar[0]['phot_g_mean_mag']) and bool(gaiaBStar[0]['phot_g_mean_mag']) and bool(gaiaAStar[0]['teff_gspphot']) and bool(gaiaBStar[0]['teff_gspphot']) and bool(gaiaAStar[0]['phot_bp_mean_mag']) and bool(gaiaBStar[0]['phot_bp_mean_mag']):
+
     pairParallaxFactor = (calcParallaxFactor(gaiaAStar[0]['parallax'], gaiaBStar[0]['parallax'])) * 100
     pairPmFactor = (calcPmFactor(gaiaAStar[0]['pmra'], gaiaAStar[0]['pmdec'], gaiaBStar[0]['pmra'], gaiaBStar[0]['pmdec'])) * 100
     pairPmCommon = calcPmCategory(pairPmFactor)
@@ -554,7 +570,7 @@ for ds in upd_sources_ds_by_object.groups:
     pairMagnitudeB = ds[0]['mag_2']
     pairMagDiff = (ds['mag_diff']).mean()
     pairMagDiffErr = (ds['mag_diff']).std()
-    reportName = (workingDirectory + '/' + pairObjectId + '.csv')
+    reportName = (workingDirectory + '/' + pairObjectId + '.txt')
     reportFile = open(reportName, "a")
     
     # Print temp data
