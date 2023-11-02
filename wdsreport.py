@@ -1,7 +1,7 @@
 #! /usr/bin/python3
 # WDS Report tool to measure double stars on astronomical images based on Gaia DR3 data
 # Version: 1.0
-# Usage: wdsreport <wds_file> <image_folder>
+# Usage: wdsreport <image_folder>
 
 import csv
 import os
@@ -27,6 +27,7 @@ from astropy.coordinates import SkyCoord
 from astropy.coordinates import Angle
 import warnings
 from io import StringIO
+from matplotlib import pyplot as plt
 from astropy.io import ascii
 warnings.filterwarnings("ignore")
 from astroquery.gaia import Gaia
@@ -40,6 +41,7 @@ search_cone = 0.001 # Decimal degree
 
 
 # Constant variables
+hipparcos_file = Table.read('Z:\\astro\catalogs\Hipparcos\I_239_selection.csv', format='ascii')
 # Insert the downloaded wds file path here
 wds_file = "C:\Astro\catalogs\WDS\wdsweb_summ2.txt"
 
@@ -333,6 +335,20 @@ def calculate_wds_dec_hourangle(wds_dec_array):
         wds_dec_dms.append(str(star[0:3]) + 'd' + str(star[3:5]) + 'm' + str(star[5:9]) + 's')
     return wds_dec_dms
 
+# Create HRD plot of the double stars
+def hrdPlot(wds_identifier, mag_abs_a, mag_abs_b, bv_a, bv_b):
+    hipparcos_abs_mag = hipparcos_file['Abs_mag']
+    hipparcos_bv_index = hipparcos_file['B-V']
+    plt.scatter(hipparcos_bv_index, hipparcos_abs_mag, s=0.5, alpha=0.015, color="grey") #, 
+    plt.scatter(bv_a, mag_abs_a, s=6, color="blue", label='Main star')
+    plt.scatter(bv_b, mag_abs_b, s=3, color="red", label='Companion star')
+    plt.legend(loc="upper left")
+    plt.axis((-0.6,2.1,21,-16))
+    plt.title(wds_identifier + ' H-R Diagram')
+    plt.xlabel('B-V index')
+    plt.ylabel('Absolute magnitude')
+    plt.savefig('ds_hrd.png', bbox_inches='tight')
+
 ###################################################################################################################################
 
 print('\n### Reading WDS database ###')
@@ -572,6 +588,9 @@ for ds in upd_sources_ds_by_object.groups:
     pairMagDiffErr = (ds['mag_diff']).std()
     reportName = (workingDirectory + '/' + pairObjectId + '.txt')
     reportFile = open(reportName, "a")
+
+    
+    hrdPlot((str(ds[0]['2000 Coord']) + ' ' + str(ds[0]['Discov']) + ' ' + str(ds[0]['Comp'])), pairAbsMag1, pairAbsMag2, pairBVIndexA, pairBVIndexB)
     
     # Print temp data
     print('### COMPONENTS ###')

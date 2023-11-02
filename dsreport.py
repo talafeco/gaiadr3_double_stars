@@ -21,11 +21,15 @@ from astropy.wcs import WCS
 import astropy.units as u
 from astropy.coordinates import SkyCoord
 from astropy.coordinates import Angle
+from matplotlib import pyplot as plt
 import warnings
 warnings.filterwarnings("ignore")
 
 # List of constances
-wdsFile = Table.read(f"/usr/share/dr3map/dr3-wds/dr3-wds.csv", format='ascii')
+wdsFile = Table.read(f"C:\Astro\catalogs\dr3-wds.csv", format='ascii')
+hipparcos_file = Table.read(f"C:\Astro\catalogs\I_239_selection.csv", format='ascii')
+hipparcos_abs_mag = hipparcos_file['Abs_mag']
+hipparcos_bv_index = hipparcos_file['B-V']
 
 ### Declare functions
 # Function to calculate Delta RA
@@ -209,6 +213,20 @@ def searchWds(pairadesig):
         wdsPair = 'Not found'
     return wdsPair
 
+# Create HRD plot of the double stars
+def hrdPlot(designation_a, designation_b, mag_abs_a, mag_abs_b, bv_a, bv_b):
+    hipparcos_abs_mag = hipparcos_file['Abs_mag']
+    hipparcos_bv_index = hipparcos_file['B-V']
+    plt.scatter(hipparcos_bv_index, hipparcos_abs_mag, s=0.5, alpha=0.015, color="grey") #, 
+    plt.scatter(bv_a, mag_abs_a, s=6, color="blue", label='Main star')
+    plt.scatter(bv_b, mag_abs_b, s=3, color="red", label='Companion star')
+    plt.legend(loc="upper left")
+    plt.axis((-0.6,2.1,21,-16))
+    plt.title(str(designation_a) + ' - ' + str(designation_b) + ' H-R Diagram')
+    plt.xlabel('B-V index')
+    plt.ylabel('Absolute magnitude')
+    plt.savefig(workingDirectory + '/' + str(designation_a) + '-' + str(designation_b) + '.png', bbox_inches='tight')
+
 ### Run source detection, collect star data to Qtable
 workingDirectory = sys.argv[1]
 directoryContent = os.listdir(workingDirectory)
@@ -316,10 +334,10 @@ for fitsFile in files:
     # Add all segments to the numpy array
     for seg in segments:
         if len(segments) > 1:
-            segmentpart = Table.read(f"/usr/share/dr3map/gaiadr3_15mag_catalog/{seg}", format='ascii')
+            segmentpart = Table.read(f"C:\Astro\catalogs\GaiaDR3\gaiadr3_15mag_catalog\{seg}", format='ascii')
             gaiaStars = vstack([gaiaStars, segmentpart])
         else:
-            segmentpart = Table.read(f"/usr/share/dr3map/gaiadr3_15mag_catalog/{seg}", format='ascii')
+            segmentpart = Table.read(f"C:\Astro\catalogs\GaiaDR3\gaiadr3_15mag_catalog\{seg}", format='ascii')
             gaiaStars = segmentpart
 
     #dr3TableFileName = (str('dr3stars.csv'))
@@ -501,6 +519,8 @@ for ds in reportTable_by_object.groups:
     reportName = (workingDirectory + '/' + ds[0][39] + '.txt')
     reportFile = open(reportName, "a")
 
+    hrdPlot(pairDesignationA, pairDesignationB, pairAbsMag1, pairAbsMag2, pairBVIndexA, pairBVIndexB)
+
     print('### COMPONENTS ###')
     print('\nComponent A:', pairDesignationA)
     print('Component B:', pairDesignationB)
@@ -546,10 +566,10 @@ for ds in reportTable_by_object.groups:
     reportFile.write('\nComponent B: ' + pairDesignationB)
     reportFile.write('\n\nWDS Identifier: \n')
     reportFile.write(str(pairWdsIdentifier))
-    reportFile.write('\n\nTheta measurements\n' + str(ds['theta_measured'].degree))
+    reportFile.write('\n\nTheta measurements\n' + str(ds['theta_measured']))
     reportFile.write('\nMean: ' + str(pairMeanTheta[0]))
     reportFile.write('\nError: ' + str(pairMeanThetaErr[0]))
-    reportFile.write('\n\nRho measurements\n' + str(ds['rho_measured'].arcsec))
+    reportFile.write('\n\nRho measurements\n' + str(ds['rho_measured']))
     reportFile.write('\nMean: ' + str(pairMeanRho[0]))
     reportFile.write('\nError: ' + str(pairMeanRhoErr[0]))
     reportFile.write('\n\nMagnitude A DR3:  \n' + str(pairGMagnitudeA))
