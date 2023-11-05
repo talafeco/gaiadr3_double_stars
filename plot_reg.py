@@ -11,7 +11,7 @@ image_file = 'C:\Astro\\2023-09-05\Gaia_DR3_2869377048124227200\90s\Gaia_DR3_286
 image_data = fits.getdata(image_file, ext=0, memmap=False)
 
 fig, ax = plt.subplots()
-ax.imshow(image_data, cmap='gray', vmin=0, vmax=255)
+ax.imshow(image_data, cmap='gray', vmin=0, vmax=2500)
 ax.set_ylim([-0.5, 892.5])
 
 region_file = get_pkg_data_filename('data/plot_image.reg',
