@@ -31,17 +31,16 @@ ax.arrow(image_center_ra, image_center_dec, 0, 0.016,
 plt.text(image_center_ra, image_center_dec, '1 arcmin', 
          color='white',
          transform=ax.get_transform('icrs'))
-plt.scatter(star_a_pix[0] + 30, star_a_pix[1], marker="_", s=50, color="grey", label='Main star')
-plt.scatter(star_a_pix[0], star_a_pix[1] + 30, marker="|", s=50, color="grey", label='Main star')
-plt.scatter(star_b_pix[0] + 30, star_b_pix[1], marker="_", s=50, color="grey", label='Companion star')
-plt.scatter(star_b_pix[0], star_b_pix[1] + 30, marker="|", s=50, color="grey", label='Companion star')
+plt.scatter(star_a_pix[0] + 30, star_a_pix[1], marker="_", s=50, color="grey")
+plt.scatter(star_a_pix[0], star_a_pix[1] + 30, marker="|", s=50, color="grey")
+plt.scatter(star_b_pix[0] + 30, star_b_pix[1], marker="_", s=50, color="grey")
+plt.scatter(star_b_pix[0], star_b_pix[1] + 30, marker="|", s=50, color="grey")
 plt.xlabel(image_center_ra)
 plt.ylabel(image_center_dec)
 
 overlay = ax.get_coords_overlay('icrs')
 overlay.grid(color='grey', ls='dotted')
-plt.imshow(image, origin='lower',cmap='grey', aspect='equal', vmax=2500, vmin=0) # , cmap='cividis'
-
+plt.imshow(image, origin='lower',cmap='grey', aspect='equal', vmax=2000, vmin=0) # , cmap='cividis'
+plt.savefig('image.jpg', bbox_inches='tight')
 plt.show()
 
-plt.savefig('image.png', bbox_inches='tight')
