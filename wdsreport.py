@@ -28,20 +28,21 @@ from astropy.coordinates import Angle
 import warnings
 from io import StringIO
 from matplotlib import pyplot as plt
+from astropy.wcs import utils
 from astropy.io import ascii
 warnings.filterwarnings("ignore")
 from astroquery.gaia import Gaia
 Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"  # Reselect Data Release 3, default
 
-dao_sigma = 2.0
-dao_fwhm = 3.0
-dao_threshold = 5.0
+dao_sigma = 5.0
+dao_fwhm = 10.0
+dao_threshold = 18.0
 possible_distance = 10000.0 # AU
 search_cone = 0.001 # Decimal degree
 
 
 # Constant variables
-hipparcos_file = Table.read('Z:\\astro\catalogs\Hipparcos\I_239_selection.csv', format='ascii')
+hipparcos_file = Table.read('C:\Astro\catalogs\I_239_selection.csv', format='ascii')
 # Insert the downloaded wds file path here
 wds_file = "C:\Astro\catalogs\WDS\wdsweb_summ2.txt"
 
@@ -180,6 +181,7 @@ def calcLuminosity(absmag):
 
 # Function to calculate the Star mass
 # Excel formula M <0.43M =('luminosity'/0.23)^(1/2.3), M <2M ='luminosity'^(1/4), M < 20M =('luminosity'/1.4)^(1/3.5), M > 55M ='luminosity'/3200
+'''
 def calcMass(lum):
     mass = ()
     mass_small = (lum / 0.23) ** (1 / 2.3)
@@ -195,6 +197,13 @@ def calcMass(lum):
     elif mass_ex > 55:
         mass = mass_ex
     return mass
+'''
+
+# Function to calculate the Star mass basd on temp
+# Excel formula: 
+
+def calcMass():
+
 
 # Calculate the radius of the star
 # Excel formula =SQRT(Luminosity/(T eff/5778))
@@ -336,18 +345,60 @@ def calculate_wds_dec_hourangle(wds_dec_array):
     return wds_dec_dms
 
 # Create HRD plot of the double stars
-def hrdPlot(wds_identifier, mag_abs_a, mag_abs_b, bv_a, bv_b):
+def hrdPlot(pairname, mag_abs_a, mag_abs_b, bv_a, bv_b):
     hipparcos_abs_mag = hipparcos_file['Abs_mag']
     hipparcos_bv_index = hipparcos_file['B-V']
+    plt.figure(figsize=(10, 10), frameon=False)
     plt.scatter(hipparcos_bv_index, hipparcos_abs_mag, s=0.5, alpha=0.015, color="grey") #, 
     plt.scatter(bv_a, mag_abs_a, s=6, color="blue", label='Main star')
     plt.scatter(bv_b, mag_abs_b, s=3, color="red", label='Companion star')
     plt.legend(loc="upper left")
     plt.axis((-0.6,2.1,21,-16))
-    plt.title(wds_identifier + ' H-R Diagram')
+    plt.title(pairname + ' H-R Diagram')
     plt.xlabel('B-V index')
     plt.ylabel('Absolute magnitude')
-    plt.savefig('ds_hrd.png', bbox_inches='tight')
+    plt.savefig(workingDirectory + '/' + pairname + '_hrd.jpg', bbox_inches='tight')
+
+# Create Image plot of the double stars
+def imagePlot(filename, pairname, raa, deca, rab, decb):
+    image_data = fits.open(workingDirectory + '/' + filename)
+
+    #image_center_ra = 352.8750000
+    #image_center_dec = 28.9247222
+
+    wcs_helix = WCS(image_data[0].header)
+
+    image = image_data[0].data
+
+    star_a = SkyCoord(raa * u.deg, deca * u.deg, frame='icrs')
+    star_b = SkyCoord(rab * u.deg, decb * u.deg, frame='icrs')
+
+    star_a_pix = utils.skycoord_to_pixel(star_a, wcs_helix)
+    star_b_pix = utils.skycoord_to_pixel(star_b, wcs_helix)
+
+    plt.figure(figsize=(10, 10), frameon=False) # 
+    ax = plt.subplot(projection=wcs_helix)
+    '''
+    ax.arrow(image_center_ra, image_center_dec, 0, 0.016, 
+            head_width=0, head_length=0, 
+            fc='white', ec='white', width=0.0003, 
+            transform=ax.get_transform('icrs'))
+    plt.text(image_center_ra, image_center_dec, '1 arcmin', 
+            color='white',
+            transform=ax.get_transform('icrs'))
+    '''
+    plt.scatter(star_a_pix[0] + 30, star_a_pix[1], marker="_", s=50, color="grey")
+    plt.scatter(star_a_pix[0], star_a_pix[1] + 30, marker="|", s=50, color="grey")
+    plt.scatter(star_b_pix[0] + 30, star_b_pix[1], marker="_", s=50, color="grey")
+    plt.scatter(star_b_pix[0], star_b_pix[1] + 30, marker="|", s=50, color="grey")
+    #plt.xlabel(image_center_ra)
+    #plt.ylabel(image_center_dec)
+
+    overlay = ax.get_coords_overlay('icrs')
+    overlay.grid(color='grey', ls='dotted')
+    plt.imshow(image, origin='lower',cmap='grey', aspect='equal', vmax=2000, vmin=0) # , cmap='cividis'
+    plt.savefig(workingDirectory + '/' + pairname + '_img.jpg', bbox_inches='tight')
+    #plt.show()
 
 ###################################################################################################################################
 
@@ -578,6 +629,12 @@ for ds in upd_sources_ds_by_object.groups:
     pairBinarity = calcBinarity(pairRelativeVelocity, pairEscapeVelocity)
     
     # Calculate values for each pair based on the groups
+    pairDesignationA = gaiaAStar[0]['DESIGNATION']
+    pairDesignationB = gaiaBStar[0]['DESIGNATION']
+    pairRaA = gaiaAStar[0]['ra']
+    pairDecA = gaiaAStar[0]['dec']
+    pairRaB = gaiaBStar[0]['ra']
+    pairDecB = gaiaBStar[0]['dec']
     pairMeanTheta = ds['theta_measured'].degree.mean()
     pairMeanThetaErr = ds['theta_measured'].degree.std()
     pairMeanRho = ds['rho_measured'].arcsec.mean()
@@ -590,7 +647,8 @@ for ds in upd_sources_ds_by_object.groups:
     reportFile = open(reportName, "a")
 
     
-    hrdPlot((str(ds[0]['2000 Coord']) + ' ' + str(ds[0]['Discov']) + ' ' + str(ds[0]['Comp'])), pairAbsMag1, pairAbsMag2, pairBVIndexA, pairBVIndexB)
+    hrdPlot(pairObjectId, pairAbsMag1, pairAbsMag2, pairBVIndexA, pairBVIndexB)
+    imagePlot(files[0], pairObjectId, pairRaA, pairDecA, pairRaB, pairDecB)
     
     # Print temp data
     print('### COMPONENTS ###')
