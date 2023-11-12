@@ -381,7 +381,6 @@ def imagePlot(filename, pairname, raa, deca, rab, decb):
     overlay.grid(color='grey', ls='dotted')
     plt.imshow(image, origin='lower',cmap='grey', aspect='equal', vmax=2000, vmin=0) # , cmap='cividis'
     plt.savefig(workingDirectory + '/' + pairname + '_img.jpg', bbox_inches='tight')
-    #plt.show()
 
 ###################################################################################################################################
 

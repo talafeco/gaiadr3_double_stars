@@ -214,38 +214,32 @@ def searchWds(pairadesig):
         wdsPair = 'Not found'
     return wdsPair
 
-# Create HRD plot of the double stars
-def hrdPlot(designation_a, designation_b, mag_abs_a, mag_abs_b, bv_a, bv_b):
+# Create HRD plot of the double stars based on Hipparcos
+def hrdPlot(pairname, mag_abs_a, mag_abs_b, bv_a, bv_b):
     hipparcos_abs_mag = hipparcos_file['Abs_mag']
     hipparcos_bv_index = hipparcos_file['B-V']
-    plt.figure(figsize=(10, 10), frameon=False)
-    plt.scatter(hipparcos_bv_index, hipparcos_abs_mag, s=0.5, alpha=0.15, color="grey") #, 
-    plt.scatter(bv_a, mag_abs_a, s=6, color="blue", label='Main star')
-    plt.scatter(bv_b, mag_abs_b, s=3, color="red", label='Companion star')
+    plt.scatter(hipparcos_bv_index, hipparcos_abs_mag, s=0.5, alpha=0.2, color="grey") #, 
+    plt.scatter(bv_a, mag_abs_a, s= 1 / mag_abs_a * 40, color="blue", label='Main star')
+    plt.scatter(bv_b, mag_abs_b, s= 1 / mag_abs_b * 40, color="red", label='Companion star')
     plt.legend(loc="upper left")
-    plt.axis((-0.6,2.1,21,-16))
-    plt.title(str(designation_a) + ' - ' + str(designation_b) + ' H-R Diagram')
+    plt.axis((-0.4,1.9,21,-16))
+    plt.title('Double Star ' + pairname + ' H-R Diagram')
     plt.xlabel('B-V index')
     plt.ylabel('Absolute magnitude')
-    plt.savefig(workingDirectory + '/' + str(designation_a) + '-' + str(designation_b) + '_hrd.jpg', bbox_inches='tight')
+    plt.gca().set_aspect(0.07)
+    plt.savefig(workingDirectory + '/' + pairname + '_hrd.jpg', bbox_inches='tight')
 
 # Create Image plot of the double stars
 def imagePlot(filename, designation_a, designation_b, raa, deca, rab, decb):
     image_data = fits.open(workingDirectory + '/' + filename)
-
     image_center_ra = 352.8750000
     image_center_dec = 28.9247222
-
     wcs_helix = WCS(image_data[0].header)
-
     image = image_data[0].data
-
     star_a = SkyCoord(raa * u.deg, deca * u.deg, frame='icrs')
     star_b = SkyCoord(rab * u.deg, decb * u.deg, frame='icrs')
-
     star_a_pix = utils.skycoord_to_pixel(star_a, wcs_helix)
     star_b_pix = utils.skycoord_to_pixel(star_b, wcs_helix)
-
     plt.figure(figsize=(10, 10), frameon=False) # 
     ax = plt.subplot(projection=wcs_helix)
     '''
@@ -263,12 +257,10 @@ def imagePlot(filename, designation_a, designation_b, raa, deca, rab, decb):
     plt.scatter(star_b_pix[0], star_b_pix[1] + 30, marker="|", s=50, color="grey")
     plt.xlabel(image_center_ra)
     plt.ylabel(image_center_dec)
-
     overlay = ax.get_coords_overlay('icrs')
     overlay.grid(color='grey', ls='dotted')
     plt.imshow(image, origin='lower',cmap='grey', aspect='equal', vmax=2000, vmin=0) # , cmap='cividis'
     plt.savefig(workingDirectory + '/' + str(designation_a) + '-' + str(designation_b) + '_img.jpg', bbox_inches='tight')
-    #plt.show()
 
 ### Run source detection, collect star data to Qtable
 workingDirectory = sys.argv[1]
