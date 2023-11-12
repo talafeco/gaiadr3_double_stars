@@ -27,13 +27,15 @@ Search visual double star candidates in Gaia DR3. Mag &lt; 15, par > 0.5.
     - Done
 5. Calculate Physical properties of the double star: mass, absolute magnitude, luminosity, gravitational bound
     - Done
-6. Extend star mass calculation with alternate equatione based on measured temperature
+6. Extend star mass calculation with alternate equation based on measured temperature
 7. Create HRD diagram of the components
     - Done
 8. Update report file path to be created in the image directory
     - Done
 9. Fix magnitude error calculation algorithm
+    - Done
 10. Add magnitude difference to the updated table
+    - Done
 
 
 # New functions

@@ -26,3 +26,6 @@ plt.gca().set_aspect(0.07)
 plt.savefig('ds_hrd.png', bbox_inches='tight')
 
 plt.show()
+
+
+

@@ -215,7 +215,7 @@ def searchWds(pairadesig):
     return wdsPair
 
 # Create HRD plot of the double stars based on Hipparcos
-def hrdPlot(pairname, mag_abs_a, mag_abs_b, bv_a, bv_b):
+def hrdPlot(designation_a, designation_b, mag_abs_a, mag_abs_b, bv_a, bv_b):
     hipparcos_abs_mag = hipparcos_file['Abs_mag']
     hipparcos_bv_index = hipparcos_file['B-V']
     plt.scatter(hipparcos_bv_index, hipparcos_abs_mag, s=0.5, alpha=0.2, color="grey") #, 
@@ -223,17 +223,15 @@ def hrdPlot(pairname, mag_abs_a, mag_abs_b, bv_a, bv_b):
     plt.scatter(bv_b, mag_abs_b, s= 1 / mag_abs_b * 40, color="red", label='Companion star')
     plt.legend(loc="upper left")
     plt.axis((-0.4,1.9,21,-16))
-    plt.title('Double Star ' + pairname + ' H-R Diagram')
+    plt.title('Double Star ' + designation_a + ' - ' + designation_b + ' H-R Diagram')
     plt.xlabel('B-V index')
     plt.ylabel('Absolute magnitude')
     plt.gca().set_aspect(0.07)
-    plt.savefig(workingDirectory + '/' + pairname + '_hrd.jpg', bbox_inches='tight')
+    plt.savefig(workingDirectory + '/' + designation_a + ' - ' + designation_b + '_hrd.jpg', bbox_inches='tight')
 
 # Create Image plot of the double stars
 def imagePlot(filename, designation_a, designation_b, raa, deca, rab, decb):
     image_data = fits.open(workingDirectory + '/' + filename)
-    image_center_ra = 352.8750000
-    image_center_dec = 28.9247222
     wcs_helix = WCS(image_data[0].header)
     image = image_data[0].data
     star_a = SkyCoord(raa * u.deg, deca * u.deg, frame='icrs')
@@ -255,8 +253,6 @@ def imagePlot(filename, designation_a, designation_b, raa, deca, rab, decb):
     plt.scatter(star_a_pix[0], star_a_pix[1] + 30, marker="|", s=50, color="grey")
     plt.scatter(star_b_pix[0] + 30, star_b_pix[1], marker="_", s=50, color="grey")
     plt.scatter(star_b_pix[0], star_b_pix[1] + 30, marker="|", s=50, color="grey")
-    plt.xlabel(image_center_ra)
-    plt.ylabel(image_center_dec)
     overlay = ax.get_coords_overlay('icrs')
     overlay.grid(color='grey', ls='dotted')
     plt.imshow(image, origin='lower',cmap='grey', aspect='equal', vmax=2000, vmin=0) # , cmap='cividis'
@@ -536,6 +532,7 @@ for ds in reportTable_by_object.groups:
     pairGMagnitudeB = ds[0][26]
     pairMagDiff = math.fabs(pairMagMeasuredA - pairMagMeasuredB)
     pairMagDiffDr3 = math.fabs(pairGMagnitudeA - pairGMagnitudeB)
+    pairMagDiffErr = math.fabs(((ds['magmeasured_a']) - (ds['magmeasured_b'])).groups.aggregate(np.std))
     pairRadVelRatioA = math.fabs(ds[0][13] / ds[0][12]) * 100
     pairRadVelRatioB = math.fabs(ds[0][30] / ds[0][29]) * 100
     pairRadVelA, pairRadVelAErr, pairRadVelB, pairRadVelBErr = ds[0][12], ds[0][13], ds[0][29], ds[0][30]
@@ -649,4 +646,9 @@ for ds in reportTable_by_object.groups:
     reportFile.write('\n' + str(pairMeanTheta[0]) + ',' + str(pairMeanThetaErr[0]) + ',' + str(pairMeanRho[0]) + ',' + str(pairMeanRhoErr[0]) + ',' + str(pairSepPar * 206265) + ' AU')
     reportFile.write('\n\n### Publication table 3. ###')
     reportFile.write('\n' + str(pairParallaxFactor) + '%' + ',' + str(pairPmFactor) + '%' + ',' + str(pairPmCommon) + ',' + str(pairEscapeVelocity) + ',' + str(pairRelativeVelocity) + ',' + str(pairHarshawFactor) + ',' + str(pairHarshawPhysicality) + ',' + str(pairBinarity))
+    reportFile.write('\n\n### WDS table ###')
+    c = str(SkyCoord(pairRaA, pairDecA, unit='deg', frame='icrs').to_string('hmsdms'))
+    pair_wds_name = str(c[0:2]) + str(c[3:5]) + str(c[6:8]) + str(c[9:10]) + str(c[19:22]) + str(c[23:25]) + str(c[26:28]) + str(c[29:30])
+    wdsform = pair_wds_name + ',' + 'Date of observation' + ',' +  str(pairMeanTheta[0]) + ',' + str(pairMeanThetaErr[0]) + ',' + str(pairMeanRho[0]) + ',' + str(pairMeanRhoErr[0]) + ',' +  'nan' + ',' +  'nan' + ',' +  str(pairMagDiff) + ',' +  str(pairMagDiffErr) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TLB_2023' + ',' +  'C' + ',' + '7'
+    reportFile.write('\n' + str(wdsform))
     reportFile.close()
