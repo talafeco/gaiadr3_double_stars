@@ -43,6 +43,7 @@ search_cone = 0.001 # Decimal degree
 
 # Constant variables
 hipparcos_file = Table.read('C:\Astro\catalogs\I_239_selection.csv', format='ascii')
+
 # Insert the downloaded wds file path here
 wds_file = "C:\Astro\catalogs\WDS\wdsweb_summ2.txt"
 
@@ -181,7 +182,6 @@ def calcLuminosity(absmag):
 
 # Function to calculate the Star mass
 # Excel formula M <0.43M =('luminosity'/0.23)^(1/2.3), M <2M ='luminosity'^(1/4), M < 20M =('luminosity'/1.4)^(1/3.5), M > 55M ='luminosity'/3200
-'''
 def calcMass(lum):
     mass = ()
     mass_small = (lum / 0.23) ** (1 / 2.3)
@@ -197,13 +197,6 @@ def calcMass(lum):
     elif mass_ex > 55:
         mass = mass_ex
     return mass
-'''
-
-# Function to calculate the Star mass basd on temp
-# Excel formula: 
-
-def calcMass():
-
 
 # Calculate the radius of the star
 # Excel formula =SQRT(Luminosity/(T eff/5778))
@@ -344,38 +337,31 @@ def calculate_wds_dec_hourangle(wds_dec_array):
         wds_dec_dms.append(str(star[0:3]) + 'd' + str(star[3:5]) + 'm' + str(star[5:9]) + 's')
     return wds_dec_dms
 
-# Create HRD plot of the double stars
+# Create HRD plot of the double stars based on Hipparcos
 def hrdPlot(pairname, mag_abs_a, mag_abs_b, bv_a, bv_b):
     hipparcos_abs_mag = hipparcos_file['Abs_mag']
     hipparcos_bv_index = hipparcos_file['B-V']
-    plt.figure(figsize=(10, 10), frameon=False)
-    plt.scatter(hipparcos_bv_index, hipparcos_abs_mag, s=0.5, alpha=0.015, color="grey") #, 
-    plt.scatter(bv_a, mag_abs_a, s=6, color="blue", label='Main star')
-    plt.scatter(bv_b, mag_abs_b, s=3, color="red", label='Companion star')
+    plt.scatter(hipparcos_bv_index, hipparcos_abs_mag, s=0.5, alpha=0.2, color="grey") #, 
+    plt.scatter(bv_a, mag_abs_a, s= 1 / mag_abs_a * 40, color="blue", label='Main star')
+    plt.scatter(bv_b, mag_abs_b, s= 1 / mag_abs_b * 40, color="red", label='Companion star')
     plt.legend(loc="upper left")
-    plt.axis((-0.6,2.1,21,-16))
-    plt.title(pairname + ' H-R Diagram')
+    plt.axis((-0.4,1.9,21,-16))
+    plt.title('Double Star ' + pairname + ' H-R Diagram')
     plt.xlabel('B-V index')
     plt.ylabel('Absolute magnitude')
+    plt.gca().set_aspect(0.07)
     plt.savefig(workingDirectory + '/' + pairname + '_hrd.jpg', bbox_inches='tight')
+
 
 # Create Image plot of the double stars
 def imagePlot(filename, pairname, raa, deca, rab, decb):
     image_data = fits.open(workingDirectory + '/' + filename)
-
-    #image_center_ra = 352.8750000
-    #image_center_dec = 28.9247222
-
     wcs_helix = WCS(image_data[0].header)
-
     image = image_data[0].data
-
     star_a = SkyCoord(raa * u.deg, deca * u.deg, frame='icrs')
     star_b = SkyCoord(rab * u.deg, decb * u.deg, frame='icrs')
-
     star_a_pix = utils.skycoord_to_pixel(star_a, wcs_helix)
     star_b_pix = utils.skycoord_to_pixel(star_b, wcs_helix)
-
     plt.figure(figsize=(10, 10), frameon=False) # 
     ax = plt.subplot(projection=wcs_helix)
     '''
@@ -391,9 +377,6 @@ def imagePlot(filename, pairname, raa, deca, rab, decb):
     plt.scatter(star_a_pix[0], star_a_pix[1] + 30, marker="|", s=50, color="grey")
     plt.scatter(star_b_pix[0] + 30, star_b_pix[1], marker="_", s=50, color="grey")
     plt.scatter(star_b_pix[0], star_b_pix[1] + 30, marker="|", s=50, color="grey")
-    #plt.xlabel(image_center_ra)
-    #plt.ylabel(image_center_dec)
-
     overlay = ax.get_coords_overlay('icrs')
     overlay.grid(color='grey', ls='dotted')
     plt.imshow(image, origin='lower',cmap='grey', aspect='equal', vmax=2000, vmin=0) # , cmap='cividis'
