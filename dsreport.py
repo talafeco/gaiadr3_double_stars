@@ -32,6 +32,24 @@ hipparcos_file = Table.read(f"C:\Astro\catalogs\I_239_selection.csv", format='as
 hipparcos_abs_mag = hipparcos_file['Abs_mag']
 hipparcos_bv_index = hipparcos_file['B-V']
 
+# Configuration for the ATIK camera
+
+dao_sigma = 5.0
+dao_fwhm = 10.0
+dao_threshold = 18.0
+possible_distance = 10000.0 # AU
+search_cone = 0.001 # Decimal degree
+
+
+# Configuration for the CANON camera
+'''
+dao_sigma = 2.0
+dao_fwhm = 3.0
+dao_threshold = 5.0
+possible_distance = 10000.0 # AU
+search_cone = 0.001 # Decimal degree
+'''
+
 ### Declare functions
 # Function to calculate Delta RA
 def deltaRa(raa, rab, decb):
@@ -343,9 +361,9 @@ for fitsFile in files:
 
     # Estimate the background and background noise
     data = hdu[0].data
-    mean, median, std = sigma_clipped_stats(data, sigma=5.0)  
+    mean, median, std = sigma_clipped_stats(data, sigma=dao_sigma)  
 
-    daofind = DAOStarFinder(fwhm=10.0, threshold=18.0*std)  
+    daofind = DAOStarFinder(fwhm=dao_fwhm, threshold=dao_threshold*std)  
     sources = daofind(data - median)
 
     # 2. Define the catalog file based on the source coordinate and read data from catalog file(s) to a catalog
@@ -413,7 +431,7 @@ for group in sourceTable_by_file.groups:
                 starParallaxError1 = float(StarA[6])
                             
                 # Calculate the widest possible separation for StarA
-                possSep1 = 10000 / calcDistanceMax(starParallax1, starParallaxError1)
+                possSep1 = possible_distance / calcDistanceMax(starParallax1, starParallaxError1)
                 rhoStar = rhoCalc(starRa1, starDec1, starRa2, starDec2)
                 if possSep1 > rhoStar:
                     starId1 = StarA[1]

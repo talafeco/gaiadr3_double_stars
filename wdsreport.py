@@ -34,11 +34,23 @@ warnings.filterwarnings("ignore")
 from astroquery.gaia import Gaia
 Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"  # Reselect Data Release 3, default
 
+# Configuration for the ATIK camera
+'''
 dao_sigma = 5.0
 dao_fwhm = 10.0
 dao_threshold = 18.0
 possible_distance = 10000.0 # AU
 search_cone = 0.001 # Decimal degree
+'''
+
+# Configuration for the CANON camera
+
+dao_sigma = 2.0
+dao_fwhm = 3.0
+dao_threshold = 5.0
+possible_distance = 10000.0 # AU
+search_cone = 0.001 # Decimal degree
+
 
 
 # Constant variables
