@@ -448,6 +448,7 @@ print('\n### Creating filelist ###')
 directoryContent = os.listdir(workingDirectory)
 print('Working directory: ', workingDirectory)
 
+# Add fit, fits file extensions too
 files = [f for f in directoryContent if os.path.isfile(workingDirectory+'/'+f) and f.endswith('.new')]
 print('Files:', files)
 
