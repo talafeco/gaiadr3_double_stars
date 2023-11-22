@@ -363,7 +363,8 @@ def hrdPlot(pairname, mag_abs_a, mag_abs_b, bv_a, bv_b):
     plt.xlabel('B-V index')
     plt.ylabel('Absolute magnitude')
     plt.gca().set_aspect(0.07)
-    plt.savefig(workingDirectory + '/' + pairname + '_hrd.jpg', bbox_inches='tight')
+    savename = str(workingDirectory + '/' + pairname + '_hrd.jpg')
+    plt.savefig(savename, bbox_inches='tight')
 
 
 # Create Image plot of the double stars
