@@ -33,7 +33,7 @@ from astropy.io import ascii
 warnings.filterwarnings("ignore")
 from astroquery.gaia import Gaia
 Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"  # Reselect Data Release 3, default
-
+ 
 # Configuration for the ATIK camera
 '''
 dao_sigma = 5.0
@@ -351,6 +351,7 @@ def calculate_wds_dec_hourangle(wds_dec_array):
 
 # Create HRD plot of the double stars based on Hipparcos
 def hrdPlot(pairname, mag_abs_a, mag_abs_b, bv_a, bv_b):
+    print(pairname, mag_abs_a, mag_abs_b, bv_a, bv_b)
     hipparcos_abs_mag = hipparcos_file['Abs_mag']
     hipparcos_bv_index = hipparcos_file['B-V']
     plt.scatter(hipparcos_bv_index, hipparcos_abs_mag, s=0.5, alpha=0.2, color="grey") #, 
