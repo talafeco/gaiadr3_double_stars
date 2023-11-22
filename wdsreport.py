@@ -355,8 +355,8 @@ def hrdPlot(pairname, mag_abs_a, mag_abs_b, bv_a, bv_b):
     hipparcos_abs_mag = hipparcos_file['Abs_mag']
     hipparcos_bv_index = hipparcos_file['B-V']
     plt.scatter(hipparcos_bv_index, hipparcos_abs_mag, s=0.5, alpha=0.2, color="grey") #, 
-    plt.scatter(bv_a, mag_abs_a, s= 1 / mag_abs_a * 40, color="blue", label='Main star')
-    plt.scatter(bv_b, mag_abs_b, s= 1 / mag_abs_b * 40, color="red", label='Companion star')
+    plt.scatter(bv_a, mag_abs_a, s=14, color="blue", label='Main star') # s= 1 / mag_abs_a
+    plt.scatter(bv_b, mag_abs_b, s=7, color="red", label='Companion star') # s= 1 / mag_abs_a
     plt.legend(loc="upper left")
     plt.axis((-0.4,1.9,21,-16))
     plt.title('Double Star ' + pairname + ' H-R Diagram')
