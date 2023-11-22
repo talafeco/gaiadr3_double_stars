@@ -363,7 +363,8 @@ def hrdPlot(pairname, mag_abs_a, mag_abs_b, bv_a, bv_b):
     plt.xlabel('B-V index')
     plt.ylabel('Absolute magnitude')
     plt.gca().set_aspect(0.07)
-    plt.savefig(workingDirectory + '/' + pairname + '_hrd.jpg', bbox_inches='tight')
+    savename = str(workingDirectory + '/' + pairname + '_hrd.jpg')
+    plt.savefig(savename, bbox_inches='tight')
 
 
 # Create Image plot of the double stars
@@ -448,6 +449,7 @@ print('\n### Creating filelist ###')
 directoryContent = os.listdir(workingDirectory)
 print('Working directory: ', workingDirectory)
 
+# Add fit, fits file extensions too
 files = [f for f in directoryContent if os.path.isfile(workingDirectory+'/'+f) and f.endswith('.new')]
 print('Files:', files)
 
@@ -531,8 +533,8 @@ for ds in upd_sources_ds_by_object.groups:
     b = Gaia.cone_search_async(pairBCoord, radius=u.Quantity(search_cone, u.deg))
     gaiaAStar = a.get_results()
     gaiaBStar = b.get_results()
-    print('Gaia A star: ' + str(bool(gaiaAStar[0]['DESIGNATION'])))
-    print('Gaia B star: ' + str(bool(gaiaBStar[0]['DESIGNATION'])))
+    print('Gaia A star: ' + str(gaiaAStar[0]['DESIGNATION']))
+    print('Gaia B star: ' + str(gaiaBStar[0]['DESIGNATION']))
     pairDistanceMinA = calcDistanceMin(float(gaiaAStar[0]['parallax']), float(gaiaAStar[0]['parallax_error']))
     pairDistanceMinB = calcDistanceMin(float(gaiaBStar[0]['parallax']), float(gaiaBStar[0]['parallax_error']))
     
