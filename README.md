@@ -58,3 +58,16 @@ Search visual double star candidates in Gaia DR3. Mag &lt; 15, par > 0.5.
     - Done
 4. Calculate orbit period
 5. Check, if absolute magnitude measurement is possible on the images
+
+
+# Zsolti's input
+## Issues
+1. OK - 656 kettősből eddig 21-nél hiányzott a plx adat. De előfordult már, hogy csak a csillag koordinátái és G magnitudója volt a DR3-ban.  Ilyen esetekben lehet-e, hogy a program megméri a szeparációt, PA-t és Dmag-ot, a számításokat kihagyja és a Harshawhoz ír egy „unk data” eredményt és dolgozik tovább?
+2. Az is előfordul ,elég gyakran, hogy a DR3-ból hiányzik a Teff. Ilyenkor én a DR2-ből szoktam átvenni ezt az adatot. Itt is lehetne egy „unk data” eredmény. Aztán az ember a plot toolhoz kikurkássza a Simbadból a hiányzókat. Pl. a Gaia nem adott semmit a csillagról, de a Hipparchos már egyszer megmérte a pm-t és a plx-t. Ha ez sem, akkor tényleg nincsen semmink róla. Tehát maradna az ismertelen eredmény.
+3. Nem tudom megoldható-e, hogy egy többes rendszernél egy csoportba legyenek a komponensek? PL STF133 A; STF133 AC; ABH111 AD stb. A txt fájba összefűzheti ezeket?
+4. OK - Megoldható lenne-e, hogy ha több pár van egy képen, mert ez sűrűn előfordul, a CMD-ben elválassza őket mondjuk egy „-----„ sávval?
+5. Megoldható-e, hogy a txt fájba ne ömlesztve jelenjenek meg a DR3 adatok? Nem sok kell belőle, de lehetne rendezni ezeket valamiféle kvázi táblázatba?
+6. Szerintem nem kell végtelen tizedesjelű szám. Tudom így pontos a dolog, de pl. a végső eredményt elég lenne 3 tizedesre kerekítve kiíratni vele.
+7. Bevinni az rp kalkulációt
+8. fit és fits fileokra is fusson le
+9. OK - radial velocity error nem jelenik meg a listában rendesen

@@ -1,14 +1,24 @@
-#Test
-from astropy.coordinates import SkyCoord
-from astropy import units as u
-import sys
-from astropy.coordinates import SkyCoord
+import numpy as np
+import math
 
-# Get coordinates
-star_ra = sys.argv[1].replace(",",".")[0:1] + 'h' + sys.argv[1].replace(",",".")[2:3] + 'm' + sys.argv[1].replace(",",".")[4:9] + 's'
-star_dec = sys.argv[2].replace(",",".")
+magnitude = 7.523838
+parallax = 2.655862264105706
 
-print(star_ra + ' ' + star_dec)
-print(SkyCoord(star_ra, star_dec, unit='hour, degree'))
+def calcDistance(par):
+    dist = 1 / (math.fabs(par/1000))
+    return dist
 
-# tert
+def calcAbsMag(gmag, par):
+    dist = calcDistance(par)
+    absmag = gmag - 5 * math.log(dist, 10) + 5
+    return absmag
+
+def roundNumber(num):
+    if type(num) == float or type(num) == int:
+        finalNumber = round(num, 3)
+    else:
+        finalNumber = np.nan
+    return finalNumber
+
+
+print(str(roundNumber(calcAbsMag(magnitude, parallax))))
