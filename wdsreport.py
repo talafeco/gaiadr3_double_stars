@@ -51,9 +51,7 @@ dao_threshold = 5.0
 possible_distance = 10000.0 # AU
 search_cone = 0.001 # Decimal degree
 gravConst = 0.0043009 # Gravitational constant is convenient if measure distances in parsecs (pc), velocities in kilometres per second (km/s) and masses in solar units M
-image_limit = 20000
-
-
+image_limit = 50000
 
 # Constant variables
 hipparcos_file = Table.read('C:\Astro\catalogs\I_239_selection.csv', format='ascii')
@@ -121,8 +119,8 @@ def convertStringToNan(str):
     return string
 
 def roundNumber(num):
-    if type(num) == float or type(num) == int:
-        finalNumber = round(num, 3)
+    if type(num) == np.float32 or type(num) == np.float64 or type(num) == float or type(num) == int:
+        finalNumber = np.round(num, 3)
     else:
         finalNumber = num
     return finalNumber
@@ -474,7 +472,7 @@ directoryContent = os.listdir(workingDirectory)
 print('Working directory: ', workingDirectory)
 
 # Add fit, fits file extensions too
-files = [f for f in directoryContent if os.path.isfile(workingDirectory+'/'+f) and f.endswith('.new')]
+files = [f for f in directoryContent if os.path.isfile(workingDirectory+'/'+f) and (f.endswith('.new') or f.endswith('.fit') or f.endswith('.fits'))]
 print('Files:', files)
 
 # Create the WDS catalog table
@@ -654,6 +652,8 @@ for ds in upd_sources_ds_by_object.groups:
         pairDecA = gaiaAStar[0]['dec']
         pairRaB = gaiaBStar[0]['ra']
         pairDecB = gaiaBStar[0]['dec']
+        pairMagA = gaiaAStar[0]['phot_g_mean_mag']
+        pairMagB = gaiaBStar[0]['phot_g_mean_mag']
         pairMeanTheta = float(ds['theta_measured'].degree.mean())
         pairMeanThetaErr = float(ds['theta_measured'].degree.std())
         pairMeanRho = float(ds['rho_measured'].arcsec.mean())
@@ -723,6 +723,7 @@ for ds in upd_sources_ds_by_object.groups:
     reportFile.write('\n\n### Gaia DR3 Data ###')
     reportFile.write('\nMain star: ' + pairDesA)
     reportFile.write('\nCompanion: ' + pairDesB)
+    reportFile.write('\nPair G magnitudes A: ' + str(roundNumber(pairMagA)) + ' B: ' + str(roundNumber(pairMagB)))
     reportFile.write('\nPosition angle: ' + str(roundNumber(pairDR3Theta)))
     reportFile.write('\nSeparation: ' + str(roundNumber(pairDR3Rho)))
     reportFile.write('\nMagnitude difference: ' + str(roundNumber(pairMagDiff)))
@@ -742,8 +743,8 @@ for ds in upd_sources_ds_by_object.groups:
     reportFile.write('\nSeparation (Measured): ' + str(roundNumber(pairMeanRho)))
     reportFile.write('\nPosition angle (Measured): ' + str(roundNumber(pairMeanTheta)))
     reportFile.write('\nMagnitude difference (Measured): ' + str(roundNumber(pairMagDiff)) + ' (Err: ' + str(roundNumber(pairMagDiffErr)) + ')')
-    reportFile.write('\nAbsolute magnitude A: ' + str(pairAbsMag1))
-    reportFile.write('\nAbsolute magnitude B: ' + str(pairAbsMag2))
+    reportFile.write('\nAbsolute magnitude A: ' + str(roundNumber(pairAbsMag1)))
+    reportFile.write('\nAbsolute magnitude B: ' + str(roundNumber(pairAbsMag2)))
     reportFile.write('\nLuminosity A: ' + str(roundNumber(pairLum1)))
     reportFile.write('\nLuminosity B: ' + str(roundNumber(pairLum2)))
     reportFile.write('\nRad A: ' + str(roundNumber(pairRad1)))
