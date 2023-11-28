@@ -35,7 +35,7 @@ hipparcos_bv_index = hipparcos_file['B-V']
 # Configuration for the ATIK camera
 
 dao_sigma = 5.0
-dao_fwhm = 10.0
+dao_fwhm = 8.0
 dao_threshold = 18.0
 possible_distance = 10000.0 # AU
 search_cone = 0.001 # Decimal degree
@@ -281,7 +281,7 @@ workingDirectory = sys.argv[1]
 directoryContent = os.listdir(workingDirectory)
 print('Working directory: ', workingDirectory)
 
-files = [f for f in directoryContent if os.path.isfile(workingDirectory+'/'+f) and f.endswith('.new')]
+files = [f for f in directoryContent if os.path.isfile(workingDirectory+'/'+f) and (f.endswith('.new') or f.endswith('.fit') or f.endswith('.fits'))]
 print(files)
 
 # Define Qtable for sources
