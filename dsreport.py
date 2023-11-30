@@ -9,7 +9,6 @@ import os
 import sys
 import numpy as np
 import math
-from astropy.coordinates import SkyCoord
 from astropy import units as u
 from astropy.io import fits
 from astropy.stats import sigma_clipped_stats
@@ -19,10 +18,10 @@ from photutils.detection import DAOStarFinder
 import numpy as np
 from astropy.wcs import WCS
 import astropy.units as u
-from astropy.coordinates import SkyCoord
-from astropy.coordinates import Angle
+from astropy.coordinates import SkyCoord, Angle, FK5
 from matplotlib import pyplot as plt
 from astropy.wcs import utils
+from astropy.time import Time, TimeDelta
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -34,9 +33,9 @@ hipparcos_bv_index = hipparcos_file['B-V']
 
 # Configuration for the ATIK camera
 
-dao_sigma = 5.0
+dao_sigma = 3.0
 dao_fwhm = 8.0
-dao_threshold = 18.0
+dao_threshold = 12.0
 possible_distance = 10000.0 # AU
 search_cone = 0.001 # Decimal degree
 
@@ -51,6 +50,37 @@ search_cone = 0.001 # Decimal degree
 '''
 
 ### Declare functions
+
+# Function to check, if a number is 'nan'
+def isNaN(num):
+    return num != num
+
+# Function to create precise coordinates for Epoch 2000
+def getPreciseCoord(ra, dec, date):
+    coord_object = {}
+    coords = [str(ra) + ' ' + str(dec)]
+    if isNaN(date):
+        coord_object = SkyCoord(coords, frame='icrs', unit=(u.degree, u.degree))
+    else:
+        coord_object = SkyCoord(coords, frame='icrs', unit=(u.degree, u.degree), obstime=date)
+    j2000_coord = coord_object.transform_to(FK5(equinox='J2000.0'))
+    j2000_coords = j2000_coord.to_string(style='hmsdms', precision=2)[0]
+    j2000_coord_formatted = str(j2000_coords).replace("d",":").replace("h",":").replace("m",":").replace("s","")
+    return j2000_coord_formatted
+
+# Function to calculate utc from cet
+def getUTC(date_time):
+    utc_date_time = ''
+    if isNaN(date_time):
+        utc_date_time = str(date_time)
+    else:
+        date_of_observation_time_cet = Time(date_time, precision=0)
+        time_zone_delta = TimeDelta(-3600, format='sec')
+        date_of_observation_time_utc = date_of_observation_time_cet + time_zone_delta
+        utc_date_time = str(date_of_observation_time_utc.jyear)
+    return utc_date_time
+
+
 # Function to calculate Delta RA
 def deltaRa(raa, rab, decb):
     deltara = (rab - raa) * math.cos(math.radians(decb))
@@ -223,14 +253,14 @@ def convertStringToNan(str):
     return str
 
 # Search pair in Washington double Star Catalog
-def searchWds(pairadesig):
+'''def searchWds(pairadesig):
     wdsIdx = np.where(pairadesig == wdsFile['designation'])
     wdsRow = wdsFile[wdsIdx]
     if wdsRow:
         wdsPair = wdsRow[0]
     elif not wdsRow:
         wdsPair = 'Not found'
-    return wdsPair
+    return wdsPair'''
 
 # Create HRD plot of the double stars based on Hipparcos
 def hrdPlot(designation_a, designation_b, mag_abs_a, mag_abs_b, bv_a, bv_b):
@@ -351,6 +381,15 @@ reportRhoDr3= np.array([], dtype=np.float64)
 reportRhoMeasured = np.array([], dtype=np.float64)
 reportObjectId = np.array([], dtype=str)
 reportTable = QTable([reportFileName, reportSourceIdA, reportDr3DesignationA, reportDr3RaA, reportDr3DecA, reportDr3ParallaxA, reportDr3ParallaxErrorA, reportDr3PmRaA, reportDr3PmDecA, reportDr3gMagA, reportDr3bpMagA, reportDr3rpMagA, reportDr3RadVelA, reportDr3RadVelErrA, reportDr3TempA, reportRaMeasuredA, reportDecMeasuredA, reportMagMeasuredA, reportSourceIdB, reportDr3DesignationB, reportDr3RaB, reportDr3DecB, reportDr3ParallaxB, reportDr3ParallaxErrorB, reportDr3PmRaB, reportDr3PmDecB, reportDr3gMagB, reportDr3bpMagB, reportDr3rpMagB, reportDr3RadVelB, reportDr3RadVelErrB, reportDr3TempB, reportRaMeasuredB, reportDecMeasuredB, reportMagMeasuredB, reportThetaDr3, reportThetaMeasured, reportRhoDr3, reportRhoMeasured, reportObjectId], names=('filename', 'source_id_a', 'designation_a', 'ra_a', 'dec_a', 'parallax_a', 'parallax_error_a', 'pmra_a', 'pmdec_a', 'phot_g_mean_mag_a', 'phot_bp_mean_mag_a', 'phot_rp_mean_mag_a', 'radial_velocity_a', 'radial_velocity_error_a', 'teff_gspphot_a', 'rameasured_a', 'decmeasured_a', 'magmeasured_a', 'source_id_b', 'designation_b', 'ra_b', 'dec_b', 'parallax_b', 'parallax_error_b', 'pmra_b', 'pmdec_b', 'phot_g_mean_mag_b', 'phot_bp_mean_mag_b', 'phot_rp_mean_mag_b', 'radial_velocity_b', 'radial_velocity_error_b', 'teff_gspphot_b', 'rameasured_b', 'decmeasured_b', 'magmeasured_b', 'theta_dr3', 'theta_measured', 'rho_dr3', 'rho_measured', 'object_id'), meta={'name': 'report table'})
+
+# Set observation date and time
+fitsFileDate = ''
+fitsHeader = fits.open(workingDirectory + '/' + files[0])[0].header
+key_to_lookup = 'DATE-OBS'
+if key_to_lookup in fitsHeader:
+    fitsFileDate = fits.open(workingDirectory + '/' + files[0])[0].header['DATE-OBS']
+else:
+    fitsFileDate = np.nan
 
 for fitsFile in files:
     # 1. Read the list of sources extracted from an image (fits) file
@@ -545,7 +584,7 @@ for ds in reportTable_by_object.groups:
     pairMagMeasuredBErr = ds['magmeasured_b'].groups.aggregate(np.std)
     pairDesignationA = ds[0][2]
     pairDesignationB = ds[0][19]
-    pairWdsIdentifier = searchWds(pairDesignationA)
+    #pairWdsIdentifier = searchWds(pairDesignationA)
     pairGMagnitudeA = ds[0][9]
     pairGMagnitudeB = ds[0][26]
     pairMagDiff = math.fabs(pairMagMeasuredA - pairMagMeasuredB)
@@ -571,6 +610,8 @@ for ds in reportTable_by_object.groups:
     pairHarshawFactor = calcHarshaw(pairParallaxFactor, pairPmFactor)
     pairHarshawPhysicality = calcHarshawPhysicality(pairHarshawFactor)
     pairBinarity = calcBinarity(pairRelativeVelocity, pairEscapeVelocity)
+    dateOfObservation = getUTC(fitsFileDate)
+    preciseCoord = str(getPreciseCoord(pairRaA, pairDecA, fitsFileDate))
     reportName = (workingDirectory + '/' + ds[0][39] + '.txt')
     reportFile = open(reportName, "a")
 
@@ -578,9 +619,11 @@ for ds in reportTable_by_object.groups:
     imagePlot(pairFileName, pairDesignationA, pairDesignationB, pairRaA, pairDecA, pairRaB, pairDecB)
 
     print('### COMPONENTS ###')
+    print('\nDate of observation: ' + dateOfObservation)
+    print('\nPrecise coordinates (J2000): ' + preciseCoord)
     print('\nComponent A:', pairDesignationA)
     print('Component B:', pairDesignationB)
-    print('\nWDS Identifier:\n', pairWdsIdentifier)
+    #print('\nWDS Identifier:\n', pairWdsIdentifier)
     print('\nTheta measurements\n', ds['theta_measured'])
     print('Mean:', pairMeanTheta[0])
     print('Error:', pairMeanThetaErr[0])
@@ -617,11 +660,14 @@ for ds in reportTable_by_object.groups:
     print('Pair Harshaw physicality:', pairHarshawPhysicality)
     print('Pair binarity:', pairBinarity)
     
-    reportFile.write('### COMPONENTS ###')        
-    reportFile.write('\n\nComponent A: ' + pairDesignationA)
+    reportFile.write('### COMPONENTS ###')
+    reportFile.write('\nDate of observation: ' + dateOfObservation)
+    reportFile.write('\nPrecise coordinates (J2000): ' + preciseCoord)     
+    reportFile.write('\nComponent A: ' + pairDesignationA)
     reportFile.write('\nComponent B: ' + pairDesignationB)
-    reportFile.write('\n\nWDS Identifier: \n')
-    reportFile.write(str(pairWdsIdentifier))
+    
+    #reportFile.write('\n\nWDS Identifier: \n')
+    #reportFile.write(str(pairWdsIdentifier))
     reportFile.write('\n\nTheta measurements\n' + str(ds['theta_measured']))
     reportFile.write('\nMean: ' + str(pairMeanTheta[0]))
     reportFile.write('\nError: ' + str(pairMeanThetaErr[0]))
@@ -657,16 +703,20 @@ for ds in reportTable_by_object.groups:
     reportFile.write('\nPair Harshaw factor: ' + str(pairHarshawFactor))
     reportFile.write('\nPair Harshaw physicality: ' + str(pairHarshawPhysicality))
     reportFile.write('\nPair binarity: ' + str(pairBinarity))
+
     reportFile.write('\n\n### Publication table 1. ###')
-    reportFile.write('\n' + str(pairDesignationA) + ',' + str(pairMagMeasuredA[0]) + ',' + str(pairMagMeasuredAErr[0]) + ',' + str(pairGMagnitudeA) + ',' + str(pairAbsMag1) + ',' + str(pairLum1) + ',' + str(pairMass1))
-    reportFile.write('\n' + str(pairDesignationB) + ',' + str(pairMagMeasuredB[0]) + ',' + str(pairMagMeasuredBErr[0]) + ',' + str(pairGMagnitudeB) + ',' + str(pairAbsMag2) + ',' + str(pairLum2) + ',' + str(pairMass2))
+    reportFile.write('\n' + str(pairDesignationA) + ',' + str(pairMagMeasuredA[0]) + ',' + str(pairMagMeasuredAErr[0]) + ',' + str(pairGMagnitudeA) + ',' + str(pairAbsMag1) + ',' + str(pairLum1) + ',' + str(pairMass1) + ',' + dateOfObservation)
+    reportFile.write('\n' + str(pairDesignationB) + ',' + str(pairMagMeasuredB[0]) + ',' + str(pairMagMeasuredBErr[0]) + ',' + str(pairGMagnitudeB) + ',' + str(pairAbsMag2) + ',' + str(pairLum2) + ',' + str(pairMass2) + ',' + dateOfObservation)
+    
     reportFile.write('\n\n### Publication table 2. ###')
-    reportFile.write('\n' + str(pairMeanTheta[0]) + ',' + str(pairMeanThetaErr[0]) + ',' + str(pairMeanRho[0]) + ',' + str(pairMeanRhoErr[0]) + ',' + str(pairSepPar * 206265) + ' AU')
+    reportFile.write('\n' + preciseCoord + ',' + str(pairMeanTheta[0]) + ',' + str(pairMeanThetaErr[0]) + ',' + str(pairMeanRho[0]) + ',' + str(pairMeanRhoErr[0]) + ',' + str(pairSepPar * 206265) + ' AU')
+ 
     reportFile.write('\n\n### Publication table 3. ###')
     reportFile.write('\n' + str(pairParallaxFactor) + '%' + ',' + str(pairPmFactor) + '%' + ',' + str(pairPmCommon) + ',' + str(pairEscapeVelocity) + ',' + str(pairRelativeVelocity) + ',' + str(pairHarshawFactor) + ',' + str(pairHarshawPhysicality) + ',' + str(pairBinarity))
+    
     reportFile.write('\n\n### WDS table ###')
     c = str(SkyCoord(pairRaA, pairDecA, unit='deg', frame='icrs').to_string('hmsdms'))
     pair_wds_name = str(c[0:2]) + str(c[3:5]) + str(c[6:8]) + str(c[9:10]) + str(c[19:22]) + str(c[23:25]) + str(c[26:28]) + str(c[29:30])
-    wdsform = pair_wds_name + ',' + 'Date of observation' + ',' +  str(pairMeanTheta[0]) + ',' + str(pairMeanThetaErr[0]) + ',' + str(pairMeanRho[0]) + ',' + str(pairMeanRhoErr[0]) + ',' +  'nan' + ',' +  'nan' + ',' +  str(pairMagDiff) + ',' +  str(pairMagDiffErr) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TLB_2023' + ',' +  'C' + ',' + '7'
+    wdsform = pair_wds_name + ',' + dateOfObservation + ',' +  str(pairMeanTheta[0]) + ',' + str(pairMeanThetaErr[0]) + ',' + str(pairMeanRho[0]) + ',' + str(pairMeanRhoErr[0]) + ',' +  'nan' + ',' +  'nan' + ',' +  str(pairMagDiff) + ',' +  str(pairMagDiffErr) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TLB_2023' + ',' +  'C' + ',' + '7' + ',' + preciseCoord.replace(":","").replace(" ","")
     reportFile.write('\n' + str(wdsform))
     reportFile.close()

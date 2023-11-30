@@ -3,14 +3,12 @@
 # Version: 1.0
 # Usage: wdsreport <image_folder>
 
-import csv
 import os
 import sys
 import numpy as np
-import datetime
 import math
 import sys
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import SkyCoord, Angle, FK5
 from astropy.coordinates import match_coordinates_sky
 from astropy.coordinates import search_around_sky
 from astropy import units as u
@@ -23,13 +21,10 @@ from photutils.detection import DAOStarFinder
 import numpy as np
 from astropy.wcs import WCS
 import astropy.units as u
-from astropy.coordinates import SkyCoord
-from astropy.coordinates import Angle
 import warnings
-from io import StringIO
 from matplotlib import pyplot as plt
 from astropy.wcs import utils
-from astropy.io import ascii
+from astropy.time import Time, TimeDelta
 warnings.filterwarnings("ignore")
 from astroquery.gaia import Gaia
 Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"  # Reselect Data Release 3, default
@@ -111,6 +106,35 @@ workingDirectory = sys.argv[1]
 #########################
 ### Declare functions ###
 #########################
+
+# Function to check, if a number is 'nan'
+def isNaN(num):
+    return num != num
+
+# Function to create precise coordinates for Epoch 2000
+def getPreciseCoord(ra, dec, date):
+    coord_object = {}
+    coords = [str(ra) + ' ' + str(dec)]
+    if isNaN(date):
+        coord_object = SkyCoord(coords, frame='icrs', unit=(u.degree, u.degree))
+    else:
+        coord_object = SkyCoord(coords, frame='icrs', unit=(u.degree, u.degree), obstime=date)
+    j2000_coord = coord_object.transform_to(FK5(equinox='J2000.0'))
+    j2000_coords = j2000_coord.to_string(style='hmsdms', precision=2)[0]
+    j2000_coord_formatted = str(j2000_coords).replace("d",":").replace("h",":").replace("m",":").replace("s","")
+    return j2000_coord_formatted
+
+# Function to calculate utc from cet
+def getUTC(date_time):
+    utc_date_time = ''
+    if isNaN(date_time):
+        utc_date_time = str(date_time)
+    else:
+        date_of_observation_time_cet = Time(date_time, precision=0)
+        time_zone_delta = TimeDelta(-3600, format='sec')
+        date_of_observation_time_utc = date_of_observation_time_cet + time_zone_delta
+        utc_date_time = str(date_of_observation_time_utc.jyear)
+    return utc_date_time
 
 def convertStringToNan(str):
     string = np.nan
@@ -466,7 +490,8 @@ reportnights = np.array([], dtype=str)
 reportrefcode = np.array([], dtype=str)
 reporttech = np.array([], dtype=str)
 reportcat = np.array([], dtype=str)
-reportTable = QTable([reportw_identifier, reportdate, reporttheta, reportthetaerr, reportrho, reportrhoerr, reportmag_pri, reportmag_prierr, reportmag_sec, reportmag_secerr, reportfilter, reportfilterfwhm, reporttelescopeap, reportnights, reportrefcode, reporttech, reportcat], names=('wds_identifier', 'date_of_obs', 'mean_theta', 'mean_theta_err', 'mean_rho', 'mean_rho_err', 'mag_pri', 'mag_pri_err', 'mag_sec', 'mag_sec_err', 'filter', 'filter_fwhm', 'telescope_ap', 'nights_of_obs', 'reference_code', 'tech_code', 'catalog_code'), meta={'name': 'report table'})
+preccoord = np.array([], dtype=str)
+reportTable = QTable([reportw_identifier, reportdate, reporttheta, reportthetaerr, reportrho, reportrhoerr, reportmag_pri, reportmag_prierr, reportmag_sec, reportmag_secerr, reportfilter, reportfilterfwhm, reporttelescopeap, reportnights, reportrefcode, reporttech, reportcat, preccoord], names=('wds_identifier', 'date_of_obs', 'mean_theta', 'mean_theta_err', 'mean_rho', 'mean_rho_err', 'mag_pri', 'mag_pri_err', 'mag_sec', 'mag_sec_err', 'filter', 'filter_fwhm', 'telescope_ap', 'nights_of_obs', 'reference_code', 'tech_code', 'catalog_code', 'precise_cordinates'), meta={'name': 'report table'})
 
 print('\n### Creating filelist ###')
 
@@ -492,6 +517,15 @@ wds_catalog = SkyCoord(ra=wdsTable['Coord (RA) hms'], dec=Angle(wdsTable['Coord 
 print('WDS Catalog:\n', wds_catalog)
 
 sources_ds = Table()
+
+# Set observation date and time
+fitsFileDate = ''
+fitsHeader = fits.open(workingDirectory + '/' + files[0])[0].header
+key_to_lookup = 'DATE-OBS'
+if key_to_lookup in fitsHeader:
+    fitsFileDate = fits.open(workingDirectory + '/' + files[0])[0].header['DATE-OBS']
+else:
+    fitsFileDate = np.nan
 
 ### Run source detection, collect star data to Qtable
 print('\n### Running source detection ###')
@@ -623,8 +657,6 @@ for ds in upd_sources_ds_by_object.groups:
         # Calculate attributes
         pairParallaxFactor, pairPmFactor, pairPmFactor, pairPmCommon, pairAbsMag1, pairAbsMag2, pairLum1, pairLum2, pairRad1, pairRad2, pairDR3Theta, pairDR3Rho, pairMass1, pairMass2, pairBVIndexA, pairBVIndexB, pairSepPar, pairEscapeVelocity, pairRelativeVelocity, pairHarshawFactor, pairHarshawPhysicality, pairBinarity = 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 
 
-        #if bool(gaiaAStar[0]['parallax']) and bool(gaiaBStar[0]['parallax']) and bool(gaiaAStar[0]['pmra']) and bool(gaiaAStar[0]['pmdec']) and bool(gaiaBStar[0]['pmra']) and bool(gaiaBStar[0]['pmdec']) and bool(gaiaAStar[0]['phot_g_mean_mag']) and bool(gaiaBStar[0]['phot_g_mean_mag']) and bool(gaiaAStar[0]['teff_gspphot']) and bool(gaiaBStar[0]['teff_gspphot']) and bool(gaiaAStar[0]['phot_bp_mean_mag']) and bool(gaiaBStar[0]['phot_bp_mean_mag']):
-
         pairParallaxFactor = (calcParallaxFactor(gaiaAStar[0]['parallax'], gaiaBStar[0]['parallax'])) * 100
         pairPmFactor = (calcPmFactor(gaiaAStar[0]['pmra'], gaiaAStar[0]['pmdec'], gaiaBStar[0]['pmra'], gaiaBStar[0]['pmdec'])) * 100
         pairPmCommon = calcPmCategory(pairPmFactor)
@@ -673,6 +705,8 @@ for ds in upd_sources_ds_by_object.groups:
         pairRadVelRatioB = convertStringToNan(math.fabs(gaiaBStar[0]['radial_velocity_error'] / gaiaBStar[0]['radial_velocity']) * 100)
         pairDesA = str(gaiaAStar[0]['DESIGNATION'])
         pairDesB = str(gaiaBStar[0]['DESIGNATION'])
+        dateOfObservation = getUTC(fitsFileDate)
+        preciseCoord = str(getPreciseCoord(pairRaA, pairDecA, fitsFileDate))
         reportName = (workingDirectory + '/' + pairObjectId + '.txt')
         reportFile = open(reportName, "a")
         gaiaData = str(ds[0]['2000 Coord']) + ',' + str(ds[0]['Discov']) + ',' + str(gaiaAStar[0]['pmra']) + ',' + str(gaiaAStar[0]['pmdec']) + ',' + str(gaiaBStar[0]['pmra']) + ',' + str(gaiaBStar[0]['pmdec']) + ',' + str(gaiaAStar[0]['parallax']) + ',' + str(gaiaBStar[0]['parallax']) + ',' + str(calcDistance(gaiaAStar[0]['parallax'])) + ',' + str(calcDistance(gaiaBStar[0]['parallax'])) + ',' + str(gaiaAStar[0]['radial_velocity']) + ',' + str(gaiaBStar[0]['radial_velocity']) + ',' + 'pairRad1' + ',' + 'pairRad2' + ',' + str(pairLum1) + ',' + str(pairLum2) + ',' + str(gaiaAStar[0]['teff_gspphot']) + ',' + str(gaiaBStar[0]['teff_gspphot']) + ',' + str(gaiaAStar[0]['phot_g_mean_mag']) + ',' + str(gaiaBStar[0]['phot_g_mean_mag']) + ',' + str(gaiaAStar[0]['phot_bp_mean_mag']) + ',' + str(gaiaBStar[0]['phot_bp_mean_mag']) + ',' + str(gaiaAStar[0]['phot_rp_mean_mag']) + ',' + str(gaiaBStar[0]['phot_rp_mean_mag']) + ',' + str(pairDR3Theta) + ',' + str(pairDR3Rho) + ',' + str(gaiaAStar[0]['ra']) + ',' + str(gaiaAStar[0]['dec']) + ',' + str(gaiaBStar[0]['ra']) + ',' + str(gaiaBStar[0]['dec']) + ',' + str(gaiaAStar[0]['parallax_error']) + ',' + str(gaiaBStar[0]['parallax_error'])
@@ -682,7 +716,9 @@ for ds in upd_sources_ds_by_object.groups:
     imagePlot(files[0], pairObjectId, pairRaA, pairDecA, pairRaB, pairDecB)
     
     # Print temp data
-    print('### COMPONENTS ###')
+    print('\n### COMPONENTS ###')
+    print('\nDate of observation: ' + dateOfObservation)
+    print('\nPrecise coordinates (J2000): ' + preciseCoord)
     print('\nWDS Identifier:', ds[0]['2000 Coord'], ds[0]['Discov'], ds[0]['Comp'])
     print('\nTheta measurements\n') # , ds['dspaactual']
     print('Mean:', pairMeanTheta)
@@ -714,9 +750,9 @@ for ds in upd_sources_ds_by_object.groups:
     print('Pair binarity:', pairBinarity)
     
     # Write results to file
-    reportTable.add_row([ds[0]['2000 Coord'] + ds[0]['Discov'] + str(ds[0]['Comp']), 'Date of observation', pairMeanTheta, pairMeanThetaErr, pairMeanRho, pairMeanRhoErr, np.nan, np.nan, pairMagDiff, pairMagDiffErr, 'Filter wawelenght', 'filter FWHM', '0.2', '1', 'TAL_2022', 'C', '7'])
+    reportTable.add_row([ds[0]['2000 Coord'] + ds[0]['Discov'] + str(ds[0]['Comp']), dateOfObservation, pairMeanTheta, pairMeanThetaErr, pairMeanRho, pairMeanRhoErr, np.nan, np.nan, pairMagDiff, pairMagDiffErr, 'Filter wawelenght', 'filter FWHM', '0.2', '1', 'TAL_2022', 'C', '7', preciseCoord])
     reportFile.write('### WDS Data ###')
-    reportFile.write('WDS Identifier: ' + ds[0]['2000 Coord'])
+    reportFile.write('\nWDS Identifier: ' + ds[0]['2000 Coord'])
     reportFile.write('\nDiscoverer and components: ' + str(ds[0]['Discov']) + ' ' + str(ds[0]['Comp']))
     reportFile.write('\nMagnitude Pri: ' + str(ds[0]['Mag_A']))
     reportFile.write('\nMagnitude Sec: ' + str(ds[0]['Mag_B']))
@@ -729,16 +765,18 @@ for ds in upd_sources_ds_by_object.groups:
     reportFile.write('\nPosition angle: ' + str(roundNumber(pairDR3Theta)))
     reportFile.write('\nSeparation: ' + str(roundNumber(pairDR3Rho)))
     reportFile.write('\nMagnitude difference: ' + str(roundNumber(pairGMagDiff)))
+    reportFile.write('\nPrecise coordinates (J2000): ' + preciseCoord)
+    reportFile.write('\nDate of observation: ' + dateOfObservation)
     reportFile.write('\n\n### Measurements ###')
     reportFile.write('\nPosition angle:')
     reportFile.write('\nTheta measurements' + str(ds['theta_measured'].degree))
     reportFile.write('\nMean: ' + str(roundNumber(pairMeanTheta)))
     reportFile.write('\nError: ' + str(roundNumber(pairMeanThetaErr)))
-    reportFile.write('\nSeparation:')
+    reportFile.write('\n\nSeparation:')
     reportFile.write('\nRho measurements\n' + str(ds['rho_measured'].arcsec))
     reportFile.write('\nMean: ' + str(roundNumber(pairMeanRho)))
     reportFile.write('\nError: ' + str(roundNumber(pairMeanRhoErr)))
-    reportFile.write('\nMagnitude measurements\n'  + str(ds['mag_diff']))
+    reportFile.write('\n\nMagnitude measurements\n'  + str(ds['mag_diff']))
     reportFile.write('\nMean: ' + str(roundNumber(pairMagDiff)))
     reportFile.write('\nError: ' + str(roundNumber(pairMagDiffErr)))
     reportFile.write('\n\n### Calculated attributes ###')
@@ -761,14 +799,14 @@ for ds in upd_sources_ds_by_object.groups:
     reportFile.write('\nPair Escape velocity: ' + str(roundNumber(pairEscapeVelocity)) + ' km/s')
     reportFile.write('\nPair Relative velocity: ' + str(roundNumber(pairRelativeVelocity)) + ' km/s')
     reportFile.write('\n\n### Analysis ###')
-    reportFile.write('\n\nParallax factor: ' + str(roundNumber(pairParallaxFactor)) + ' %')
+    reportFile.write('\nParallax factor: ' + str(roundNumber(pairParallaxFactor)) + ' %')
     reportFile.write('\nProper motion factor: ' + str(roundNumber(pairPmFactor)) + ' %')
     reportFile.write('\nProper motion category: '+ str(pairPmCommon))
     reportFile.write('\nPair Harshaw factor: ' + str(roundNumber(pairHarshawFactor)))
     reportFile.write('\nPair Harshaw physicality: ' + str(pairHarshawPhysicality))
     reportFile.write('\nPair binarity: ' + str(pairBinarity))
     reportFile.write('\n\n### WDS form:\n')
-    wdsform = str(ds[0]['2000 Coord']) + ',' + 'Date of observation' + ',' +  str(roundNumber(pairMeanTheta)) + ',' +  str(roundNumber(pairMeanThetaErr)) + ',' +  str(roundNumber(pairMeanRho)) + ',' +  str(roundNumber(pairMeanRhoErr)) + ',' +  'nan' + ',' +  'nan' + ',' +  str(roundNumber(pairMagDiff)) + ',' +  str(roundNumber(pairMagDiffErr)) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TAL_2022' + ',' +  'C' + ',' + '7'
+    wdsform = str(ds[0]['2000 Coord']) + ',' + dateOfObservation + ',' +  str(roundNumber(pairMeanTheta)) + ',' +  str(roundNumber(pairMeanThetaErr)) + ',' +  str(roundNumber(pairMeanRho)) + ',' +  str(roundNumber(pairMeanRhoErr)) + ',' +  'nan' + ',' +  'nan' + ',' +  str(roundNumber(pairMagDiff)) + ',' +  str(roundNumber(pairMagDiffErr)) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TLB_2023' + ',' +  'C' + ',' + '7'+ ',' + str(getPreciseCoord(pairRaA, pairDecA, fitsFileDate))
     reportFile.write(str(wdsform))
     reportFile.write('\n\n### Gaia data:\n')
     reportFile.write(str(gaiaData))
