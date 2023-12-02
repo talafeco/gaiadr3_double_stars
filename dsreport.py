@@ -39,6 +39,8 @@ dao_threshold = 12.0
 possible_distance = 10000.0 # AU
 search_cone = 0.001 # Decimal degree
 
+image_limit = 2000
+
 
 # Configuration for the CANON camera
 '''
@@ -275,10 +277,11 @@ def hrdPlot(designation_a, designation_b, mag_abs_a, mag_abs_b, bv_a, bv_b):
     plt.xlabel('B-V index')
     plt.ylabel('Absolute magnitude')
     plt.gca().set_aspect(0.07)
-    plt.savefig(workingDirectory + '/' + designation_a + ' - ' + designation_b + '_hrd.jpg', bbox_inches='tight')
+    plt.savefig(workingDirectory + '/' + designation_a + ' - ' + designation_b + '_hrd.jpg', dpi=150.0, bbox_inches='tight')
+    plt.close()
 
 # Create Image plot of the double stars
-def imagePlot(filename, designation_a, designation_b, raa, deca, rab, decb):
+'''def imagePlot(filename, designation_a, designation_b, raa, deca, rab, decb):
     image_data = fits.open(workingDirectory + '/' + filename)
     wcs_helix = WCS(image_data[0].header)
     image = image_data[0].data
@@ -288,15 +291,6 @@ def imagePlot(filename, designation_a, designation_b, raa, deca, rab, decb):
     star_b_pix = utils.skycoord_to_pixel(star_b, wcs_helix)
     plt.figure(figsize=(10, 10), frameon=False) # 
     ax = plt.subplot(projection=wcs_helix)
-    '''
-    ax.arrow(image_center_ra, image_center_dec, 0, 0.016, 
-            head_width=0, head_length=0, 
-            fc='white', ec='white', width=0.0003, 
-            transform=ax.get_transform('icrs'))
-    plt.text(image_center_ra, image_center_dec, '1 arcmin', 
-            color='white',
-            transform=ax.get_transform('icrs'))
-    '''
     plt.scatter(star_a_pix[0] + 30, star_a_pix[1], marker="_", s=50, color="grey")
     plt.scatter(star_a_pix[0], star_a_pix[1] + 30, marker="|", s=50, color="grey")
     plt.scatter(star_b_pix[0] + 30, star_b_pix[1], marker="_", s=50, color="grey")
@@ -304,7 +298,56 @@ def imagePlot(filename, designation_a, designation_b, raa, deca, rab, decb):
     overlay = ax.get_coords_overlay('icrs')
     overlay.grid(color='grey', ls='dotted')
     plt.imshow(image, origin='lower',cmap='grey', aspect='equal', vmax=2000, vmin=0) # , cmap='cividis'
-    plt.savefig(workingDirectory + '/' + str(designation_a) + '-' + str(designation_b) + '_img.jpg', bbox_inches='tight')
+    plt.savefig(workingDirectory + '/' + str(designation_a) + '-' + str(designation_b) + '_img.jpg', bbox_inches='tight')'''
+
+# Create Image plot of the double stars
+def imagePlot(filename, designation_a, designation_b, raa, deca, rab, decb):
+    '''coord_meta = {}
+    coord_meta['type'] = ('longitude', 'latitude')
+    coord_meta['wrap'] = (None, None)
+    coord_meta['unit'] = (u.degree, u.degree)
+    coord_meta['format_unit'] = (u.hour, u.degree)
+    coord_meta['name'] = 'ra', 'dec'
+    '''
+    
+    image_data = fits.open(workingDirectory + '/' + filename)
+    header = image_data[0].header
+    wcs_helix = WCS(image_data[0].header)
+    image = image_data[0].data
+    image_height = header['NAXIS2']
+
+    star_a = SkyCoord(raa * u.deg, deca * u.deg, frame='icrs')
+    star_b = SkyCoord(rab * u.deg, decb * u.deg, frame='icrs')
+    star_a_pix = utils.skycoord_to_pixel(star_a, wcs_helix)
+    star_b_pix = utils.skycoord_to_pixel(star_b, wcs_helix)
+    '''
+    ax = plt.subplot(projection=wcs_helix)
+    
+    plt.scatter(star_a_pix[0] + (image_height / 30), star_a_pix[1], marker="_", s=(image_height / 10), color="grey")
+    plt.scatter(star_a_pix[0], star_a_pix[1] + (image_height / 30), marker="|", s=(image_height / 10), color="grey")
+    plt.scatter(star_b_pix[0] + (image_height / 30), star_b_pix[1], marker="_", s=(image_height / 10), color="grey")
+    plt.scatter(star_b_pix[0], star_b_pix[1] + (image_height / 30), marker="|", s=(image_height / 10), color="grey")
+    overlay = ax.get_coords_overlay('icrs', coord_meta=coord_meta)
+    overlay.grid(color='grey', ls='dotted')
+    overlay['ra'].set_axislabel('Lon')
+    overlay['dec'].set_axislabel('Lat')
+    overlay['ra'].set_ticklabel_position('bt')
+    overlay['ra'].set_ticks(number=6)
+    overlay['dec'].set_ticklabel_position('lr')
+    overlay['dec'].set_ticks(number=6)'''
+
+    plt.scatter(star_a_pix[0] + 40, star_a_pix[1], marker="_", s=50, color="grey")
+    plt.scatter(star_a_pix[0], star_a_pix[1] + 40, marker="|", s=50, color="grey")
+    plt.scatter(star_b_pix[0] + 40, star_b_pix[1], marker="_", s=50, color="grey")
+    plt.scatter(star_b_pix[0], star_b_pix[1] + 40, marker="|", s=50, color="grey")
+
+    #plt.title(str(designation_a) + ' - ' + str(designation_b), pad=50.0)
+    plt.title(str(designation_a) + ' - ' + str(designation_b))
+
+    plt.imshow(image, origin='lower',cmap='grey', aspect='equal', vmax=image_limit, vmin=0) # , cmap='cividis'
+    plt.savefig(workingDirectory + '/' + str(designation_a) + '-' + str(designation_b) + '_img.jpg', dpi=150.0, bbox_inches='tight', pad_inches=0.2)
+    plt.close()
+    #plt.show()
 
 ### Run source detection, collect star data to Qtable
 workingDirectory = sys.argv[1]
