@@ -1,3 +1,5 @@
+#! /usr/bin/python3
+
 import os
 import sys
 import numpy as np
@@ -44,7 +46,7 @@ star_b_ra, star_b_dec = 243.6287500, 3.8703889
 ax = plt.axes(projection='astro zoom',
               center='5h -32d', radius='5 deg', rotate='20 deg')
 ax.grid()
-plt.imshow(ax) # , cmap='cividis'
+plt.imshow() # , cmap='cividis'
 plt.show()
 
 """# Create Image plot of the double stars
