@@ -453,6 +453,7 @@ def imagePlot(filename, pairname, raa, deca, rab, decb):
 
     plt.imshow(image, origin='lower',cmap='grey', aspect='equal', vmax=image_limit, vmin=0) # , cmap='cividis'
     plt.savefig(workingDirectory + '/' + pairname + '_img.jpg',dpi=150.0, bbox_inches='tight', pad_inches=0.2)
+    plt.close()
     #plt.show()
 
 def get_gaia_dr3_data(doublestars):
