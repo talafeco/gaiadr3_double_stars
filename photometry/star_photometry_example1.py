@@ -139,7 +139,7 @@ pixelxy = np.transpose((sources['xcentroid'], sources['ycentroid']))
 # Optionally show image and apertures
 
 if visuals_flag:
-  pixelrad = 4.
+  pixelrad = 7.
   apertures = CircularAperture(pixelxy, r=pixelrad)
   norm = ImageNormalize(stretch=SqrtStretch())
   plt.imshow(indata, cmap='Greys', origin='lower', norm=norm)

@@ -3,6 +3,7 @@
 # Original file can be found:
 # https://gist.github.com/dokeeffe/18ae5c208aaac7aad1de42a411701919
 
+import sys
 import requests, math
 import pandas as pd
 import numpy as np
@@ -15,13 +16,14 @@ import astropy.units as u
 import matplotlib.pyplot as plt
 from photutils import aperture_photometry, CircularAperture
 #%matplotlib inline
-plt.style.use('seaborn')
+#plt.style.use('seaborn')
 
-def get_comp_stars(ra,dec,filter_band='V',field_of_view=18.5):
+def get_comp_stars(ra,dec,filter_band='V',field_of_view=7.5):
     result = []
-    vsp_template = 'https://www.aavso.org/apps/vsp/api/chart/?format=json&fov={}&maglimit=18.5&ra={}&dec={}'
-    r = requests.get(vsp_template.format(field_of_view, ra, dec))
-    print('Downloaded Comparison Star Chart ID {}'.format(r.json()['chartid']))
+    vsp_template = 'https://www.aavso.org/apps/vsp/api/chart/?format=json&fov=' + str(field_of_view) + '&maglimit=18.5&ra=' + str(ra) + '&dec=' + str(dec)
+    print(vsp_template)
+    r = requests.get('https://app.aavso.org/vsp/api/chart/?format=json&fov=7.5&maglimit=20.5&ra=21%3A49%3A38.89&dec=09%3A14%3A17.4')
+    #print('Downloaded Comparison Star Chart ID: '.format(r.json()['chartid']))
     for star in r.json()['photometry']:
         comparison = {}
         comparison['auid'] = star['auid']
@@ -34,14 +36,14 @@ def get_comp_stars(ra,dec,filter_band='V',field_of_view=18.5):
         result.append(comparison)
     return result
 
-TARGET_RA = '08 10 56.65'
-TARGET_DEC = '28 08 33.2'
-FITS_DATA_FILE = '/home/dokeeffe/Pictures/2017-02-15-22-24-28YZCnc_Light_002.fits'
+TARGET_RA = '21:49:38.8897'
+TARGET_DEC = '+9:14:17.410'
+FITS_DATA_FILE = sys.argv[1]
 
 # Source detection and photometry settings
-FWHM = 3.0
+FWHM = 7.0
 SOURCE_SNR = 20
-APERTURE_RADIUS = 4.0
+APERTURE_RADIUS = 7.0
 
 comp_stars = get_comp_stars(TARGET_RA, TARGET_DEC)
 
