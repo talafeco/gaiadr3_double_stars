@@ -70,3 +70,5 @@ Search visual double star candidates in Gaia DR3. Mag &lt; 15, par > 0.5.
 7. Bevinni az rp kalkulációt
 8. OK - fit és fits fileokra is fusson le
 9. OK - radial velocity error nem jelenik meg a listában rendesen
+
+Ez egy update a raspberry-ről :).
