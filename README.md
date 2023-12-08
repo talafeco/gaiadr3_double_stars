@@ -58,6 +58,7 @@ Search visual double star candidates in Gaia DR3. Mag &lt; 15, par > 0.5.
     - Done
 4. Calculate orbit period
 5. Check, if absolute magnitude measurement is possible on the images
+6. Calculate Gaia source positions to the current epoch and compare them to the measurement results.
 
 
 # Zsolti's input
