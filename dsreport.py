@@ -26,7 +26,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 # List of constances
-wdsFile = Table.read(f"/usr/share/dr3map/wds/dr3-wds.csv", format='ascii')
+#wdsFile = Table.read(f"/usr/share/dr3map/wds/dr3-wds.csv", format='ascii')
 hipparcos_file = Table.read(f"/usr/share/dr3map/hipparcos/I_239_selection.csv", format='ascii')
 segment_lib = "/usr/share/dr3map/gaiadr3_15mag_catalog/"
 hipparcos_abs_mag = hipparcos_file['Abs_mag']
@@ -467,11 +467,11 @@ for fitsFile in files:
     for seg in segments:
         if len(segments) > 1:
             #segmentpart = Table.read(f"C:\Astro\catalogs\GaiaDR3\gaiadr3_15mag_catalog\{seg}", format='ascii')
-            segmentpart = Table.read(segment_lib + seg, format='ascii')
+            segmentpart = Table.read(segment_lib + str(seg), format='ascii')
             gaiaStars = vstack([gaiaStars, segmentpart])
         else:
             #segmentpart = Table.read(f"C:\Astro\catalogs\GaiaDR3\gaiadr3_15mag_catalog\{seg}", format='ascii')
-            segmentpart = Table.read(segment_lib + seg, format='ascii')
+            segmentpart = Table.read(segment_lib + str(seg), format='ascii')
             gaiaStars = segmentpart
 
     #dr3TableFileName = (str('dr3stars.csv'))
