@@ -36,4 +36,4 @@ for gstar in gaiaList:
 #for gstar in gaiaList:
 #     StarA = (gstar['designation'])
 #     filterObject = filter(lambda a: StarA in a, starList)
-#     print(filterObject)
+#     print(filterObject)#
