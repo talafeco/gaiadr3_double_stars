@@ -18,7 +18,7 @@ from photutils.detection import DAOStarFinder
 import numpy as np
 from astropy.wcs import WCS
 import astropy.units as u
-from astropy.coordinates import SkyCoord, Angle, FK5
+from astropy.coordinates import SkyCoord, Angle, FK5, ICRS
 from matplotlib import pyplot as plt
 from astropy.wcs import utils
 from astropy.time import Time, TimeDelta
@@ -52,7 +52,19 @@ possible_distance = 10000.0 # AU
 search_cone = 0.001 # Decimal degree
 '''
 
-### Declare functions
+#########################
+### Declare functions ###
+#########################
+
+# Function to calculate Star positions based on Gaia DR3 coordinates and proper motion
+def calcCurrentDR3Coord(date, star_ra, star_dec, star_pr_ra, star_pr_dec):
+    star = ICRS(ra = star_ra * u.degree,
+                dec = star_dec * u.degree,
+                pm_ra_cosdec = star_pr_ra * u.mas/u.yr,
+                pm_dec = star_pr_dec * u.mas/u.yr,
+                obstime=Time('2016-01-01 00:00:00.0'))
+    starUpdCoord = star.apply_space_motion(new_obstime=Time(date))
+    return starUpdCoord
 
 # Function to check, if a number is 'nan'
 def isNaN(num):
@@ -630,7 +642,6 @@ for ds in reportTable_by_object.groups:
     pairMagMeasuredBErr = ds['magmeasured_b'].groups.aggregate(np.std)
     pairDesignationA = ds[0][2]
     pairDesignationB = ds[0][19]
-    #pairWdsIdentifier = searchWds(pairDesignationA)
     pairGMagnitudeA = ds[0][9]
     pairGMagnitudeB = ds[0][26]
     pairMagDiff = math.fabs(pairMagMeasuredA - pairMagMeasuredB)
@@ -657,7 +668,16 @@ for ds in reportTable_by_object.groups:
     pairHarshawPhysicality = calcHarshawPhysicality(pairHarshawFactor)
     pairBinarity = calcBinarity(pairRelativeVelocity, pairEscapeVelocity)
     dateOfObservation = getUTC(fitsFileDate)
+    #
+    pairACurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaA, pairDecA, ds[0][7], ds[0][8])
+    pairBCurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaB, pairDecB, ds[0][24], ds[0][25])
+    pairAMeasuredCoord = SkyCoord(ra=ds['rameasured_a'].groups.aggregate(np.mean) * u.deg, dec=ds['decmeasured_a'].groups.aggregate(np.mean) * u.deg)
+    pairBMeasuredCoord = SkyCoord(ra=ds['rameasured_b'].groups.aggregate(np.mean) * u.deg, dec=ds['decmeasured_b'].groups.aggregate(np.mean) * u.deg)
+    pairACoordErr = pairACurrentCoord.separation(pairAMeasuredCoord)
+    pairBCoordErr = pairBCurrentCoord.separation(pairBMeasuredCoord)
+    #
     preciseCoord = str(getPreciseCoord(pairRaA, pairDecA, fitsFileDate))
+    
     reportName = (workingDirectory + '/' + ds[0][39] + '.txt')
     reportFile = open(reportName, "a")
 
@@ -669,7 +689,9 @@ for ds in reportTable_by_object.groups:
     print('\nPrecise coordinates (J2000): ' + preciseCoord)
     print('\nComponent A:', pairDesignationA)
     print('Component B:', pairDesignationB)
-    #print('\nWDS Identifier:\n', pairWdsIdentifier)
+    print('\nCalculated coordinates')
+    print('\nComponent A DR3/measured:', pairACurrentCoord, )
+    print('\nComponent B DR3/measured:', pairBCurrentCoord, )
     print('\nTheta measurements\n', ds['theta_measured'])
     print('Mean:', pairMeanTheta[0])
     print('Error:', pairMeanThetaErr[0])
@@ -711,9 +733,6 @@ for ds in reportTable_by_object.groups:
     reportFile.write('\nPrecise coordinates (J2000): ' + preciseCoord)     
     reportFile.write('\nComponent A: ' + pairDesignationA)
     reportFile.write('\nComponent B: ' + pairDesignationB)
-    
-    #reportFile.write('\n\nWDS Identifier: \n')
-    #reportFile.write(str(pairWdsIdentifier))
     reportFile.write('\n\nTheta measurements\n' + str(ds['theta_measured']))
     reportFile.write('\nMean: ' + str(pairMeanTheta[0]))
     reportFile.write('\nError: ' + str(pairMeanThetaErr[0]))
