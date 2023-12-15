@@ -35,7 +35,7 @@ hipparcos_bv_index = hipparcos_file['B-V']
 # Configuration for the ATIK camera
 
 dao_sigma = 3.0
-dao_fwhm = 8.0
+dao_fwhm = 7.0
 dao_threshold = 12.0
 possible_distance = 10000.0 # AU
 search_cone = 0.001 # Decimal degree
@@ -58,12 +58,14 @@ search_cone = 0.001 # Decimal degree
 
 # Function to calculate Star positions based on Gaia DR3 coordinates and proper motion
 def calcCurrentDR3Coord(date, star_ra, star_dec, star_pr_ra, star_pr_dec):
-    star = ICRS(ra = star_ra * u.degree,
+    date_time = Time(date, format='jyear')
+    star = SkyCoord(ra = star_ra * u.degree,
                 dec = star_dec * u.degree,
                 pm_ra_cosdec = star_pr_ra * u.mas/u.yr,
                 pm_dec = star_pr_dec * u.mas/u.yr,
+                frame = 'icrs',
                 obstime=Time('2016-01-01 00:00:00.0'))
-    starUpdCoord = star.apply_space_motion(new_obstime=Time(date))
+    starUpdCoord = star.apply_space_motion(new_obstime=date_time)
     return starUpdCoord
 
 # Function to check, if a number is 'nan'
@@ -187,7 +189,7 @@ def calcMass(lum):
 # Function to calculate Harshaw probapility of duplicity based on the parallax and proper motion factors
 def calcHarshaw(parallaxFactor, pmFactor):
     HarshawFactor = (parallaxFactor * 0.75) + (pmFactor * 0.15)
-    return HarshawFactor
+    return float(HarshawFactor)
 
 # Function to calculate Harshaw physicality of the system based on the parallax and pm factors
 def calcHarshawPhysicality(harfac):
@@ -690,8 +692,14 @@ for ds in reportTable_by_object.groups:
     print('\nComponent A:', pairDesignationA)
     print('Component B:', pairDesignationB)
     print('\nCalculated coordinates')
-    print('\nComponent A DR3/measured:', pairACurrentCoord, )
-    print('\nComponent B DR3/measured:', pairBCurrentCoord, )
+    print('\nComponent A DR3 2016:', pairRaA, pairDecA)
+    print('Component A DR3 on date:', pairACurrentCoord.ra.degree, pairACurrentCoord.dec.degree)
+    print('Component A measured:', pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree)
+    print('Component A error (on date - measured):', pairACoordErr.arcsecond)
+    print('\nComponent B DR3 2016:', pairRaB, pairDecB)
+    print('Component B DR3 on date:', pairBCurrentCoord.ra.degree, pairBCurrentCoord.dec.degree)
+    print('Component B measured:', pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree)
+    print('Component B error (on date - measured):', pairBCoordErr.arcsecond)
     print('\nTheta measurements\n', ds['theta_measured'])
     print('Mean:', pairMeanTheta[0])
     print('Error:', pairMeanThetaErr[0])

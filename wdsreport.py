@@ -107,6 +107,18 @@ workingDirectory = sys.argv[1]
 ### Declare functions ###
 #########################
 
+# Function to calculate Star positions based on Gaia DR3 coordinates and proper motion
+def calcCurrentDR3Coord(date, star_ra, star_dec, star_pr_ra, star_pr_dec):
+    date_time = Time(date, format='jyear')
+    star = SkyCoord(ra = star_ra * u.degree,
+                dec = star_dec * u.degree,
+                pm_ra_cosdec = star_pr_ra * u.mas/u.yr,
+                pm_dec = star_pr_dec * u.mas/u.yr,
+                frame = 'icrs',
+                obstime=Time('2016-01-01 00:00:00.0'))
+    starUpdCoord = star.apply_space_motion(new_obstime=date_time)
+    return starUpdCoord
+
 # Function to check, if a number is 'nan'
 def isNaN(num):
     return num != num
@@ -727,6 +739,14 @@ for ds in upd_sources_ds_by_object.groups:
         pairDesA = str(gaiaAStar[0]['DESIGNATION'])
         pairDesB = str(gaiaBStar[0]['DESIGNATION'])
         dateOfObservation = getUTC(fitsFileDate)
+        #
+        pairACurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaA, pairDecA, ds[0][7], ds[0][8])
+        pairBCurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaB, pairDecB, ds[0][24], ds[0][25])
+        pairAMeasuredCoord = SkyCoord(ra=ds['rameasured_a'].groups.aggregate(np.mean) * u.deg, dec=ds['decmeasured_a'].groups.aggregate(np.mean) * u.deg)
+        pairBMeasuredCoord = SkyCoord(ra=ds['rameasured_b'].groups.aggregate(np.mean) * u.deg, dec=ds['decmeasured_b'].groups.aggregate(np.mean) * u.deg)
+        pairACoordErr = pairACurrentCoord.separation(pairAMeasuredCoord)
+        pairBCoordErr = pairBCurrentCoord.separation(pairBMeasuredCoord)
+        #
         preciseCoord = str(getPreciseCoord(pairRaA, pairDecA, fitsFileDate))
         reportName = (workingDirectory + '/' + pairObjectId + '.txt')
         reportFile = open(reportName, "a")
@@ -738,9 +758,20 @@ for ds in upd_sources_ds_by_object.groups:
     
     # Print temp data
     print('\n### COMPONENTS ###')
+    print('\nWDS Identifier:', ds[0]['2000 Coord'], ds[0]['Discov'], ds[0]['Comp'])
     print('\nDate of observation: ' + dateOfObservation)
     print('\nPrecise coordinates (J2000): ' + preciseCoord)
-    print('\nWDS Identifier:', ds[0]['2000 Coord'], ds[0]['Discov'], ds[0]['Comp'])
+    print('\nComponent A:', pairDesignationA)
+    print('Component B:', pairDesignationB)
+    print('\nCalculated coordinates')
+    print('\nComponent A DR3 2016:', pairRaA, pairDecA)
+    print('Component A DR3 on date:', pairACurrentCoord.ra.degree, pairACurrentCoord.dec.degree)
+    print('Component A measured:', pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree)
+    print('Component A error (on date - measured):', pairACoordErr.arcsecond)
+    print('\nComponent B DR3 2016:', pairRaB, pairDecB)
+    print('Component B DR3 on date:', pairBCurrentCoord.ra.degree, pairBCurrentCoord.dec.degree)
+    print('Component B measured:', pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree)
+    print('Component B error (on date - measured):', pairBCoordErr.arcsecond)
     print('\nTheta measurements\n') # , ds['dspaactual']
     print('Mean:', pairMeanTheta)
     print('Error:', pairMeanThetaErr)
