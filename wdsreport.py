@@ -51,10 +51,10 @@ gravConst = 0.0043009
 image_limit = 2000
 
 # Constant variables
-hipparcos_file = Table.read('C:\Astro\catalogs\I_239_selection.csv', format='ascii')
+hipparcos_file = Table.read(f"/usr/share/dr3map/hipparcos/I_239_selection.csv", format='ascii')
 
 # Insert the downloaded wds file path here
-wds_file = "C:\Astro\catalogs\WDS\wdsweb_summ2.txt"
+wds_file = "/usr/share/dr3map/wds/wdsweb_summ2.txt"
 
 # WDS table to be used to identify double stars on the image
 # wdsTable = Table.read(sys.argv[1], delimiter=',', format='ascii')
