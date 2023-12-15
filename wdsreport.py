@@ -691,7 +691,7 @@ for ds in upd_sources_ds_by_object.groups:
         pairParallaxFactor, pairPmFactor, pairPmFactor, pairPmCommon, pairAbsMag1, pairAbsMag2, pairLum1, pairLum2, pairRad1, pairRad2, pairDR3Theta, pairDR3Rho, pairMass1, pairMass2, pairBVIndexA, pairBVIndexB, pairSepPar, pairEscapeVelocity, pairRelativeVelocity, pairHarshawFactor, pairHarshawPhysicality, pairBinarity = 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 
 
         pairParallaxFactor = (calcParallaxFactor(gaiaAStar[0]['parallax'], gaiaBStar[0]['parallax'])) * 100
-        pairPmFactor = (calcPmFactor(gaiaAStar[0]['pmra'], gaiaAStar[0]['pmdec'], gaiaBStar[0]['pmra'], gaiaBStar[0]['pmdec'])) * 100
+        pairPmFactor = (calcPmFactor(gaiaAStar[0]['pmra'], gaiaAStar[0]['pmdec'], gaiaBStar[0]['pmra'], gaiaBStar[0]['pmdec']))
         pairPmCommon = calcPmCategory(pairPmFactor)
         pairAbsMag1 = calcAbsMag(gaiaAStar[0]['phot_g_mean_mag'], gaiaAStar[0]['parallax']) # Calculate Absolute magnitude
         pairAbsMag2 = calcAbsMag(gaiaBStar[0]['phot_g_mean_mag'], gaiaBStar[0]['parallax']) # Calculate Absolute magnitude
@@ -740,10 +740,10 @@ for ds in upd_sources_ds_by_object.groups:
         pairDesB = str(gaiaBStar[0]['DESIGNATION'])
         dateOfObservation = getUTC(fitsFileDate)
         #
-        pairACurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaA, pairDecA, ds[0][7], ds[0][8])
-        pairBCurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaB, pairDecB, ds[0][24], ds[0][25])
-        pairAMeasuredCoord = SkyCoord(ra=ds['rameasured_a'].groups.aggregate(np.mean) * u.deg, dec=ds['decmeasured_a'].groups.aggregate(np.mean) * u.deg)
-        pairBMeasuredCoord = SkyCoord(ra=ds['rameasured_b'].groups.aggregate(np.mean) * u.deg, dec=ds['decmeasured_b'].groups.aggregate(np.mean) * u.deg)
+        pairACurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaA, pairDecA, gaiaAStar[0]['pmra'], gaiaAStar[0]['pmdec'])
+        pairBCurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaB, pairDecB, gaiaBStar[0]['pmra'], gaiaBStar[0]['pmdec'])
+        pairAMeasuredCoord = SkyCoord(ra=ds['ra_deg_1'].groups.aggregate(np.mean) * u.deg, dec=ds['dec_deg_1'].groups.aggregate(np.mean) * u.deg)
+        pairBMeasuredCoord = SkyCoord(ra=ds['ra_deg_2'].groups.aggregate(np.mean) * u.deg, dec=ds['dec_deg_2'].groups.aggregate(np.mean) * u.deg)
         pairACoordErr = pairACurrentCoord.separation(pairAMeasuredCoord)
         pairBCoordErr = pairBCurrentCoord.separation(pairBMeasuredCoord)
         #
@@ -772,6 +772,8 @@ for ds in upd_sources_ds_by_object.groups:
     print('Component B DR3 on date:', pairBCurrentCoord.ra.degree, pairBCurrentCoord.dec.degree)
     print('Component B measured:', pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree)
     print('Component B error (on date - measured):', pairBCoordErr.arcsecond)
+    print('2016 Calculared Position angle / Separation: ', pairACurrentCoord.position_angle(pairBCurrentCoord).degree, pairACurrentCoord.separation(pairBCurrentCoord).arcsecond)
+    print('Current Calculared Position angle / Separation: ', SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree, SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond)
     print('\nTheta measurements\n') # , ds['dspaactual']
     print('Mean:', pairMeanTheta)
     print('Error:', pairMeanThetaErr)
@@ -782,7 +784,7 @@ for ds in upd_sources_ds_by_object.groups:
     print('Mean:', pairMagDiff)
     print('Error:', pairMagDiffErr)
     print('\n\nParallax factor:', pairParallaxFactor, '%')
-    print('Proper motion factor:', pairPmFactor, '%')
+    print('Proper motion factor:', pairPmFactor * 100, '%')
     print('Proper motion category:', pairPmCommon)
     print('Absolute magnitude A:', pairAbsMag1)
     print('Absolute magnitude B:', pairAbsMag2)
@@ -852,7 +854,7 @@ for ds in upd_sources_ds_by_object.groups:
     reportFile.write('\nPair Relative velocity: ' + str(roundNumber(pairRelativeVelocity)) + ' km/s')
     reportFile.write('\n\n### Analysis ###')
     reportFile.write('\nParallax factor: ' + str(roundNumber(pairParallaxFactor)) + ' %')
-    reportFile.write('\nProper motion factor: ' + str(roundNumber(pairPmFactor)) + ' %')
+    reportFile.write('\nProper motion factor: ' + str(roundNumber(pairPmFactor) * 100) + ' %')
     reportFile.write('\nProper motion category: '+ str(pairPmCommon))
     reportFile.write('\nPair Harshaw factor: ' + str(roundNumber(pairHarshawFactor)))
     reportFile.write('\nPair Harshaw physicality: ' + str(pairHarshawPhysicality))
@@ -863,4 +865,4 @@ for ds in upd_sources_ds_by_object.groups:
     reportFile.write('\n\n### Gaia data:\n')
     reportFile.write(str(gaiaData))
 
-reportTable.write(workingDirectory + '/double_stars_wds_format.txt', format='ascii', overwrite=False, delimiter=',')
+reportTable.write(workingDirectory + '/double_stars_wds_format.txt', format='ascii', overwrite=True, delimiter=',')
