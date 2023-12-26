@@ -20,17 +20,8 @@ from matplotlib import pyplot as plt
 from astropy.wcs import utils
 from astropy.time import Time, TimeDelta
 
-pmval = float(sys.argv[1]) / 100
 
-def calcPmCategory(pmfact):
-    print(pmfact)
-    pmCommon = ()
-    if pmfact >= 0.8:
-        pmCommon = 'CPM'
-    elif 0.4 <= pmfact < 0.8:
-        pmCommon = 'SPM'
-    elif pmfact < 0.4:
-        pmCommon = 'DPM'
-    return pmCommon
-
-print(calcPmCategory(pmval))
+date_time = sys.argv[1]
+date_of_observation_time_cet = Time(date_time, precision=0)
+utc_date_time = str(date_of_observation_time_cet.jyear)
+print(utc_date_time)
