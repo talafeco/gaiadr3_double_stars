@@ -39,9 +39,13 @@ dao_fwhm = 7.0
 dao_threshold = 12.0
 possible_distance = 10000.0 # AU
 search_cone = 0.001 # Decimal degree
-
 image_limit = 2000
 
+# Gravitational constant is convenient if measure distances in parsecs (pc), velocities in kilometres per second (km/s) and masses in solar units M
+gravConst = 0.0043009 
+
+# Constant to calculate star luminosity and mass
+sun_luminosity = 3.0128 * (10 ** 28)
 
 # Configuration for the CANON camera
 '''
@@ -168,6 +172,11 @@ def calcLuminosity(absmag):
     lum = 2.52 ** (4.83 - absmag)
     return lum
 
+def calcLuminosityAlternate(absmag):
+    lum = sun_luminosity * (10 ** (-absmag / 2.512))
+    lum = lum / sun_luminosity
+    return lum
+
 # Function to calculate the Star mass
 # Excel formula M <0.43M =('luminosity'/0.23)^(1/2.3), M <2M ='luminosity'^(1/4), M < 20M =('luminosity'/1.4)^(1/3.5), M > 55M ='luminosity'/3200
 def calcMass(lum):
@@ -229,7 +238,6 @@ def calcRelativeVelocity(pmraa, pmdeca, pmrab, pmdecb, radvela, radvelb, dista, 
 
 
 # Function to calculate the Escape velocity of the system, separation should be calculated in parsec!
-gravConst = 0.0043009 # Gravitational constant is convenient if measure distances in parsecs (pc), velocities in kilometres per second (km/s) and masses in solar units M
 def calcEscapevelocity(mass_a, mass_b, separation, gravconst):
     escvel = math.sqrt((2 * gravconst * (mass_a + mass_b)) / separation)
     return escvel
@@ -659,6 +667,8 @@ for ds in reportTable_by_object.groups:
     pairAbsMag2 = calcAbsMag(pairGMagnitudeB, ds[0][22]) # Calculate Absolute magnitude
     pairLum1 = calcLuminosity(pairAbsMag1)
     pairLum2 = calcLuminosity(pairAbsMag2)
+    pairAltLum1 = calcLuminosityAlternate(pairAbsMag1)
+    pairAltLum2 = calcLuminosityAlternate(pairAbsMag2)
     pairMass1 = calcMass(pairLum1)
     pairMass2 = calcMass(pairLum2)
     pairBVIndexA = ds[0][10] - ds[0][9]
@@ -670,14 +680,14 @@ for ds in reportTable_by_object.groups:
     pairHarshawPhysicality = calcHarshawPhysicality(pairHarshawFactor)
     pairBinarity = calcBinarity(pairRelativeVelocity, pairEscapeVelocity)
     dateOfObservation = getUTC(fitsFileDate)
-    #
+
     pairACurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaA, pairDecA, ds[0][7], ds[0][8])
     pairBCurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaB, pairDecB, ds[0][24], ds[0][25])
     pairAMeasuredCoord = SkyCoord(ra=ds['rameasured_a'].groups.aggregate(np.mean) * u.deg, dec=ds['decmeasured_a'].groups.aggregate(np.mean) * u.deg)
     pairBMeasuredCoord = SkyCoord(ra=ds['rameasured_b'].groups.aggregate(np.mean) * u.deg, dec=ds['decmeasured_b'].groups.aggregate(np.mean) * u.deg)
     pairACoordErr = pairACurrentCoord.separation(pairAMeasuredCoord)
     pairBCoordErr = pairBCurrentCoord.separation(pairBMeasuredCoord)
-    #
+
     preciseCoord = str(getPreciseCoord(pairRaA, pairDecA, fitsFileDate))
     
     reportName = (workingDirectory + '/' + ds[0][39] + '.txt')
@@ -725,6 +735,8 @@ for ds in reportTable_by_object.groups:
     print('Absolute magnitude B:', pairAbsMag2)
     print('Luminosity A:', pairLum1)
     print('Luminosity B:', pairLum2)
+    print('Luminosity Alternate A:', pairAltLum1)
+    print('Luminosity Alternate B:', pairAltLum2)
     print('Mass A:', pairMass1)
     print('Mass B:', pairMass2)
     print('BV index A:', pairBVIndexA, 'B:', pairBVIndexB)

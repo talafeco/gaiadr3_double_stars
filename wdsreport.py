@@ -50,6 +50,10 @@ search_cone = 0.001 # Decimal degree'''
 gravConst = 0.0043009 
 image_limit = 2000
 
+# Constant to calculate star luminosity and mass
+sun_luminosity = 3.0128 * (10 ** 28)
+sun_absolute_luminosity = 3.828 * (10 ** 26)
+
 # Constant variables
 hipparcos_file = Table.read(f"/usr/share/dr3map/hipparcos/I_239_selection.csv", format='ascii')
 
@@ -238,6 +242,11 @@ def calcAbsMag(gmag, par):
 # Excel formula =2.52^(4.83-'Absolute magnitude')
 def calcLuminosity(absmag):
     lum = 2.52 ** (4.83 - absmag)
+    return lum
+
+def calcLuminosityAlternate(absmag):
+    lum = sun_luminosity * (10 ** (-absmag / 2.512))
+    lum = lum / sun_absolute_luminosity
     return lum
 
 # Function to calculate the Star mass
@@ -697,6 +706,8 @@ for ds in upd_sources_ds_by_object.groups:
         pairAbsMag2 = calcAbsMag(gaiaBStar[0]['phot_g_mean_mag'], gaiaBStar[0]['parallax']) # Calculate Absolute magnitude
         pairLum1 = calcLuminosity(pairAbsMag1)
         pairLum2 = calcLuminosity(pairAbsMag2)
+        pairAltLum1 = calcLuminosityAlternate(pairAbsMag1)
+        pairAltLum2 = calcLuminosityAlternate(pairAbsMag2)
         pairRad1 = calcRadius(pairLum1, gaiaAStar[0]['teff_gspphot'])
         pairRad2 = calcRadius(pairLum2, gaiaBStar[0]['teff_gspphot'])
         pairDR3Theta = thetaCalc(deltaRa(gaiaAStar[0]['ra'], gaiaBStar[0]['ra'], gaiaBStar[0]['dec']), deltaDec(gaiaBStar[0]['dec'], gaiaAStar[0]['dec'])) + addThetaValue
@@ -790,6 +801,8 @@ for ds in upd_sources_ds_by_object.groups:
     print('Absolute magnitude B:', pairAbsMag2)
     print('Luminosity A:', pairLum1)
     print('Luminosity B:', pairLum2)
+    print('Luminosity Alternate A:', pairAltLum1)
+    print('Luminosity Alternate B:', pairAltLum2)
     print('Mass A:', pairMass1)
     print('Mass B:', pairMass2)
     print('BV index A:', pairBVIndexA, 'B:', pairBVIndexB)
