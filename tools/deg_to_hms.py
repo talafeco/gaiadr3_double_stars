@@ -1,3 +1,5 @@
+#! /usr/bin/python3
+
 from astropy import units as u
 import sys
 from astropy.coordinates import Angle, SkyCoord, ICRS, FK5

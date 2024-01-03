@@ -35,6 +35,7 @@ Search visual double star candidates in Gaia DR3. Mag &lt; 15, par > 0.5.
 14. Check pair magnitude difference (wds + gaia + measured), calculate difference
 15. Calculate background, calculate star magnitudes with photometry
 16. Remove spaces from filenames
+17. 
 
 
 # New functions
@@ -73,4 +74,4 @@ Search visual double star candidates in Gaia DR3. Mag &lt; 15, par > 0.5.
 
 # Tools
 1. Convert date/time object to julian year
-2. 
+2. Run calculation functions manually based on coordinates / Gaia designations

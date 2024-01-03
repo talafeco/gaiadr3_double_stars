@@ -46,6 +46,7 @@ gravConst = 0.0043009
 
 # Constant to calculate star luminosity and mass
 sun_luminosity = 3.0128 * (10 ** 28)
+sun_absolute_luminosity = 3.828 * (10 ** 26)
 
 # Configuration for the CANON camera
 '''
@@ -174,8 +175,8 @@ def calcLuminosity(absmag):
 
 def calcLuminosityAlternate(absmag):
     lum = sun_luminosity * (10 ** (-absmag / 2.512))
-    lum = lum / sun_luminosity
-    return lum
+    lum2 = lum / sun_absolute_luminosity
+    return lum2
 
 # Function to calculate the Star mass
 # Excel formula M <0.43M =('luminosity'/0.23)^(1/2.3), M <2M ='luminosity'^(1/4), M < 20M =('luminosity'/1.4)^(1/3.5), M > 55M ='luminosity'/3200
@@ -669,8 +670,8 @@ for ds in reportTable_by_object.groups:
     pairLum2 = calcLuminosity(pairAbsMag2)
     pairAltLum1 = calcLuminosityAlternate(pairAbsMag1)
     pairAltLum2 = calcLuminosityAlternate(pairAbsMag2)
-    pairMass1 = calcMass(pairLum1)
-    pairMass2 = calcMass(pairLum2)
+    pairMass1 = calcMass(pairAltLum1)
+    pairMass2 = calcMass(pairAltLum2)
     pairBVIndexA = ds[0][10] - ds[0][9]
     pairBVIndexB = ds[0][27] - ds[0][26]
     pairSepPar = sepCalc(pairDistanceMinA, pairDistanceMinB, rhoPairDr3) # Separation of the pairs in parsecs
@@ -755,6 +756,17 @@ for ds in reportTable_by_object.groups:
     reportFile.write('\nPrecise coordinates (J2000): ' + preciseCoord)     
     reportFile.write('\nComponent A: ' + pairDesignationA)
     reportFile.write('\nComponent B: ' + pairDesignationB)
+    reportFile.write('\n\nCalculated coordinates')
+    reportFile.write('\nComponent A DR3 2016: ' + str(pairRaA) + ' ' + str(pairDecA))
+    reportFile.write('\nComponent A DR3 on date: ' + str(pairACurrentCoord.ra.degree) + ' ' + str(pairACurrentCoord.dec.degree))
+    reportFile.write('\nComponent A measured: ' + str(pairAMeasuredCoord.ra.degree) + ' ' + str(pairAMeasuredCoord.dec.degree))
+    reportFile.write('\nComponent A error (on date - measured): ' + str(pairACoordErr.arcsecond))
+    reportFile.write('\nComponent B DR3 2016: ' + str(pairRaB) + ' ' + str(pairDecB))
+    reportFile.write('\nComponent B DR3 on date: ' + str(pairBCurrentCoord.ra.degree) + ' ' + str(pairBCurrentCoord.dec.degree))
+    reportFile.write('\nComponent B measured: ' + str(pairBMeasuredCoord.ra.degree) + ' ' + str(pairBMeasuredCoord.dec.degree))
+    reportFile.write('\nComponent B error (on date - measured): ' + str(pairBCoordErr.arcsecond))
+    reportFile.write('\n\n2016 Calculared Position angle / Separation: '  + str(pairACurrentCoord.position_angle(pairBCurrentCoord).degree) + ' ' + str(pairACurrentCoord.separation(pairBCurrentCoord).arcsecond))
+    reportFile.write('\nCurrent Calculared Position angle / Separation: ' + str(SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree) + ' ' + str(SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond))
     reportFile.write('\n\nTheta measurements\n' + str(ds['theta_measured']))
     reportFile.write('\nMean: ' + str(pairMeanTheta[0]))
     reportFile.write('\nError: ' + str(pairMeanThetaErr[0]))
@@ -807,7 +819,7 @@ for ds in reportTable_by_object.groups:
     wdsform = pair_wds_name + ',' + dateOfObservation + ',' +  str(pairMeanTheta[0]) + ',' + str(pairMeanThetaErr[0]) + ',' + str(pairMeanRho[0]) + ',' + str(pairMeanRhoErr[0]) + ',' +  'nan' + ',' +  'nan' + ',' +  str(pairMagDiff) + ',' +  str(pairMagDiffErr) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TLB_2023' + ',' +  'C' + ',' + '7' + ',' + preciseCoord.replace(":","").replace(" ","")
 
     reportFile.write('\n\n### Publication table sum ###')
-    reportFile.write(str(pairDesignationA) + ',' + str(pairMagMeasuredA[0]) + ',' + str(pairMagMeasuredAErr[0]) + ',' + str(pairGMagnitudeA) + ',' + str(pairAbsMag1) + ',' + str(pairLum1) + ',' + str(pairMass1) + ',' + dateOfObservation + ',' + str(pairDesignationB) + ',' + str(pairMagMeasuredB[0]) + ',' + str(pairMagMeasuredBErr[0]) + ',' + str(pairGMagnitudeB) + ',' + str(pairAbsMag2) + ',' + str(pairLum2) + ',' + str(pairMass2) + ',' + preciseCoord + ',' + str(pairMeanTheta[0]) + ',' + str(pairMeanThetaErr[0]) + ',' + str(pairMeanRho[0]) + ',' + str(pairMeanRhoErr[0]) + ',' + str(pairSepPar * 206265) + ' AU' + ',' + str(pairParallaxFactor) + '%' + ',' + str(pairPmFactor) + '%' + ',' + str(pairPmCommon) + ',' + str(pairEscapeVelocity) + ',' + str(pairRelativeVelocity) + ',' + str(pairHarshawFactor) + ',' + str(pairHarshawPhysicality) + ',' + str(pairBinarity) + ',' + pair_wds_name + ',' + dateOfObservation + ',' +  str(pairMeanTheta[0]) + ',' + str(pairMeanThetaErr[0]) + ',' + str(pairMeanRho[0]) + ',' + str(pairMeanRhoErr[0]) + ',' +  'nan' + ',' +  'nan' + ',' +  str(pairMagDiff) + ',' +  str(pairMagDiffErr) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TLB_2023' + ',' +  'C' + ',' + '7' + ',' + preciseCoord.replace(":","").replace(" ",""))
+    reportFile.write('\n' + str(pairDesignationA) + ',' + str(pairMagMeasuredA[0]) + ',' + str(pairMagMeasuredAErr[0]) + ',' + str(pairGMagnitudeA) + ',' + str(pairAbsMag1) + ',' + str(pairLum1) + ',' + str(pairMass1) + ',' + dateOfObservation + ',' + str(pairDesignationB) + ',' + str(pairMagMeasuredB[0]) + ',' + str(pairMagMeasuredBErr[0]) + ',' + str(pairGMagnitudeB) + ',' + str(pairAbsMag2) + ',' + str(pairLum2) + ',' + str(pairMass2) + ',' + preciseCoord + ',' + str(pairMeanTheta[0]) + ',' + str(pairMeanThetaErr[0]) + ',' + str(pairMeanRho[0]) + ',' + str(pairMeanRhoErr[0]) + ',' + str(pairSepPar * 206265) + ' AU' + ',' + str(pairParallaxFactor) + '%' + ',' + str(pairPmFactor) + '%' + ',' + str(pairPmCommon) + ',' + str(pairEscapeVelocity) + ',' + str(pairRelativeVelocity) + ',' + str(pairHarshawFactor) + ',' + str(pairHarshawPhysicality) + ',' + str(pairBinarity) + ',' + pair_wds_name + ',' + dateOfObservation + ',' +  str(pairMeanTheta[0]) + ',' + str(pairMeanThetaErr[0]) + ',' + str(pairMeanRho[0]) + ',' + str(pairMeanRhoErr[0]) + ',' +  'nan' + ',' +  'nan' + ',' +  str(pairMagDiff) + ',' +  str(pairMagDiffErr) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TLB_2023' + ',' +  'C' + ',' + '7' + ',' + preciseCoord.replace(":","").replace(" ",""))
 
     reportFile.write('\n' + str(wdsform))
     reportFile.close()

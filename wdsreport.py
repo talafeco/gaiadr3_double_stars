@@ -246,8 +246,8 @@ def calcLuminosity(absmag):
 
 def calcLuminosityAlternate(absmag):
     lum = sun_luminosity * (10 ** (-absmag / 2.512))
-    lum = lum / sun_absolute_luminosity
-    return lum
+    lum2 = lum / sun_absolute_luminosity
+    return lum2
 
 # Function to calculate the Star mass
 # Excel formula M <0.43M =('luminosity'/0.23)^(1/2.3), M <2M ='luminosity'^(1/4), M < 20M =('luminosity'/1.4)^(1/3.5), M > 55M ='luminosity'/3200
@@ -834,6 +834,17 @@ for ds in upd_sources_ds_by_object.groups:
     reportFile.write('\nMagnitude difference: ' + str(roundNumber(pairGMagDiff)))
     reportFile.write('\nPrecise coordinates (J2000): ' + preciseCoord)
     reportFile.write('\nDate of observation: ' + dateOfObservation)
+    reportFile.write('\n\nCalculated coordinates')
+    reportFile.write('\nComponent A DR3 2016: ' + str(pairRaA) + ' ' + str(pairDecA))
+    reportFile.write('\nComponent A DR3 on date: ' + str(pairACurrentCoord.ra.degree) + ' ' + str(pairACurrentCoord.dec.degree))
+    reportFile.write('\nComponent A measured: ' + str(pairAMeasuredCoord.ra.degree) + ' ' + str(pairAMeasuredCoord.dec.degree))
+    reportFile.write('\nComponent A error (on date - measured): ' + str(pairACoordErr.arcsecond))
+    reportFile.write('\nComponent B DR3 2016: ' + str(pairRaB) + ' ' + str(pairDecB))
+    reportFile.write('\nComponent B DR3 on date: ' + str(pairBCurrentCoord.ra.degree) + ' ' + str(pairBCurrentCoord.dec.degree))
+    reportFile.write('\nComponent B measured: ' + str(pairBMeasuredCoord.ra.degree) + ' ' + str(pairBMeasuredCoord.dec.degree))
+    reportFile.write('\nComponent B error (on date - measured): ' + str(pairBCoordErr.arcsecond))
+    reportFile.write('\n\n2016 Calculared Position angle / Separation: '  + str(pairACurrentCoord.position_angle(pairBCurrentCoord).degree) + ' ' + str(pairACurrentCoord.separation(pairBCurrentCoord).arcsecond))
+    reportFile.write('\nCurrent Calculared Position angle / Separation: ' + str(SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree) + ' ' + str(SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond))
     reportFile.write('\n\n### Measurements ###')
     reportFile.write('\nPosition angle:')
     reportFile.write('\nTheta measurements' + str(ds['theta_measured'].degree))
