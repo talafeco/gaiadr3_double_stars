@@ -1,4 +1,6 @@
 #! /usr/bin/python3
+# Usage deg_to_hms.py <RA coordinate> <DEG coordinate>
+# Coordinates needs to be in decimal degrees
 
 from astropy import units as u
 import sys
@@ -10,7 +12,7 @@ star_ra = sys.argv[1].replace(",",".")
 #star_ra_in = Angle(star_ra, u.degree)
 star_dec = sys.argv[2].replace(",",".")
 #star_dec_in = Angle(star_dec, u.degree)
-date_of_observation = "2023-01-02T12:34:56"
+date_of_observation = "2016-01-02T12:34:56"
 
 
 def getPreciseCoord(ra, dec, date):

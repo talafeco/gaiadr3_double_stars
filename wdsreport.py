@@ -36,6 +36,7 @@ dao_fwhm = 7.0
 dao_threshold = 12.0
 possible_distance = 10000.0 # AU
 search_cone = 0.001 # Decimal degree
+dummyObservationDate = "2022-01-01T12:00:00"
 
 
 # Configuration for the CANON camera
@@ -567,7 +568,7 @@ key_to_lookup = 'DATE-OBS'
 if key_to_lookup in fitsHeader:
     fitsFileDate = fits.open(workingDirectory + '/' + files[0])[0].header['DATE-OBS']
 else:
-    fitsFileDate = np.nan
+    fitsFileDate = dummyObservationDate
 
 ### Run source detection, collect star data to Qtable
 print('\n### Running source detection ###')
@@ -751,6 +752,7 @@ for ds in upd_sources_ds_by_object.groups:
         pairDesB = str(gaiaBStar[0]['DESIGNATION'])
         dateOfObservation = getUTC(fitsFileDate)
         #
+        print('dateOfObservation: ', dateOfObservation)
         pairACurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaA, pairDecA, gaiaAStar[0]['pmra'], gaiaAStar[0]['pmdec'])
         pairBCurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaB, pairDecB, gaiaBStar[0]['pmra'], gaiaBStar[0]['pmdec'])
         pairAMeasuredCoord = SkyCoord(ra=ds['ra_deg_1'].groups.aggregate(np.mean) * u.deg, dec=ds['dec_deg_1'].groups.aggregate(np.mean) * u.deg)
