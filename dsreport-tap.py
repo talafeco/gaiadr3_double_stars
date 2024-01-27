@@ -18,10 +18,13 @@ from photutils.detection import DAOStarFinder
 import numpy as np
 from astropy.wcs import WCS
 import astropy.units as u
-from astropy.coordinates import SkyCoord, Angle, FK5, ICRS, position_angle, angular_separation
+from astropy.coordinates import SkyCoord, Angle, FK5, ICRS, match_coordinates_sky, search_around_sky, position_angle, angular_separation
 from matplotlib import pyplot as plt
 from astropy.wcs import utils
 from astropy.time import Time, TimeDelta
+from astroquery.gaia import Gaia
+Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"  # Reselect Data Release 3, default
+Gaia.ROW_LIMIT = -1 # To return an unlimited number of rows
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -37,7 +40,7 @@ hipparcos_bv_index = hipparcos_file['B-V']
 dao_sigma = 3.0
 dao_fwhm = 7.0
 dao_threshold = 12.0
-possible_distance = 10000.0 # AU
+possible_distance = 30000.0 # AU
 search_cone = 0.001 # Decimal degree
 image_limit = 2000
 
@@ -472,7 +475,7 @@ for fitsFile in files:
     daofind = DAOStarFinder(fwhm=dao_fwhm, threshold=dao_threshold*std)  
     sources = daofind(data - median)
 
-    # 2. Define the catalog file based on the source coordinate and read data from catalog file(s) to a catalog
+    '''# 2. Define the catalog file based on the source coordinate and read data from catalog file(s) to a catalog
     segments = []
     for star in sources:
         ra, dec = mywcs.all_pix2world([[star ['xcentroid'], star ['ycentroid']]], 0)[0]
@@ -495,7 +498,16 @@ for fitsFile in files:
         else:
             #segmentpart = Table.read(f"C:\Astro\catalogs\GaiaDR3\gaiadr3_15mag_catalog\{seg}", format='ascii')
             segmentpart = Table.read(segment_lib + str(seg), format='ascii')
-            gaiaStars = segmentpart
+            gaiaStars = segmentpart'''
+    
+    photo_left_upper = SkyCoord.from_pixel(0, 0, mywcs, origin=0, mode='all')
+    photo_right_lower = SkyCoord.from_pixel(fitsHeader['NAXIS2'], fitsHeader['NAXIS1'], mywcs, origin=0, mode='all')
+    photo_center = SkyCoord(fitsHeader['RA'] * u.degree, fitsHeader['DEC'] * u.degree)
+    photo_radius = photo_left_upper.separation(photo_right_lower) / 2
+    print('Center of photo (hours / decimal degree): ', photo_center.to_string('hmsdms'), '/', photo_center.to_string('decimal'),
+      '\nRadius of photo: ', photo_radius)
+    gaia_photo_catalog = Gaia.cone_search_async(photo_center, radius=u.Quantity(photo_radius))
+    gaiaStars = gaia_photo_catalog.get_results()
 
     #dr3TableFileName = (str('dr3stars.csv'))
     #gaiaStars.write(dr3TableFileName, format='ascii.ecsv', overwrite=True, delimiter=',')
@@ -505,12 +517,12 @@ for fitsFile in files:
         ra2, dec2 = mywcs.all_pix2world([[star ['xcentroid'], star ['ycentroid']]], 0)[0]   
         c = SkyCoord(ra=ra2*u.degree, dec=dec2*u.degree)  
         #catalog = SkyCoord(ra=gaiaStars[1:, 5]*u.degree, dec=gaiaStars[1:, 7]*u.degree)  
-        catalog = SkyCoord(ra=gaiaStars['ra']*u.degree, dec=gaiaStars['dec']*u.degree)
+        catalog = SkyCoord(ra=gaiaStars['ra'], dec=gaiaStars['dec'])
         idx, d2d, d3d = c.match_to_catalog_sky(catalog)
         catalogstar = SkyCoord(ra=gaiaStars[idx]['ra']*u.degree, dec=gaiaStars[idx]['dec']*u.degree)
         sep = c.separation(catalogstar)
         if sep < Angle('00d00m02s'):
-            sourceTable.add_row([fitsFile, gaiaStars[idx]['source_id'], gaiaStars[idx]['designation'], convertStringToNan(gaiaStars[idx]['ra']), convertStringToNan(gaiaStars[idx]['dec']), convertStringToNan(gaiaStars[idx]['parallax']), convertStringToNan(gaiaStars[idx]['parallax_error']), convertStringToNan(gaiaStars[idx]['pmra']), convertStringToNan(gaiaStars[idx]['pmdec']), convertStringToNan(gaiaStars[idx]['phot_g_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_bp_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_rp_mean_mag']), convertStringToNan(gaiaStars[idx]['radial_velocity']), convertStringToNan(gaiaStars[idx]['radial_velocity_error']), convertStringToNan(gaiaStars[idx]['teff_gspphot']), star['id'], ra2, dec2, star['mag']])
+            sourceTable.add_row([fitsFile, gaiaStars[idx]['source_id'], gaiaStars[idx]['DESIGNATION'], convertStringToNan(gaiaStars[idx]['ra']), convertStringToNan(gaiaStars[idx]['dec']), convertStringToNan(gaiaStars[idx]['parallax']), convertStringToNan(gaiaStars[idx]['parallax_error']), convertStringToNan(gaiaStars[idx]['pmra']), convertStringToNan(gaiaStars[idx]['pmdec']), convertStringToNan(gaiaStars[idx]['phot_g_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_bp_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_rp_mean_mag']), convertStringToNan(gaiaStars[idx]['radial_velocity']), convertStringToNan(gaiaStars[idx]['radial_velocity_error']), convertStringToNan(gaiaStars[idx]['teff_gspphot']), star['id'], ra2, dec2, star['mag']])
 
 #gaiaStarsTableFileName = (str('gaiaStarsTab.csv'))
 
