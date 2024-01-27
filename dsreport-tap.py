@@ -5,6 +5,10 @@
 # Install: copy file to /usr/local/bin folder
 # Usage: dsreport <image_folder>
 
+#tasks
+#rhocalc to be fixed!
+#show progress by x/y files processed
+
 import os
 import sys
 import numpy as np
@@ -40,7 +44,7 @@ hipparcos_bv_index = hipparcos_file['B-V']
 dao_sigma = 3.0
 dao_fwhm = 7.0
 dao_threshold = 12.0
-possible_distance = 30000.0 # AU
+possible_distance = 10000.0 # AU
 search_cone = 0.001 # Decimal degree
 image_limit = 2000
 
@@ -122,9 +126,9 @@ def getUTC(date_time):
     return thetacalc'''
 
 # Function to calculate Rho (separation)
-'''def rhoCalc(raa, deca, rab, decb):
+def rhoCalc(raa, deca, rab, decb):
     rhocalc = math.sqrt(((raa-rab) * math.cos(math.radians(deca))) ** 2 + (deca - decb) ** 2) * 3600
-    return rhocalc'''
+    return rhocalc
 
 # Function to calculate the separation of the two stars in parsecs
 # Excel formula =IF('min distance A'>'min distance b','min distance A'*'Rho','min distance b'*'Rho')
@@ -502,7 +506,7 @@ for fitsFile in files:
     
     photo_left_upper = SkyCoord.from_pixel(0, 0, mywcs, origin=0, mode='all')
     photo_right_lower = SkyCoord.from_pixel(fitsHeader['NAXIS2'], fitsHeader['NAXIS1'], mywcs, origin=0, mode='all')
-    photo_center = SkyCoord(fitsHeader['RA'] * u.degree, fitsHeader['DEC'] * u.degree)
+    photo_center = SkyCoord(fitsHeader['CRVAL1'] * u.degree, fitsHeader['CRVAL2'] * u.degree)
     photo_radius = photo_left_upper.separation(photo_right_lower) / 2
     print('Center of photo (hours / decimal degree): ', photo_center.to_string('hmsdms'), '/', photo_center.to_string('decimal'),
       '\nRadius of photo: ', photo_radius)
@@ -552,7 +556,7 @@ for group in sourceTable_by_file.groups:
                             
                 # Calculate the widest possible separation for StarA
                 possSep1 = possible_distance / calcDistanceMax(starParallax1, starParallaxError1)
-                rhoStar = angular_separation(starRa1, starDec1, starRa2, starDec2)
+                rhoStar = rhoCalc(starRa1, starDec1, starRa2, starDec2)
                 if possSep1 > rhoStar:
                     starId1 = StarA[1]
                     starName1 = StarA[2]
@@ -650,7 +654,7 @@ count = 1
 for ds in reportTable_by_object.groups:
     print('\n### Group index:', count, '###')
     count = count + 1
-    rhoPairDr3 = angular_separation(ds[0][3], ds[0][4], ds[0][20], ds[0][21])
+    rhoPairDr3 = rhoCalc(ds[0][3], ds[0][4], ds[0][20], ds[0][21])
     pairFileName = ds[0][0]
     pairRaA = ds[0][3]
     pairDecA = ds[0][4]

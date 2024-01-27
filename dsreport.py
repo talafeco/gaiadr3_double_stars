@@ -5,6 +5,10 @@
 # Install: copy file to /usr/local/bin folder
 # Usage: dsreport <image_folder>
 
+#tasks
+#rhocalc to be fixed!
+#show progress by x/y files processed
+
 import os
 import sys
 import numpy as np
@@ -119,9 +123,9 @@ def getUTC(date_time):
     return thetacalc'''
 
 # Function to calculate Rho (separation)
-'''def rhoCalc(raa, deca, rab, decb):
+def rhoCalc(raa, deca, rab, decb):
     rhocalc = math.sqrt(((raa-rab) * math.cos(math.radians(deca))) ** 2 + (deca - decb) ** 2) * 3600
-    return rhocalc'''
+    return rhocalc
 
 # Function to calculate the separation of the two stars in parsecs
 # Excel formula =IF('min distance A'>'min distance b','min distance A'*'Rho','min distance b'*'Rho')
@@ -540,7 +544,7 @@ for group in sourceTable_by_file.groups:
                             
                 # Calculate the widest possible separation for StarA
                 possSep1 = possible_distance / calcDistanceMax(starParallax1, starParallaxError1)
-                rhoStar = angular_separation(starRa1, starDec1, starRa2, starDec2)
+                rhoStar = rhoCalc(starRa1, starDec1, starRa2, starDec2)
                 if possSep1 > rhoStar:
                     starId1 = StarA[1]
                     starName1 = StarA[2]
@@ -638,7 +642,7 @@ count = 1
 for ds in reportTable_by_object.groups:
     print('\n### Group index:', count, '###')
     count = count + 1
-    rhoPairDr3 = angular_separation(ds[0][3], ds[0][4], ds[0][20], ds[0][21])
+    rhoPairDr3 = rhoCalc(ds[0][3], ds[0][4], ds[0][20], ds[0][21])
     pairFileName = ds[0][0]
     pairRaA = ds[0][3]
     pairDecA = ds[0][4]
