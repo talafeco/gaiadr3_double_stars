@@ -8,9 +8,9 @@ import sys
 import numpy as np
 import math
 import sys
+import datetime
 from astropy.coordinates import SkyCoord, Angle, FK5
-from astropy.coordinates import match_coordinates_sky
-from astropy.coordinates import search_around_sky
+from astropy.coordinates import match_coordinates_sky, search_around_sky, position_angle, angular_separation
 from astropy import units as u
 from astropy.io import fits
 from astropy.stats import sigma_clipped_stats
@@ -168,9 +168,9 @@ def roundNumber(num):
         finalNumber = num
     return finalNumber
 
-def rhoCalc(raa, deca, rab, decb):
+'''def rhoCalc(raa, deca, rab, decb):
     rhocalc = math.sqrt(((raa-rab) * math.cos(math.radians(deca))) ** 2 + (deca - decb) ** 2) * 3600
-    return rhocalc
+    return rhocalc'''
 
 # Function to calculate Delta RA
 def deltaRa(raa, rab, decb):
@@ -183,17 +183,17 @@ def deltaDec(decb, deca):
     return deltadec
 
 # Function to calculate Theta (position angle)
-def thetaCalc(deltara,deltadec):
+'''def thetaCalc(deltara,deltadec):
     if (deltara != 0 and deltadec != 0):
         thetacalc = math.degrees(math.atan(deltara/deltadec))
     else:
         thetacalc = 0
-    return thetacalc
+    return thetacalc'''
 
 # Function to calculate Rho (separation)
-def rhoCalc(raa, deca, rab, decb):
+'''def rhoCalc(raa, deca, rab, decb):
     rhocalc = math.sqrt(((raa-rab) * math.cos(math.radians(deca))) ** 2 + (deca - decb) ** 2) * 3600
-    return rhocalc
+    return rhocalc'''
 
 # Function to calculate the separation of the two stars in parsecs
 # Excel formula =IF('min distance A'>'min distance b','min distance A'*'Rho','min distance b'*'Rho')
@@ -547,6 +547,8 @@ print('Files:', files)
 
 # Create the WDS catalog table
 
+print('Creating wds catalog - ' , datetime.datetime.now())
+
 wdsTable = hstack([wds_data, calculate_wds_ra_hourangle(wds_data['Coord (RA)'])])
 wdsTable.rename_column('col0', 'Coord (RA) hms')
 wdsTable = hstack([wdsTable, calculate_wds_dec_hourangle(wds_data['Coord (DEC)'])])
@@ -555,9 +557,11 @@ wdsTable = hstack([wdsTable, create_unique_id(wds_data['2000 Coord'], wds_data['
 wdsTable.rename_column('col0', 'Unique ID')
 wdsTable = delete_invalid_lines_wds(wdsTable)
 
+print('WDS angle formatting done, creating catalog... - ' , datetime.datetime.now())
+
 wds_catalog = SkyCoord(ra=wdsTable['Coord (RA) hms'], dec=Angle(wdsTable['Coord (DEC) dms']), unit='hour, degree', frame="icrs")
 
-print('WDS Catalog:\n', wds_catalog)
+print('WDS Catalog created successfully - ' , datetime.datetime.now())
 
 sources_ds = Table()
 
@@ -571,7 +575,7 @@ else:
     fitsFileDate = dummyObservationDate
 
 ### Run source detection, collect star data to Qtable
-print('\n### Running source detection ###')
+print('\n### Running source detection ###\n' , datetime.datetime.now())
 for fitsFile in files:
     # 1. Read the list of sources extracted from an image (fits) file
     print('\n\n### Processing file: ', fitsFile, '###')
@@ -649,7 +653,8 @@ for ds in upd_sources_ds_by_object.groups:
         starParallaxError1 = float(gaiaAStar[0]['parallax_error'])
 
         # Value to modify Theta according to the appropriate quadrant
-        addThetaValue = ()
+
+        '''addThetaValue = ()
         if deltaRa(starRa1, starRa2, starDec2) > 0 and deltaDec(starDec2, starDec1) > 0:
             addThetaValue = 0
         elif deltaRa(starRa1, starRa2, starDec2) > 0 and deltaDec(starDec2, starDec1) < 0:
@@ -659,11 +664,12 @@ for ds in upd_sources_ds_by_object.groups:
         elif deltaRa(starRa1, starRa2, starDec2) < 0 and deltaDec(starDec2, starDec1) > 0:
             addThetaValue = 360
         elif deltaRa(starRa1, starRa2, starDec2) == 0 or deltaDec(starDec2, starDec1) == 0:
-            addThetaValue = 0
+            addThetaValue = 0'''
                     
         # Calculate the widest possible separation for StarA
         possSep1 = possible_distance / calcDistanceMax(starParallax1, starParallaxError1)
-        rhoStar = rhoCalc(starRa1, starDec1, starRa2, starDec2)
+        # rhoStar = rhoCalc(starRa1, starDec1, starRa2, starDec2)
+        rhoStar = angular_separation(starRa1, starDec1, starRa2, starDec2)
         if possSep1 > rhoStar:
             starId1 = gaiaAStar[0]['solution_id']
             starName1 = gaiaAStar[0]['DESIGNATION']
@@ -677,9 +683,10 @@ for ds in upd_sources_ds_by_object.groups:
             starActualDec2 = float(ds[0]['dec_deg_2'].mean())
 
             # Calculate actual data based on functions
-            thetaStar = thetaCalc(deltaRa(starRa1, starRa2, starDec2), deltaDec(starDec2, starDec1)) + addThetaValue
-            thetaActual = thetaCalc(deltaRa(starActualRa1, starActualRa2, starActualDec2), deltaDec(starActualDec2, starActualDec1)) + addThetaValue
-            rhoActual = rhoCalc(starActualRa1, starActualDec1, starActualRa2, starActualDec2)
+            # thetaStar = thetaCalc(deltaRa(starRa1, starRa2, starDec2), deltaDec(starDec2, starDec1)) + addThetaValue
+            # thetaActual = thetaCalc(deltaRa(starActualRa1, starActualRa2, starActualDec2), deltaDec(starActualDec2, starActualDec1)) + addThetaValue
+            # rhoActual = rhoCalc(starActualRa1, starActualDec1, starActualRa2, starActualDec2)
+            rhoActual = angular_separation(starActualRa1, starActualDec1, starActualRa2, starActualDec2)
             starDistance1 = calcDistance(starParallax1)
             starDistanceMax1 = calcDistanceMax(starParallax1, starParallaxError1)
             starDistanceMin1 = calcDistanceMin(starParallax1, starParallaxError1)
@@ -711,8 +718,10 @@ for ds in upd_sources_ds_by_object.groups:
         pairAltLum2 = calcLuminosityAlternate(pairAbsMag2)
         pairRad1 = calcRadius(pairLum1, gaiaAStar[0]['teff_gspphot'])
         pairRad2 = calcRadius(pairLum2, gaiaBStar[0]['teff_gspphot'])
-        pairDR3Theta = thetaCalc(deltaRa(gaiaAStar[0]['ra'], gaiaBStar[0]['ra'], gaiaBStar[0]['dec']), deltaDec(gaiaBStar[0]['dec'], gaiaAStar[0]['dec'])) + addThetaValue
-        pairDR3Rho = rhoCalc(gaiaAStar[0]['ra'], gaiaAStar[0]['dec'], gaiaBStar[0]['ra'], gaiaBStar[0]['dec'])
+        # pairDR3Theta = thetaCalc(deltaRa(gaiaAStar[0]['ra'], gaiaBStar[0]['ra'], gaiaBStar[0]['dec']), deltaDec(gaiaBStar[0]['dec'], gaiaAStar[0]['dec'])) + addThetaValue
+        pairDR3Theta = position_angle(gaiaAStar[0]['ra'], gaiaAStar[0]['dec'], gaiaBStar[0]['ra'], gaiaBStar[0]['dec'])
+        # pairDR3Rho = rhoCalc(gaiaAStar[0]['ra'], gaiaAStar[0]['dec'], gaiaBStar[0]['ra'], gaiaBStar[0]['dec'])
+        pairDR3Rho = angular_separation(gaiaAStar[0]['ra'], gaiaAStar[0]['dec'], gaiaBStar[0]['ra'], gaiaBStar[0]['dec'])
         pairMass1 = calcMass(pairLum1)
         pairMass2 = calcMass(pairLum2)
         pairBVIndexA = gaiaAStar[0]['phot_bp_mean_mag'] - gaiaAStar[0]['phot_g_mean_mag']
@@ -817,6 +826,7 @@ for ds in upd_sources_ds_by_object.groups:
     print('Pair Harshaw factor:', pairHarshawFactor)
     print('Pair Harshaw physicality:', pairHarshawPhysicality)
     print('Pair binarity:', pairBinarity)
+    print('Analysis finished: ' , datetime.datetime.now())
     
     # Write results to file
     reportTable.add_row([ds[0]['2000 Coord'] + ds[0]['Discov'] + str(ds[0]['Comp']), dateOfObservation, pairMeanTheta, pairMeanThetaErr, pairMeanRho, pairMeanRhoErr, np.nan, np.nan, pairMagDiff, pairMagDiffErr, 'Filter wawelenght', 'filter FWHM', '0.2', '1', 'TAL_2022', 'C', '7', preciseCoord])
