@@ -19,7 +19,9 @@ from astropy.coordinates import SkyCoord, Angle, FK5, ICRS
 from matplotlib import pyplot as plt
 from astropy.wcs import utils
 from astropy.time import Time, TimeDelta
-
+from astroquery.gaia import Gaia
+Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"  # Reselect Data Release 3, default
+Gaia.ROW_LIMIT = -1 # To return an unlimited number of rows
 
 # Configuration for the ATIK camera
 
@@ -36,9 +38,17 @@ else:
 
 mywcs = WCS(fitsHeader)
 
-photo_left_upper = mywcs.pixel_to_world(0, 0, 1)
-photo_left_lower = mywcs.pixel_to_world(fitsHeader['NAXIS2'], 0, 1)
-photo_right_upper = mywcs.pixel_to_world(0, fitsHeader['NAXIS1'], 1)
-photo_right_lower = mywcs.pixel_to_world(fitsHeader['NAXIS2'], fitsHeader['NAXIS1'], 1)
+photo_left_upper = SkyCoord.from_pixel(0, 0, mywcs, origin=0, mode='all')
+photo_left_lower = SkyCoord.from_pixel(fitsHeader['NAXIS2'], 0, mywcs, origin=0, mode='all')
+photo_right_upper = SkyCoord.from_pixel(0, fitsHeader['NAXIS1'], mywcs, origin=0, mode='all')
+photo_right_lower = SkyCoord.from_pixel(fitsHeader['NAXIS2'], fitsHeader['NAXIS1'], mywcs, origin=0, mode='all')
+photo_center = SkyCoord(fitsHeader['RA'] * u.degree, fitsHeader['DEC'] * u.degree)
 
-print(photo_left_upper, photo_left_lower, photo_right_upper, photo_right_lower)
+photo_width = photo_left_upper.separation(photo_right_upper)
+photo_height = photo_left_upper.separation(photo_left_lower)
+
+print(photo_center.to_string('hmsdms'), photo_width, photo_height)
+
+gaia_photo_catalog = Gaia.query_object_async(photo_center, photo_width / 2, photo_height / 2)
+
+print(gaia_photo_catalog)
