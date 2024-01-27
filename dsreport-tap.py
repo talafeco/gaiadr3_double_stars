@@ -459,9 +459,12 @@ reportTable = QTable([reportFileName, reportSourceIdA, reportDr3DesignationA, re
 # Set observation date and time
 fitsFileDate = ''
 fitsHeader = fits.open(workingDirectory + '/' + files[0])[0].header
-key_to_lookup = 'DATE-OBS'
-if key_to_lookup in fitsHeader:
-    fitsFileDate = fits.open(workingDirectory + '/' + files[0])[0].header['DATE-OBS']
+key_to_lookup_a = 'DATE-OBS'
+key_to_lookup_b = 'DATE'
+if key_to_lookup_a in fitsHeader:
+    fitsFileDate = fitsHeader['DATE-OBS']
+elif key_to_lookup_b in fitsHeader:
+    fitsFileDate = fitsHeader['DATE']
 else:
     fitsFileDate = np.nan
 
