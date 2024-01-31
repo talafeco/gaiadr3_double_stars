@@ -7,7 +7,8 @@
 
 #tasks
 #rhocalc to be fixed!
-#show progress by x/y files processed
+#show progress by x/y files processed - OK
+#show the number of measurements
 
 import os
 import sys
@@ -468,9 +469,12 @@ elif key_to_lookup_b in fitsHeader:
 else:
     fitsFileDate = np.nan
 
+file_counter = 0
+
 for fitsFile in files:
     # 1. Read the list of sources extracted from an image (fits) file
-    print('Processing file: ', fitsFile)
+    file_counter = file_counter + 1
+    print('Processing file', file_counter, 'out of', len(files),': ', fitsFile)
     fitsFileName = workingDirectory + '/' + fitsFile
     hdu = fits.open(fitsFileName)
     mywcs = WCS(hdu[0].header)
@@ -554,12 +558,14 @@ for group in sourceTable_by_file.groups:
                 starDec1 = float(StarA[4])
                 starRa2 = float(StarB[3])
                 starDec2 = float(StarB[4])
+                starCoord1 = SkyCoord(StarA[3], StarA[4], unit="deg")
+                starCoord2 = SkyCoord(StarB[3], StarB[4], unit="deg")
                 starParallax1 = float(StarA[5])
                 starParallaxError1 = float(StarA[6])
                             
                 # Calculate the widest possible separation for StarA
                 possSep1 = possible_distance / calcDistanceMax(starParallax1, starParallaxError1)
-                rhoStar = rhoCalc(starRa1, starDec1, starRa2, starDec2)
+                rhoStar = starCoord1.separation(starCoord2).arcsecond
                 if possSep1 > rhoStar:
                     starId1 = StarA[1]
                     starName1 = StarA[2]
@@ -591,6 +597,8 @@ for group in sourceTable_by_file.groups:
                     starActualRa2 = float(StarB[16])
                     starActualDec2 = float(StarB[17])
                     starActualMag2 = float(StarB[18])
+                    starActualCoord1 = SkyCoord(starActualRa1, starActualDec1, unit="deg")
+                    starActualCoord2 = SkyCoord(starActualRa2, starActualDec2, unit="deg")
                     starObjectId = (str(starId1) + '_' + str(starId2))
 
                     # Value to modify Theta according to the appropriate quadrant
@@ -606,11 +614,11 @@ for group in sourceTable_by_file.groups:
                     
                     # Calculate actual data based on functions
                     #thetaStar = thetaCalc(deltaRa(starRa1, starRa2, starDec2), deltaDec(starDec2, starDec1)) + addThetaValue
-                    thetaStar = position_angle(starRa1, starDec1, starRa2, starDec2)
+                    thetaStar = starCoord1.position_angle(starCoord2).degree
                     #thetaActual = thetaCalc(deltaRa(starActualRa1, starActualRa2, starActualDec2), deltaDec(starActualDec2, starActualDec1)) + addThetaValue
-                    thetaActual = position_angle(starActualRa1, starActualDec1, starActualRa2, starActualDec2)
+                    thetaActual = starActualCoord1.position_angle(starActualCoord2).degree
                     #rhoActual = rhoCalc(starActualRa1, starActualDec1, starActualRa2, starActualDec2)
-                    rhoActual = angular_separation(starActualRa1, starActualDec1, starActualRa2, starActualDec2)
+                    rhoActual = starActualCoord1.separation(starActualCoord2).arcsecond
                     starDistance1 = calcDistance(starParallax1)
                     starDistanceMax1 = calcDistanceMax(starParallax1, starParallaxError1)
                     starDistanceMin1 = calcDistanceMin(starParallax1, starParallaxError1)

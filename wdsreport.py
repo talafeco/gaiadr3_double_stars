@@ -574,11 +574,14 @@ if key_to_lookup in fitsHeader:
 else:
     fitsFileDate = dummyObservationDate
 
+file_counter = 0
+
 ### Run source detection, collect star data to Qtable
 print('\n### Running source detection ###\n' , datetime.datetime.now())
 for fitsFile in files:
     # 1. Read the list of sources extracted from an image (fits) file
-    print('\n\n### Processing file: ', fitsFile, '###')
+    file_counter = file_counter + 1
+    print('\n\n### Processing file', file_counter, 'out of', len(files),': ', fitsFile, '###')
     fitsFileName = workingDirectory + '/' + fitsFile
     hdu = fits.open(fitsFileName)
     mywcs = WCS(hdu[0].header)
@@ -649,6 +652,8 @@ for ds in upd_sources_ds_by_object.groups:
         starDec1 = float(gaiaAStar[0]['dec'])
         starRa2 = float(gaiaBStar[0]['ra'])
         starDec2 = float(gaiaBStar[0]['dec'])
+        starCoord1 = SkyCoord(starRa1, starDec1, unit="deg")
+        starCoord2 = SkyCoord(starRa2, starDec2, unit="deg")
         starParallax1 = float(gaiaAStar[0]['parallax'])
         starParallaxError1 = float(gaiaAStar[0]['parallax_error'])
 
@@ -669,7 +674,7 @@ for ds in upd_sources_ds_by_object.groups:
         # Calculate the widest possible separation for StarA
         possSep1 = possible_distance / calcDistanceMax(starParallax1, starParallaxError1)
         # rhoStar = rhoCalc(starRa1, starDec1, starRa2, starDec2)
-        rhoStar = angular_separation(starRa1, starDec1, starRa2, starDec2)
+        rhoStar = starCoord1.separation(starCoord2).arcsecond
         if possSep1 > rhoStar:
             starId1 = gaiaAStar[0]['solution_id']
             starName1 = gaiaAStar[0]['DESIGNATION']
@@ -681,12 +686,14 @@ for ds in upd_sources_ds_by_object.groups:
             starActualDec1 = float(ds[0]['dec_deg_1'].mean())
             starActualRa2 = float(ds[0]['ra_deg_2'].mean())
             starActualDec2 = float(ds[0]['dec_deg_2'].mean())
+            starActualCoord1 = SkyCoord(starActualRa1, starActualDec1, unit="deg")
+            starActualCoord2 = SkyCoord(starActualRa2, starActualDec2, unit="deg")
 
             # Calculate actual data based on functions
             # thetaStar = thetaCalc(deltaRa(starRa1, starRa2, starDec2), deltaDec(starDec2, starDec1)) + addThetaValue
             # thetaActual = thetaCalc(deltaRa(starActualRa1, starActualRa2, starActualDec2), deltaDec(starActualDec2, starActualDec1)) + addThetaValue
             # rhoActual = rhoCalc(starActualRa1, starActualDec1, starActualRa2, starActualDec2)
-            rhoActual = angular_separation(starActualRa1, starActualDec1, starActualRa2, starActualDec2)
+            rhoActual = starActualCoord1.separation(starActualCoord2).arcsecond
             starDistance1 = calcDistance(starParallax1)
             starDistanceMax1 = calcDistanceMax(starParallax1, starParallaxError1)
             starDistanceMin1 = calcDistanceMin(starParallax1, starParallaxError1)
@@ -719,9 +726,9 @@ for ds in upd_sources_ds_by_object.groups:
         pairRad1 = calcRadius(pairLum1, gaiaAStar[0]['teff_gspphot'])
         pairRad2 = calcRadius(pairLum2, gaiaBStar[0]['teff_gspphot'])
         # pairDR3Theta = thetaCalc(deltaRa(gaiaAStar[0]['ra'], gaiaBStar[0]['ra'], gaiaBStar[0]['dec']), deltaDec(gaiaBStar[0]['dec'], gaiaAStar[0]['dec'])) + addThetaValue
-        pairDR3Theta = position_angle(gaiaAStar[0]['ra'], gaiaAStar[0]['dec'], gaiaBStar[0]['ra'], gaiaBStar[0]['dec'])
+        pairDR3Theta = starCoord1.position_angle(starCoord2).degree
         # pairDR3Rho = rhoCalc(gaiaAStar[0]['ra'], gaiaAStar[0]['dec'], gaiaBStar[0]['ra'], gaiaBStar[0]['dec'])
-        pairDR3Rho = angular_separation(gaiaAStar[0]['ra'], gaiaAStar[0]['dec'], gaiaBStar[0]['ra'], gaiaBStar[0]['dec'])
+        pairDR3Rho = rhoStar
         pairMass1 = calcMass(pairLum1)
         pairMass2 = calcMass(pairLum2)
         pairBVIndexA = gaiaAStar[0]['phot_bp_mean_mag'] - gaiaAStar[0]['phot_g_mean_mag']
