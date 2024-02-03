@@ -5,10 +5,6 @@
 # Install: copy file to /usr/local/bin folder
 # Usage: dsreport <image_folder>
 
-#tasks
-#rhocalc to be fixed!
-#show progress by x/y files processed
-
 import os
 import sys
 import numpy as np
@@ -629,8 +625,8 @@ for group in sourceTable_by_file.groups:
                     if distanceCommon == 'overlapping':
                         reportTable.add_row([star[0], starId1, starName1, starRa1, starDec1, starParallax1, starParallaxError1, starPmRa1, starPmDec1, starGMag1, starBpMag1, starRpMag1, starRadVel1, starRadVelErr1, starTemp1, starActualRa1, starActualDec1, starActualMag1, starId2, starName2, starRa2, starDec2, starParallax2, starParallaxError2, starPmRa2, starPmDec2, starGMag2, starBpMag2, starRpMag2, starRadVel2, starRadVelErr2, starTemp2, starActualRa2, starActualDec2, starActualMag2, thetaStar, thetaActual, rhoStar, rhoActual, starObjectId])
 
-print('### Report Table ###')
-print(reportTable)
+# print('### Report Table ###')
+# print(reportTable)
 
 # Create Qtable to list the measurements and the standard error per groups (double star)
 measuredObject = np.array([], dtype=str)
@@ -643,8 +639,8 @@ meanTable = QTable([measuredObject, measuredMeanTheta, measuredMeanThetaErr, mea
 
 ### Search double stars on the image sequence
 reportTable_by_object = reportTable.group_by('object_id')
-print('\n### Report Table by object ###')
-print(reportTable_by_object)
+# print('\n### Report Table by object ###')
+# print(reportTable_by_object)
 
 objectMean = reportTable_by_object.groups.aggregate(np.mean)
 
@@ -707,6 +703,11 @@ for ds in reportTable_by_object.groups:
     pairBCoordErr = pairBCurrentCoord.separation(pairBMeasuredCoord)
 
     preciseCoord = str(getPreciseCoord(pairRaA, pairDecA, fitsFileDate))
+
+    pairNumTheta = len(ds['theta_measured'])
+    pairNumRho = len(ds['rho_measured'])
+    pairNumMagMeasureadA = len(ds['magmeasured_a'])
+    pairNumMagMeasureadB = len(ds['magmeasured_b'])
     
     reportName = (workingDirectory + '/' + ds[0][39] + '.txt')
     reportFile = open(reportName, "a")
@@ -731,17 +732,21 @@ for ds in reportTable_by_object.groups:
     print('2016 Calculared Position angle / Separation: ', pairACurrentCoord.position_angle(pairBCurrentCoord).degree, pairACurrentCoord.separation(pairBCurrentCoord).arcsecond)
     print('Current Calculared Position angle / Separation: ', SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree, SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond)
     print('\nTheta measurements\n', ds['theta_measured'])
+    print('Number of measurements: ', pairNumTheta)
     print('Mean:', pairMeanTheta[0])
     print('Error:', pairMeanThetaErr[0])
     print('\nRho measurements\n', ds['rho_measured'])
+    print('Number of measurements: ', pairNumRho)
     print('Mean:', pairMeanRho[0])
     print('Error:', pairMeanRhoErr[0])
     print('\nMagnitude A DR3: \n', pairGMagnitudeA)
     print('\nMagnitude A measurements\n', ds['magmeasured_a'])
+    print('Number of measurements: ', pairNumMagMeasureadA)
     print('Mean:', pairMagMeasuredA[0])
     print('Error:', pairMagMeasuredAErr[0])
     print('\nMagnitude B DR3: \n', pairGMagnitudeB)
     print('\nMagnitude B measuremets\n', ds['magmeasured_b'])
+    print('Number of measurements: ', pairNumMagMeasureadB)
     print('Mean:', pairMagMeasuredB[0])
     print('Error:', pairMagMeasuredBErr[0])
     print('\nMagnitude difference (DR3):', pairMagDiffDr3)

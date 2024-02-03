@@ -326,7 +326,7 @@ def calcRelativeVelocity(pmraa, pmdeca, pmrab, pmdecb, radvela, radvelb, dista, 
 
 def calcEscapevelocity(mass_a, mass_b, separation, gravconst):
     if bool(mass_a) and bool(mass_b) and bool(separation) and bool(gravconst):
-        print('calcEscapevelocity: ' + str(mass_a) + ' ' + str(mass_b) + ' ' + str(separation) + ' ' + str(gravconst))
+        # print('calcEscapevelocity: ' + str(mass_a) + ' ' + str(mass_b) + ' ' + str(separation) + ' ' + str(gravconst))
         escvel = math.sqrt((2 * gravconst * (mass_a + mass_b)) / separation)
     else:
         escvel = 0.0
@@ -612,15 +612,15 @@ for fitsFile in files:
     composit_catalog2.add_column(sources_mag_diff, name='mag_diff')
     sources_ds = vstack([sources_ds, composit_catalog2])
 
-print('### Sources DS ###')
-print(sources_ds)
+# print('### Sources DS ###')
+# print(sources_ds)
 
 upd_sources_ds = sources_ds[sources_ds['rho_measured'] != 0]
 upd_sources_ds_by_object = upd_sources_ds.group_by(['2000 Coord', 'Discov', 'Comp'])
 
-print(upd_sources_ds.info)
-print('### Updated sources DS table grouped by WDS Identifier, Discoverer and Components ###')
-print(upd_sources_ds_by_object)
+# print(upd_sources_ds.info)
+# print('### Updated sources DS table grouped by WDS Identifier, Discoverer and Components ###')
+# print(upd_sources_ds_by_object)
 
 upd_sources_ds_by_object.write(workingDirectory + '/double_stars.csv', format='ascii', overwrite=True, delimiter=',')
 
@@ -631,7 +631,7 @@ count = 1
 for ds in upd_sources_ds_by_object.groups:
     print('\n#---------------------------------------------------------------------------------------------------------------------#')
     print('\n### Group index:', count, '###')
-    print(ds)
+    # print(ds)
     count = count + 1
     pairObjectId = ds[0]['2000 Coord'] + ds[0]['Discov'] + str(ds[0]['Comp'])
     
@@ -768,7 +768,7 @@ for ds in upd_sources_ds_by_object.groups:
         pairDesB = str(gaiaBStar[0]['DESIGNATION'])
         dateOfObservation = getUTC(fitsFileDate)
         #
-        print('dateOfObservation: ', dateOfObservation)
+        # print('dateOfObservation: ', dateOfObservation)
         pairACurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaA, pairDecA, gaiaAStar[0]['pmra'], gaiaAStar[0]['pmdec'])
         pairBCurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaB, pairDecB, gaiaBStar[0]['pmra'], gaiaBStar[0]['pmdec'])
         pairAMeasuredCoord = SkyCoord(ra=ds['ra_deg_1'].groups.aggregate(np.mean) * u.deg, dec=ds['dec_deg_1'].groups.aggregate(np.mean) * u.deg)
