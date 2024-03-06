@@ -1,6 +1,6 @@
 # Gaia DR3 Double Stars
 Search visual double star candidates in Gaia DR3. Mag &lt; 15, par > 0.5.
-
+ 
 ## Fits double star measurement
 (fits_double_measurement.py)
 1. Read image file, apply dark+flat+bias
