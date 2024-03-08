@@ -48,6 +48,10 @@ Search visual double star candidates in Gaia DR3. Mag &lt; 15, par > 0.5.
 6. Write the Double star name to the image (upper left corner)
 7. Write observation date and time (upper right corner)
 8. Write measurements of the components: designation, theta, rho (lower right corner)
+9. Calculate the double star's precise coordinates for current epoch
+10. Get all double stars from wds, which should be found on the images
+11. Search double stars based on magnitude difference, separation and position angle, if not found based on the coordinates
+12. Calculate double star orbit plane (inclination) for components, compare component planes.
 
 ## Function externsions
 1. Gaia data collection in one line

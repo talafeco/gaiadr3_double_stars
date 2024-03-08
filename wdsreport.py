@@ -3,6 +3,11 @@
 # Version: 1.0
 # Usage: wdsreport <image_folder>
 
+# Tasks
+# Calculate the double star's precise coordinates for current epoch
+# Get all double stars from wds, which should be found on the images
+# Search double stars based on magnitude difference, separation and position angle, if not found based on the coordinates
+
 import os
 import sys
 import numpy as np
