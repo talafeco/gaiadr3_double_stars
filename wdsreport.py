@@ -23,7 +23,6 @@ from astropy.table import QTable
 from astropy.table import Table, vstack, hstack
 from astropy.table import Column, MaskedColumn
 from photutils.detection import DAOStarFinder
-import numpy as np
 from astropy.wcs import WCS
 import astropy.units as u
 import warnings
@@ -491,6 +490,21 @@ def get_gaia_dr3_data(doublestars):
     a_query = a.get_results()
     b_query = b.get_results()
     return a_query, b_query
+
+# Calculate maximum orbit speed
+# excel: 
+
+
+def calc_historic_orbit(massa, massb, sep_au, dr3_rho, measured_rho, avg_parallax, delta_time, delta_theta, delta_rho):
+    half_axis = avg_parallax * (1.26 * dr3_rho)
+    # GYÖK(0.0043*($M$20+$N$20)*(2/($N$11*0.00000485)-1/(N25*0.00000485)))
+    max_orbit_vel = math.sqrt(gravConst * (massa + massb) * (2 / (sep_au * 0.00000485) - 1 (half_axis * 0.00000485)))
+    # GYÖK((P33*(P35/$I$11))^2+(P34/$I$11)^2)
+    relative_vel = math.sqrt((measured_rho * (delta_theta / delta_time)) ** 2 + (delta_rho / delta_time) ** 2)
+    # 0.0474*$N$10*P36
+    measured_vel = 0.0474 * WTD_DIST * relative_vel
+    return measured_vel
+
 
 ###################################################################################################################################
 
