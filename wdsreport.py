@@ -500,11 +500,10 @@ def calc_historic_orbit(massa, massb, sep_au, dr3_rho, measured_rho, avg_paralla
     # GYÖK(0.0043*($M$20+$N$20)*(2/($N$11*0.00000485)-1/(N25*0.00000485)))
     max_orbit_vel = math.sqrt(gravConst * (massa + massb) * (2 / (sep_au * 0.00000485) - 1 (half_axis * 0.00000485)))
     # GYÖK((P33*(P35/$I$11))^2+(P34/$I$11)^2)
-    relative_vel = math.sqrt((measured_rho * (delta_theta / delta_time)) ** 2 + (delta_rho / delta_time) ** 2)
+    relative_velocity = math.sqrt((measured_rho * (delta_theta / delta_time)) ** 2 + (delta_rho / delta_time) ** 2)
     # 0.0474*$N$10*P36
-    measured_vel = 0.0474 * WTD_DIST * relative_vel
-    return measured_vel
-
+    measured_velocity = 0.0474 * WTD_DIST * relative_velocity
+    return measured_velocity
 
 ###################################################################################################################################
 
