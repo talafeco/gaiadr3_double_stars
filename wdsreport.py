@@ -492,23 +492,30 @@ def get_gaia_dr3_data(doublestars):
     return a_query, b_query
 
 # Calculate maximum orbit speed
-def calc_historic_orbit(massa, massb, sep_au, avg_distance, dr3_rho, wds_first_rho, measured_rho, wds_first_theta, measured_theta, wds_first_obs, obs_time):
+def calc_historic_orbit(massa, massb, sep_pc, avg_distance, dr3_rho, wds_first_rho, measured_rho, wds_first_theta, measured_theta, wds_first_obs, obs_time):
     # Calculate historical delta position angle (theta in decimal degree)
-    delta_theta = math.abs(wds_first_theta - measured_theta)
+    delta_theta = math.fabs(wds_first_theta - measured_theta)
+    
     # Calculate historical delta separation (rho in arcsconds)
-    delta_rho = math.abs(wds_first_rho - measured_rho)
+    delta_rho = math.fabs(wds_first_rho - measured_rho)
+    
     # Calculate historical delta time (years)
     delta_time = obs_time - wds_first_obs
+    
     # Calculate half axis
     half_axis = avg_distance * (1.26 * dr3_rho)
+    
     # Calculate maximum orbital velocity
     # GYÖK(0.0043*($M$20+$N$20)*(2/($N$11*0.00000485)-1/(N25*0.00000485)))
-    max_orbit_velolicy = math.sqrt(gravConst * (massa + massb) * (2 / (sep_au * 0.00000485) - 1 / (half_axis * 0.00000485)))
+    max_orbit_velolicy = math.sqrt(gravConst * (massa + massb) * (2 / (sep_pc) - 1 / (half_axis * 0.00000485)))
+    
     # GYÖK((P33*(P35/$I$11))^2+(P34/$I$11)^2)
     relative_velocity = math.sqrt((measured_rho * (delta_theta / delta_time)) ** 2 + (delta_rho / delta_time) ** 2)
+    
     # 0.0474*$N$10*P36
     observed_velocity = 0.0474 * avg_distance * relative_velocity
     historic_criterion = ''
+    
     if observed_velocity < max_orbit_velolicy:
         historic_criterion = 'Physical'
     else:
@@ -797,15 +804,14 @@ for ds in upd_sources_ds_by_object.groups:
         pairDesA = str(gaiaAStar[0]['DESIGNATION'])
         pairDesB = str(gaiaBStar[0]['DESIGNATION'])
         dateOfObservation = getUTC(fitsFileDate)
-        #
-        # print('dateOfObservation: ', dateOfObservation)
         pairACurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaA, pairDecA, gaiaAStar[0]['pmra'], gaiaAStar[0]['pmdec'])
         pairBCurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaB, pairDecB, gaiaBStar[0]['pmra'], gaiaBStar[0]['pmdec'])
         pairAMeasuredCoord = SkyCoord(ra=ds['ra_deg_1'].groups.aggregate(np.mean) * u.deg, dec=ds['dec_deg_1'].groups.aggregate(np.mean) * u.deg)
         pairBMeasuredCoord = SkyCoord(ra=ds['ra_deg_2'].groups.aggregate(np.mean) * u.deg, dec=ds['dec_deg_2'].groups.aggregate(np.mean) * u.deg)
         pairACoordErr = pairACurrentCoord.separation(pairAMeasuredCoord)
         pairBCoordErr = pairBCurrentCoord.separation(pairBMeasuredCoord)
-        #
+        pair_orbit = calc_historic_orbit(pairMass1, pairMass2, pairSepPar, avg_distance, pairACurrentCoord.separation(pairBCurrentCoord).arcsecond, wds_first_rho, pairMeanRho, wds_first_theta, pairMeanTheta, wds_first_obs, dateOfObservation)
+        
         preciseCoord = str(getPreciseCoord(pairRaA, pairDecA, fitsFileDate))
         reportName = (workingDirectory + '/' + pairObjectId + '.txt')
         reportFile = open(reportName, "a")
