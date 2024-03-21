@@ -491,8 +491,16 @@ def get_gaia_dr3_data(doublestars):
     b_query = b.get_results()
     return a_query, b_query
 
+def calc_average_distance(star_a_par, star_a_par_err, star_b_par, star_b_par_err):
+    # Calcualte average distance in lightyears
+    # Excel formula: = 1000 / (((1-star A parallax) * star A parallax error in %)+((1-star B parallax) * star B parallax error in %))/((1-star A parallax error in %)+(1-star B parallax error in %))
+    avg_dist = 1000 / ((((1 - star_a_par) * (star_a_par_err / star_a_par)) + ((1 - star_b_par) * (star_b_par_err / star_b_par))) / ((1 - (star_a_par_err / star_a_par)) + (1 - (star_b_par_err / star_b_par))))
+    return avg_dist
+
 # Calculate maximum orbit speed
 def calc_historic_orbit(massa, massb, sep_pc, avg_distance, dr3_rho, wds_first_rho, measured_rho, wds_first_theta, measured_theta, wds_first_obs, obs_time):
+    
+
     # Calculate historical delta position angle (theta in decimal degree)
     delta_theta = math.fabs(wds_first_theta - measured_theta)
     
@@ -635,7 +643,7 @@ for fitsFile in files:
 
     sources_catalog = SkyCoord(ra=sources['ra_deg']*u.degree, dec=sources['dec_deg']*u.degree)
     idxw, idxs, wsd2d, wsd3d = search_around_sky(wds_catalog, sources_catalog, search_cone*u.deg)
-    composit_catalog = hstack([wdsTable[idxw]['2000 Coord', 'Discov', 'Comp', 'PA_l', 'Sep_l', 'Mag_A', 'Mag_B'], sources[idxs]['id', 'mag', 'ra_deg', 'dec_deg']])
+    composit_catalog = hstack([wdsTable[idxw]['2000 Coord', 'Discov', 'Comp', 'Date (first)', 'PA_f', 'PA_l', 'Sep_f', 'Sep_l', 'Mag_A', 'Mag_B'], sources[idxs]['id', 'mag', 'ra_deg', 'dec_deg']])
     companion_catalog = SkyCoord(ra=composit_catalog['ra_deg'] * u.degree, dec=composit_catalog['dec_deg'] * u.degree).directional_offset_by(composit_catalog['PA_l']*u.degree, composit_catalog['Sep_l']*u.arcsec)
     idxs2, d2ds2, d3ds2 = match_coordinates_sky(companion_catalog, sources_catalog)
     composit_catalog2 = hstack([composit_catalog, sources[idxs2]]) #['id', 'mag', 'ra_deg', 'dec_deg']
@@ -749,7 +757,7 @@ for ds in upd_sources_ds_by_object.groups:
                 distanceCommon = 'no'
         
         # Calculate attributes
-        pairParallaxFactor, pairPmFactor, pairPmFactor, pairPmCommon, pairAbsMag1, pairAbsMag2, pairLum1, pairLum2, pairRad1, pairRad2, pairDR3Theta, pairDR3Rho, pairMass1, pairMass2, pairBVIndexA, pairBVIndexB, pairSepPar, pairEscapeVelocity, pairRelativeVelocity, pairHarshawFactor, pairHarshawPhysicality, pairBinarity = 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 
+        pairParallaxFactor, pairPmFactor, pairPmFactor, pairPmCommon, pairAbsMag1, pairAbsMag2, pairLum1, pairLum2, pairRad1, pairRad2, pairDR3Theta, pairDR3Rho, pairMass1, pairMass2, pairBVIndexA, pairBVIndexB, pairSepPar, pairEscapeVelocity, pairRelativeVelocity, pairHarshawFactor, pairHarshawPhysicality, pairBinarity = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 
 
         pairParallaxFactor = (calcParallaxFactor(gaiaAStar[0]['parallax'], gaiaBStar[0]['parallax'])) * 100
         pairPmFactor = (calcPmFactor(gaiaAStar[0]['pmra'], gaiaAStar[0]['pmdec'], gaiaBStar[0]['pmra'], gaiaBStar[0]['pmdec']))
@@ -810,7 +818,9 @@ for ds in upd_sources_ds_by_object.groups:
         pairBMeasuredCoord = SkyCoord(ra=ds['ra_deg_2'].groups.aggregate(np.mean) * u.deg, dec=ds['dec_deg_2'].groups.aggregate(np.mean) * u.deg)
         pairACoordErr = pairACurrentCoord.separation(pairAMeasuredCoord)
         pairBCoordErr = pairBCurrentCoord.separation(pairBMeasuredCoord)
-        pair_orbit = calc_historic_orbit(pairMass1, pairMass2, pairSepPar, avg_distance, pairACurrentCoord.separation(pairBCurrentCoord).arcsecond, wds_first_rho, pairMeanRho, wds_first_theta, pairMeanTheta, wds_first_obs, dateOfObservation)
+        # Caculate the common distance from Earth
+        pairDistance = calc_average_distance(float(gaiaAStar[0]['parallax']), float(gaiaAStar[0]['parallax_error']), float(gaiaBStar[0]['parallax']), float(gaiaBStar[0]['parallax_error']))
+        pair_orbit = calc_historic_orbit(pairMass1, pairMass2, pairSepPar, pairDistance, pairACurrentCoord.separation(pairBCurrentCoord).arcsecond, ds[0]['Sep_f'], pairMeanRho, ds[0]['PA_f'], pairMeanTheta, ds[0]['Date (first)'], dateOfObservation)
         
         preciseCoord = str(getPreciseCoord(pairRaA, pairDecA, fitsFileDate))
         reportName = (workingDirectory + '/' + pairObjectId + '.txt')
