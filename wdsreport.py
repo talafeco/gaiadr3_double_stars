@@ -536,12 +536,25 @@ def calc_historic_orbit(massa, massb, sep_pc, avg_distance, dr3_rho, wds_first_r
     # 0.0474*$N$10*P36
     observed_velocity = 0.0474 * avg_distance * relative_velocity
     historic_criterion = ''
+    input_data_variables = {
+        "massa" : massa,
+        "massb" : massb,
+        "sep_pc" : sep_pc, 
+        "avg_distance" : avg_distance, 
+        "dr3_rho" : dr3_rho, 
+        "wds_first_rho" : wds_first_rho, 
+        "measured_rho" : measured_rho, 
+        "wds_first_theta" : wds_first_theta, 
+        "measured_theta" : measured_theta, 
+        "wds_first_obs" : wds_first_obs, 
+        "obs_time" : obs_time
+    }
     
     if observed_velocity < max_orbit_velolicy:
         historic_criterion = 'Physical'
     else:
         historic_criterion = 'Optical'   
-    return historic_criterion, max_orbit_velolicy, observed_velocity
+    return historic_criterion, max_orbit_velolicy, observed_velocity, input_data_variables
 
 
 ###################################################################################################################################
@@ -966,9 +979,10 @@ for ds in upd_sources_ds_by_object.groups:
     reportFile.write('\nPair binarity: ' + str(pairBinarity))
     # new function - orbit calculation
     reportFile.write('\n### Pair historical orbit calculations ###')
-    reportFile.write('\nHistoric criterion: ', pair_orbit[0])
-    reportFile.write('\nMax orbit velolicy: ', pair_orbit[1])
-    reportFile.write('\nObserved velocity: ', pair_orbit[2])
+    reportFile.write('\nHistoric criterion: ' + str(pair_orbit[0]))
+    reportFile.write('\nMax orbit velolicy: ' + str(pair_orbit[1]))
+    reportFile.write('\nObserved velocity: ' + str(pair_orbit[2]))
+    reportFile.write('\nInput data variables: ' + str(pair_orbit[3]))
     reportFile.write('\n\n### WDS form:\n')
     wdsform = str(ds[0]['2000 Coord']) + ',' + dateOfObservation + ',' +  str(roundNumber(pairMeanTheta)) + ',' +  str(roundNumber(pairMeanThetaErr)) + ',' +  str(roundNumber(pairMeanRho)) + ',' +  str(roundNumber(pairMeanRhoErr)) + ',' +  'nan' + ',' +  'nan' + ',' +  str(roundNumber(pairMagDiff)) + ',' +  str(roundNumber(pairMagDiffErr)) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TLB_2023' + ',' +  'C' + ',' + '7'+ ',' + str(getPreciseCoord(pairRaA, pairDecA, fitsFileDate))
     reportFile.write(str(wdsform))
