@@ -477,7 +477,7 @@ def imagePlot(filename, pairname, raa, deca, rab, decb):
     #plt.title(pairname, pad=50.0)
     plt.title(pairname)
 
-    plt.imshow(image, origin='lower',cmap='grey', aspect='equal', vmax=image_limit, vmin=0) # , cmap='cividis'
+    plt.imshow(image, origin='lower',cmap='Greys', aspect='equal', vmax=image_limit, vmin=0) # , cmap='cividis'
     plt.savefig(workingDirectory + '/' + pairname + '_img.jpg',dpi=150.0, bbox_inches='tight', pad_inches=0.2)
     plt.close()
     #plt.show()
@@ -499,7 +499,19 @@ def calc_average_distance(star_a_par, star_a_par_err, star_b_par, star_b_par_err
 
 # Calculate maximum orbit speed
 def calc_historic_orbit(massa, massb, sep_pc, avg_distance, dr3_rho, wds_first_rho, measured_rho, wds_first_theta, measured_theta, wds_first_obs, obs_time):
-    
+    # Check data types
+    print('\n ##### Calc history orbit #####\n')
+    print('massa: ', massa, ' (', type(massa), ')')
+    print('massb: ', massb, ' (', type(massb), ')')
+    print('sep_pc: ', sep_pc, ' (', type(sep_pc), ')')
+    print('avg_distance: ', avg_distance, ' (', type(avg_distance), ')')
+    print('dr3_rho: ', dr3_rho, ' (', type(dr3_rho), ')')
+    print('wds_first_rho: ', wds_first_rho, ' (', type(wds_first_rho), ')')
+    print('measured_rho: ', measured_rho, ' (', type(measured_rho), ')')
+    print('wds_first_theta: ', wds_first_theta, ' (', type(wds_first_theta), ')')
+    print('measured_theta: ', measured_theta, ' (', type(measured_theta), ')')
+    print('wds_first_obs: ', wds_first_obs, ' (', type(wds_first_obs), ')')
+    print('obs_time: ', obs_time, ' (', type(obs_time), ')')
 
     # Calculate historical delta position angle (theta in decimal degree)
     delta_theta = math.fabs(wds_first_theta - measured_theta)
@@ -508,14 +520,15 @@ def calc_historic_orbit(massa, massb, sep_pc, avg_distance, dr3_rho, wds_first_r
     delta_rho = math.fabs(wds_first_rho - measured_rho)
     
     # Calculate historical delta time (years)
-    delta_time = obs_time - wds_first_obs
+    delta_time = float(obs_time) - float(wds_first_obs)
     
     # Calculate half axis
     half_axis = avg_distance * (1.26 * dr3_rho)
+    print('half_axis: ', half_axis, ' (', type(half_axis), ')')
     
     # Calculate maximum orbital velocity
     # GYÖK(0.0043*($M$20+$N$20)*(2/($N$11*0.00000485)-1/(N25*0.00000485)))
-    max_orbit_velolicy = math.sqrt(gravConst * (massa + massb) * (2 / (sep_pc) - 1 / (half_axis * 0.00000485)))
+    max_orbit_velolicy = math.sqrt(gravConst * ((massa + massb) * (2 / (sep_pc)) - 1 / (half_axis * 0.00000485)))
     
     # GYÖK((P33*(P35/$I$11))^2+(P34/$I$11)^2)
     relative_velocity = math.sqrt((measured_rho * (delta_theta / delta_time)) ** 2 + (delta_rho / delta_time) ** 2)
@@ -529,7 +542,6 @@ def calc_historic_orbit(massa, massb, sep_pc, avg_distance, dr3_rho, wds_first_r
     else:
         historic_criterion = 'Optical'   
     return historic_criterion, max_orbit_velolicy, observed_velocity
-
 
 
 ###################################################################################################################################
@@ -876,6 +888,10 @@ for ds in upd_sources_ds_by_object.groups:
     print('Separation:', pairSepPar, 'parsec,', pairSepPar * 206265, 'AU')
     print('Pair Escape velocity:', pairEscapeVelocity, 'km/s')
     print('Pair Relative velocity:', pairRelativeVelocity, 'km/s')
+    print('### Pair historical orbit calculations ###')
+    print('Historic criterion: ', pair_orbit[0])
+    print('Max orbit velolicy: ', pair_orbit[1])
+    print('Observed velocity: ', pair_orbit[2])
     print('Pair Harshaw factor:', pairHarshawFactor)
     print('Pair Harshaw physicality:', pairHarshawPhysicality)
     print('Pair binarity:', pairBinarity)
@@ -948,6 +964,11 @@ for ds in upd_sources_ds_by_object.groups:
     reportFile.write('\nPair Harshaw factor: ' + str(roundNumber(pairHarshawFactor)))
     reportFile.write('\nPair Harshaw physicality: ' + str(pairHarshawPhysicality))
     reportFile.write('\nPair binarity: ' + str(pairBinarity))
+    # new function - orbit calculation
+    reportFile.write('\n### Pair historical orbit calculations ###')
+    reportFile.write('\nHistoric criterion: ', pair_orbit[0])
+    reportFile.write('\nMax orbit velolicy: ', pair_orbit[1])
+    reportFile.write('\nObserved velocity: ', pair_orbit[2])
     reportFile.write('\n\n### WDS form:\n')
     wdsform = str(ds[0]['2000 Coord']) + ',' + dateOfObservation + ',' +  str(roundNumber(pairMeanTheta)) + ',' +  str(roundNumber(pairMeanThetaErr)) + ',' +  str(roundNumber(pairMeanRho)) + ',' +  str(roundNumber(pairMeanRhoErr)) + ',' +  'nan' + ',' +  'nan' + ',' +  str(roundNumber(pairMagDiff)) + ',' +  str(roundNumber(pairMagDiffErr)) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TLB_2023' + ',' +  'C' + ',' + '7'+ ',' + str(getPreciseCoord(pairRaA, pairDecA, fitsFileDate))
     reportFile.write(str(wdsform))

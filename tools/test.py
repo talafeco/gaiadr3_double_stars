@@ -1,3 +1,5 @@
+#! /usr/bin/python3
+
 import os
 import numpy as np
 import math
@@ -20,8 +22,12 @@ from matplotlib import pyplot as plt
 from astropy.wcs import utils
 from astropy.time import Time, TimeDelta
 
+gravConst = 0.0043009
+massa = 1.1623341720418554
+massb = 0.8373715693669024
+sep_pc = 0.019690628023291214
+half_axis = 1357195.0254232308
 
-date_time = sys.argv[1]
-date_of_observation_time_cet = Time(date_time, precision=0)
-utc_date_time = str(date_of_observation_time_cet.jyear)
-print(utc_date_time)
+max_orbit_velolicy = math.sqrt(gravConst * ((massa + massb) * (2 / (sep_pc)) - 1 / (half_axis * 0.00000485)))
+
+print(max_orbit_velolicy)
