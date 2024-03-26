@@ -8,7 +8,10 @@
 import numpy as np
 import sys
 import os
+import ccdproc
 from astropy.io import fits
+from astropy import units as u
+from astropy.nddata import CCDData
 from matplotlib import pyplot as plt
 
 ## Import files
@@ -55,6 +58,7 @@ for file in flat_files:
     flat_list.append(image[0].data)
 flat_stack = np.array(flat_list)
 master_flat = np.median(flat_stack, axis=0)
+master_flat = CCDData(master_flat, unit=u.electron)
 
 ## Remove dark
 # dark_corrected_image = raw_image - master_dark
@@ -66,7 +70,7 @@ bias_corrected_image = dark_corrected_image - master_bias
 
 ## Correct flat
 # final_image = bias_corrected_image / master_flat
-final_image = bias_corrected_image / master_flat
+final_image = ccdproc.flat_correct(bias_corrected_image, master_flat)
 
 ## Troubleshooting
 plt.imshow(final_image, aspect='equal') # , vmax=image_limit, vmin=0, origin='lower',cmap='Greys', 
