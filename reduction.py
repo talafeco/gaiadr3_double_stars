@@ -50,7 +50,7 @@ def loggray(x, a=None, b=None):
     linval = 10.0 + 990.0 * (x-float(a))/(b-a)
     return (np.log10(linval)-1.0) * 0.5 * 255.0
 
-grayscaled_image_data = lingray(image_data)
+#grayscaled_image_data = lingray(image_data)
 
 ## Build marster dark
 dark_dir = os.listdir(dark_lib)
@@ -84,10 +84,10 @@ for file in flat_files:
     flat_list.append(image[0].data)
 flat_stack = np.array(flat_list)
 master_flat = np.median(flat_stack, axis=0)
-master_flat = CCDData(master_flat, unit=u.electron)
+#master_flat = CCDData(master_flat, unit=u.electron)
 
 ## Remove dark
-dark_corrected_image = grayscaled_image_data - master_dark
+dark_corrected_image = image_data - master_dark
 
 ## Remove bias
 bias_corrected_image = dark_corrected_image - master_bias
@@ -96,11 +96,20 @@ bias_corrected_image = dark_corrected_image - master_bias
 flat_corrected_image = bias_corrected_image / master_flat
 
 ## Create final image by correctiong the grayscale
-final_image = lingray(flat_corrected_image)
+final_image = flat_corrected_image
+#final_image = lingray(flat_corrected_image)
+testitng_image = final_image
+testing_name = 'final_image'
 new_image_min = 0.
-new_image_max = np.max(final_image)
+new_image_max = np.max(testitng_image)
 
 ## Troubleshooting
-plt.imshow(final_image, aspect='equal', vmax=new_image_max, vmin=new_image_min, origin='lower',cmap='Greys',) # ,  
-plt.savefig('final_image.jpg',dpi=150.0, bbox_inches='tight', pad_inches=0.2)
+plt.imshow(testitng_image, aspect='equal', vmax=new_image_max, vmin=new_image_min) # ,  , , , , , origin='lower',  cmap='Greys'
+plt.savefig(testing_name + '.jpg',dpi=150.0, bbox_inches='tight', pad_inches=0.2)
 plt.show()
+print(image_data)
+#print(grayscaled_image_data)
+print(master_dark)
+print(master_bias)
+print(master_flat)
+print(final_image)
