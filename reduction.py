@@ -26,6 +26,33 @@ raw_image = fits.open(image_file)[0].data
 image_data = np.array(raw_image, dtype=np.float64)
 print(np.info(image_data))
 
+## Define a function for making a linear gray scale
+def lingray(x, a=None, b=None):
+    """
+    Auxiliary function that specifies the linear gray scale.
+    a and b are the cutoffs : if not specified, min and max are used
+    """
+    if a == None:
+        a = np.min(x)
+    if b == None:
+        b = np.max(x)
+    return 255.0 * (x-float(a))/(b-a)
+
+## Define a function for making a logarithmic gray scale
+def loggray(x, a=None, b=None):
+    """
+    Auxiliary function that specifies the logarithmic gray scale.
+    a and b are the cutoffs : if not specified, min and max are used
+    """
+    if a == None:
+        a = np.min(x)
+    if b == None:
+        b = np.max(x)          
+    linval = 10.0 + 990.0 * (x-float(a))/(b-a)
+    return (np.log10(linval)-1.0) * 0.5 * 255.0
+
+grayscaled_image_data = lingray(image_data)
+
 ## Build marster dark
 dark_dir = os.listdir(dark_lib)
 dark_files = [f for f in dark_dir if os.path.isfile(dark_lib+'/'+f) and (f.endswith('.fit') or f.endswith('.fits'))]
@@ -61,18 +88,18 @@ master_flat = np.median(flat_stack, axis=0)
 master_flat = CCDData(master_flat, unit=u.electron)
 
 ## Remove dark
-# dark_corrected_image = raw_image - master_dark
-dark_corrected_image = image_data - master_dark
+dark_corrected_image = grayscaled_image_data - master_dark
 
 ## Remove bias
-# bias_corrected_image = raw_image - master_bias
 bias_corrected_image = dark_corrected_image - master_bias
 
 ## Correct flat
-# final_image = bias_corrected_image / master_flat
-final_image = ccdproc.flat_correct(bias_corrected_image, master_flat)
+flat_corrected_image = bias_corrected_image / master_flat
+final_image = lingray(flat_corrected_image)
 
 ## Troubleshooting
-plt.imshow(final_image, aspect='equal') # , vmax=image_limit, vmin=0, origin='lower',cmap='Greys', 
+new_image_min = 0.
+new_image_max = np.max(final_image)
+plt.imshow(final_image, aspect='equal', vmax=new_image_max, vmin=new_image_min, origin='lower',cmap='Greys',) # ,  
 plt.savefig('final_image.jpg',dpi=150.0, bbox_inches='tight', pad_inches=0.2)
 plt.show()
