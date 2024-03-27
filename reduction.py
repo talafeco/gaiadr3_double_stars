@@ -95,6 +95,8 @@ bias_corrected_image = dark_corrected_image - master_bias
 
 ## Correct flat
 flat_corrected_image = bias_corrected_image / master_flat
+
+## Create final image by correctiong the grayscale
 final_image = lingray(flat_corrected_image)
 
 ## Troubleshooting
