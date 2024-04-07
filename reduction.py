@@ -13,6 +13,7 @@ from astropy.io import fits
 from astropy import units as u
 from astropy.nddata import CCDData
 from matplotlib import pyplot as plt
+import math
 
 ## Import files
 image_file = sys.argv[1]
@@ -65,23 +66,36 @@ dark_corrected_image = image_data - master_dark
 ## Remove bias
 bias_corrected_image = dark_corrected_image - master_bias
 
-## Remove negative valuse from the image
+## Remove negative values from the image
 bias_corrected_image[bias_corrected_image<0] = 0
 
 ## Correct flat
-flat_corrected_image = bias_corrected_image / master_flat
+flat_average = np.mean(master_flat)
+flat_corrected_image = dark_corrected_image / master_flat
 
 ## Create final image by correctiong the grayscale
-final_image = flat_corrected_image
+#final_image = flat_corrected_image * flat_average
+final_image = flat_corrected_image + math.fabs(np.min(flat_corrected_image))
 new_image_min = 0.
-new_image_max = np.max(final_image)
-gray_scaling = 65535 / new_image_max
-corrected_image = gray_scaling * final_image
+#new_image_max = np.max(final_image)
+#gray_scaling = 65535 / np.max(final_image)
+#corrected_image = gray_scaling * final_image
 
 ## Troubleshooting
-plt.imshow(corrected_image, aspect='equal', vmax=np.max(corrected_image), vmin=new_image_min, cmap='Greys_r') # ,origin='lower', 
-plt.savefig('corrected_image.jpg',dpi=150.0, bbox_inches='tight', pad_inches=0.2)
+plt.imshow(final_image, aspect='equal', vmax=np.max(final_image)*16, vmin=new_image_min, cmap='Greys_r') # ,origin='lower',  
+plt.savefig('final_image.jpg',dpi=150.0, bbox_inches='tight', pad_inches=0.2)
 plt.show()
-print(corrected_image)
-print(np.min(corrected_image))
-print(np.max(corrected_image))
+print(final_image)
+print('final image min: ', np.min(final_image))
+print('final image max: ', np.max(final_image))
+print('master flat mean: ', flat_average)
+
+outhdu = fits.PrimaryHDU(final_image)
+outhdulist = fits.HDUList([outhdu])
+outhdr = outhdulist[0].header
+history = 'This is what I did to the file.'
+outhdr.append(('HISTORY',history))
+more_history = 'I did this today.'
+outhdr.append(('HISTORY',more_history))
+
+#fits.writeto(image_file, outhdulist, outhdr)

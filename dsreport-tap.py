@@ -376,7 +376,7 @@ def imagePlot(filename, designation_a, designation_b, raa, deca, rab, decb):
     #plt.title(str(designation_a) + ' - ' + str(designation_b), pad=50.0)
     plt.title(str(designation_a) + ' - ' + str(designation_b))
 
-    plt.imshow(image, origin='lower',cmap='grey', aspect='equal', vmax=image_limit, vmin=0) # , cmap='cividis'
+    plt.imshow(image, origin='lower',cmap='Greys_r', aspect='equal', vmax=image_limit, vmin=0) # , cmap='cividis'
     plt.savefig(workingDirectory + '/' + str(designation_a) + '-' + str(designation_b) + '_img.jpg', dpi=150.0, bbox_inches='tight', pad_inches=0.2)
     plt.close()
     #plt.show()
@@ -533,7 +533,7 @@ for fitsFile in files:
         catalogstar = SkyCoord(ra=gaiaStars[idx]['ra']*u.degree, dec=gaiaStars[idx]['dec']*u.degree)
         sep = c.separation(catalogstar)
         if sep < Angle('00d00m02s'):
-            sourceTable.add_row([fitsFile, gaiaStars[idx]['source_id'], gaiaStars[idx]['DESIGNATION'], convertStringToNan(gaiaStars[idx]['ra']), convertStringToNan(gaiaStars[idx]['dec']), convertStringToNan(gaiaStars[idx]['parallax']), convertStringToNan(gaiaStars[idx]['parallax_error']), convertStringToNan(gaiaStars[idx]['pmra']), convertStringToNan(gaiaStars[idx]['pmdec']), convertStringToNan(gaiaStars[idx]['phot_g_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_bp_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_rp_mean_mag']), convertStringToNan(gaiaStars[idx]['radial_velocity']), convertStringToNan(gaiaStars[idx]['radial_velocity_error']), convertStringToNan(gaiaStars[idx]['teff_gspphot']), star['id'], ra2, dec2, star['mag']])
+            sourceTable.add_row([fitsFile, gaiaStars[idx]['SOURCE_ID'], gaiaStars[idx]['DESIGNATION'], convertStringToNan(gaiaStars[idx]['ra']), convertStringToNan(gaiaStars[idx]['dec']), convertStringToNan(gaiaStars[idx]['parallax']), convertStringToNan(gaiaStars[idx]['parallax_error']), convertStringToNan(gaiaStars[idx]['pmra']), convertStringToNan(gaiaStars[idx]['pmdec']), convertStringToNan(gaiaStars[idx]['phot_g_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_bp_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_rp_mean_mag']), convertStringToNan(gaiaStars[idx]['radial_velocity']), convertStringToNan(gaiaStars[idx]['radial_velocity_error']), convertStringToNan(gaiaStars[idx]['teff_gspphot']), star['id'], ra2, dec2, star['mag']])
 
 #gaiaStarsTableFileName = (str('gaiaStarsTab.csv'))
 

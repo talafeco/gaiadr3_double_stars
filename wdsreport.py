@@ -8,6 +8,32 @@
 # Get all double stars from wds, which should be found on the images
 # Search double stars based on magnitude difference, separation and position angle, if not found based on the coordinates
 
+''' Errors:  fizikai jellemzők egyeznek az Excellel.
+
+szeparáció átszámítás: wdsreport 37 171 AU - OK
+
+                                                           Excel 38 708 AU ( képlet: WTD Dist*Gaia Sep)
+
+szökési sebesség:            wdsreport  0,561 - OK
+
+                                                           Excel   0,55 (ezzel együtt lehet élni!)
+
+sajátmozgás (rPM)           wdsreport   CPM
+
+                                                           Excel    SPM (0,31) ez azért gond, mert nem CPM!
+
+Harshaw faktor                   wdsreport 0,352
+
+                                                            Excel  0,4457 végülis ez is az is „??” eredményez
+
+Historic velocity                 wdsreport max orbit 0,5571
+
+                                                              Excel max orbit 0,43
+
+                                                    wdsreport obs orbit 23,6803
+
+                                                              Excel obs orbit 3,1109 optikai így is, úgy is, de az eltérés nagy, lehet a képlet hibás?  '''
+
 import os
 import sys
 import numpy as np
@@ -201,13 +227,17 @@ def deltaDec(decb, deca):
 
 # Function to calculate the separation of the two stars in parsecs
 # Excel formula =IF('min distance A'>'min distance b','min distance A'*'Rho','min distance b'*'Rho')
+# Excel formula (error percent): K7, L7=Parallax error/Parallax
+# Excel formula: =(((1-(parallax error a / parallax a))*K5)+((1-L7)*L5))/((1-K7)+(1-L7))
 auToParsec = 0.0000048481368111358
 def sepCalc(dist_a, dist_b, rho):
     if dist_a > dist_b:
-        sep = (dist_a * rho) * auToParsec
-    else:
         sep = (dist_b * rho) * auToParsec
+    else:
+        sep = (dist_a * rho) * auToParsec
     return sep
+
+
 
 # Function to calculate the distance of the star based on the parallax
 def calcDistance(par):
@@ -491,11 +521,18 @@ def get_gaia_dr3_data(doublestars):
     b_query = b.get_results()
     return a_query, b_query
 
-def calc_average_distance(star_a_par, star_a_par_err, star_b_par, star_b_par_err):
+def calc_average_distance(star_a_par, star_a_par_err, star_b_par, star_b_par_err, sep):
     # Calcualte average distance in lightyears
     # Excel formula: = 1000 / (((1-star A parallax) * star A parallax error in %)+((1-star B parallax) * star B parallax error in %))/((1-star A parallax error in %)+(1-star B parallax error in %))
-    avg_dist = 1000 / ((((1 - star_a_par) * (star_a_par_err / star_a_par)) + ((1 - star_b_par) * (star_b_par_err / star_b_par))) / ((1 - (star_a_par_err / star_a_par)) + (1 - (star_b_par_err / star_b_par))))
-    return avg_dist
+    err_a_per = star_a_par_err / star_a_par
+    err_b_per = star_b_par_err / star_b_par
+    wtd_px = (((1-err_a_per)*star_a_par)+((1-err_b_per)*star_b_par))/((1-err_a_per)+(1-err_b_per))
+    wtd_dist = 1000 / wtd_px
+    wtd_sep = wtd_dist * sep
+    
+    return wtd_sep
+    
+
 
 # Calculate maximum orbit speed
 def calc_historic_orbit(massa, massb, sep_pc, avg_distance, dr3_rho, wds_first_rho, measured_rho, wds_first_theta, measured_theta, wds_first_obs, obs_time):
@@ -803,7 +840,13 @@ for ds in upd_sources_ds_by_object.groups:
         pairMass2 = calcMass(pairLum2)
         pairBVIndexA = gaiaAStar[0]['phot_bp_mean_mag'] - gaiaAStar[0]['phot_g_mean_mag']
         pairBVIndexB = gaiaBStar[0]['phot_bp_mean_mag'] - gaiaBStar[0]['phot_g_mean_mag']
-        pairSepPar = sepCalc(pairDistanceMinA, pairDistanceMinB, rhoStar) # Separation of the pairs in parsecs
+        pairSepPar2 = sepCalc(pairDistanceMinA, pairDistanceMinB, rhoStar) # Separation of the pairs in parsecs
+        pairDistance = calc_average_distance(float(gaiaAStar[0]['parallax']), float(gaiaAStar[0]['parallax_error']), float(gaiaBStar[0]['parallax']), float(gaiaBStar[0]['parallax_error']), pairDR3Rho)
+        pairSepPar = pairDistance * auToParsec
+        print('pairSepPar: ', pairSepPar)
+        print('pairSepPar2: ', pairSepPar2)
+        print('pairDistance: ', pairDistance)
+
         pairEscapeVelocity = calcEscapevelocity(pairMass1, pairMass2, pairSepPar, gravConst)
         pairRelativeVelocity = calcRelativeVelocity(gaiaAStar[0]['pmra'], gaiaAStar[0]['pmdec'], gaiaBStar[0]['pmra'], gaiaBStar[0]['pmdec'], gaiaAStar[0]['radial_velocity'], gaiaBStar[0]['radial_velocity'], pairDistanceMinA, pairDistanceMinB)
         pairHarshawFactor = calcHarshaw((pairParallaxFactor / 100), (pairPmFactor /100))
@@ -844,7 +887,7 @@ for ds in upd_sources_ds_by_object.groups:
         pairACoordErr = pairACurrentCoord.separation(pairAMeasuredCoord)
         pairBCoordErr = pairBCurrentCoord.separation(pairBMeasuredCoord)
         # Caculate the common distance from Earth
-        pairDistance = calc_average_distance(float(gaiaAStar[0]['parallax']), float(gaiaAStar[0]['parallax_error']), float(gaiaBStar[0]['parallax']), float(gaiaBStar[0]['parallax_error']))
+        
         pair_orbit = calc_historic_orbit(pairMass1, pairMass2, pairSepPar, pairDistance, pairACurrentCoord.separation(pairBCurrentCoord).arcsecond, ds[0]['Sep_f'], pairMeanRho, ds[0]['PA_f'], pairMeanTheta, ds[0]['Date (first)'], dateOfObservation)
         
         preciseCoord = str(getPreciseCoord(pairRaA, pairDecA, fitsFileDate))
@@ -967,7 +1010,7 @@ for ds in upd_sources_ds_by_object.groups:
     reportFile.write('\nRadial velocity of the stars ' + 'A:' + str(roundNumber(pairRadVelA)) + 'km/s (Err:' + str(roundNumber(pairRadVelErrA)) + 'km/s)' + ' B:' + str(roundNumber(pairRadVelB)) + 'km/s (Err:' + str(roundNumber(pairRadVelErrB)) + 'km/s)')
     reportFile.write('\nRadial velocity ratio A: ' + str(roundNumber(pairRadVelRatioA)) + ' %')
     reportFile.write('\nRadial velocity ratio B: ' + str(roundNumber(pairRadVelRatioB)) + ' %')
-    reportFile.write('\nSeparation: ' + str(roundNumber(pairSepPar)) + ' parsec, ' + str(roundNumber((pairSepPar * 206265))) + ' AU')
+    reportFile.write('\nSeparation: ' + str(roundNumber(pairDistance * auToParsec)) + ' parsec, ' + str(roundNumber((pairDistance))) + ' AU')
     reportFile.write('\nPair Escape velocity: ' + str(roundNumber(pairEscapeVelocity)) + ' km/s')
     reportFile.write('\nPair Relative velocity: ' + str(roundNumber(pairRelativeVelocity)) + ' km/s')
     reportFile.write('\n\n### Analysis ###')
