@@ -4,7 +4,7 @@
 # https://prancer.physics.louisville.edu/astrowiki/index.php/Image_processing_with_Python_and_SciPy
 # https://learn.astropy.org/tutorials/FITS-images.html
 
-## Import modules
+'''## Import modules
 import numpy as np
 import sys
 import os
@@ -98,4 +98,63 @@ outhdr.append(('HISTORY',history))
 more_history = 'I did this today.'
 outhdr.append(('HISTORY',more_history))
 
-#fits.writeto(image_file, outhdulist, outhdr)
+#fits.writeto(image_file, outhdulist, outhdr)'''
+
+# Chat GPT suggestion
+
+from astropy.io import fits
+import numpy as np
+import os
+
+def process_astronomical_images(light_folder, dark_folder, bias_folder, flat_folder):
+    """
+    Process astronomical images including light, dark, bias, and flat frames.
+
+    Args:
+        light_folder (str): Path to the folder containing light images.
+        dark_folder (str): Path to the folder containing dark images.
+        bias_folder (str): Path to the folder containing bias images.
+        flat_folder (str): Path to the folder containing flat images.
+
+    Returns:
+        numpy.ndarray: Processed light image.
+    """
+    # Function to combine images
+    def combine_images(folder):
+        images = []
+        for filename in os.listdir(folder):
+            if filename.endswith('.fits'):
+                with fits.open(os.path.join(folder, filename)) as hdul:
+                    image_data = hdul[0].data
+                    images.append(image_data)
+        combined_image = np.median(images, axis=0)
+        return combined_image
+
+    # Combine dark, bias, and flat images
+    dark_image = combine_images(dark_folder)
+    bias_image = combine_images(bias_folder)
+    flat_image = combine_images(flat_folder)
+
+    # Process light images
+    for filename in os.listdir(light_folder):
+        if filename.endswith('.fits'):
+            with fits.open(os.path.join(light_folder, filename)) as hdul:
+                light_image = hdul[0].data
+                # Subtract bias
+                light_image -= bias_image
+                # Subtract dark
+                light_image -= dark_image
+                # Divide by flat
+                light_image /= flat_image
+                # Additional processing steps can be added here
+                # Save or return processed light image
+
+    return light_image  # or whatever you want to return
+
+# Example usage:
+light_folder = '/path/to/light_images/'
+dark_folder = '/path/to/dark_images/'
+bias_folder = '/path/to/bias_images/'
+flat_folder = '/path/to/flat_images/'
+
+processed_light_image = process_astronomical_images(light_folder, dark_folder, bias_folder, flat_folder)
