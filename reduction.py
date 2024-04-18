@@ -4,7 +4,7 @@
 # https://prancer.physics.louisville.edu/astrowiki/index.php/Image_processing_with_Python_and_SciPy
 # https://learn.astropy.org/tutorials/FITS-images.html
 
-'''## Import modules
+## Import modules
 import numpy as np
 import sys
 import os
@@ -17,12 +17,13 @@ import math
 
 ## Import files
 image_file = sys.argv[1]
-dark_lib = '/home/gergoe/Dokumentumok/supplementary_images/dark'
-bias_lib = '/home/gergoe/Dokumentumok/supplementary_images/bias'
-flat_lib = '/home/gergoe/Dokumentumok/supplementary_images/flat'
+dark_lib = '/home/gergoe/Képek/Atik/DARK'
+bias_lib = '/home/gergoe/Képek/Atik/BIAS'
+flat_lib = '/home/gergoe/Képek/Atik/FLAT'
 
 ## Read image
 raw_image = fits.open(image_file)[0].data
+raw_image_header = fits.open(image_file)[0].header
 image_data = np.array(raw_image, dtype=np.float64)
 print(np.info(image_data))
 
@@ -67,7 +68,7 @@ dark_corrected_image = image_data - master_dark
 bias_corrected_image = dark_corrected_image - master_bias
 
 ## Remove negative values from the image
-bias_corrected_image[bias_corrected_image<0] = 0
+#bias_corrected_image[bias_corrected_image<0] = 0
 
 ## Correct flat
 flat_average = np.mean(master_flat)
@@ -75,36 +76,34 @@ flat_corrected_image = dark_corrected_image / master_flat
 
 ## Create final image by correctiong the grayscale
 #final_image = flat_corrected_image * flat_average
-final_image = flat_corrected_image + math.fabs(np.min(flat_corrected_image))
-new_image_min = 0.
+#final_image = flat_corrected_image + math.fabs(np.min(flat_corrected_image))
+#new_image_min = 0.
 #new_image_max = np.max(final_image)
 #gray_scaling = 65535 / np.max(final_image)
 #corrected_image = gray_scaling * final_image
 
 ## Troubleshooting
-plt.imshow(final_image, aspect='equal', vmax=np.max(final_image)*16, vmin=new_image_min, cmap='Greys_r') # ,origin='lower',  
+plt.imshow(flat_corrected_image, aspect='equal', vmax=np.max(flat_corrected_image), vmin=np.min(flat_corrected_image), cmap='Greys', origin='lower') # 
 plt.savefig('final_image.jpg',dpi=150.0, bbox_inches='tight', pad_inches=0.2)
 plt.show()
-print(final_image)
-print('final image min: ', np.min(final_image))
-print('final image max: ', np.max(final_image))
-print('master flat mean: ', flat_average)
+print(flat_corrected_image)
+print('final image min: ', np.min(flat_corrected_image))
+print('final image max: ', np.max(flat_corrected_image))
 
-outhdu = fits.PrimaryHDU(final_image)
-outhdulist = fits.HDUList([outhdu])
-outhdr = outhdulist[0].header
-history = 'This is what I did to the file.'
-outhdr.append(('HISTORY',history))
-more_history = 'I did this today.'
-outhdr.append(('HISTORY',more_history))
+outhdu = fits.PrimaryHDU(flat_corrected_image)
+outhdr = outhdu.header
+outhdr.extend(raw_image_header)
+outhdu.writeto('new_file.fits', overwrite=True)
 
-#fits.writeto(image_file, outhdulist, outhdr)'''
+#fits.writeto(image_file, outhdulist, outhdr, overwrite=True)
 
-# Chat GPT suggestion
+'''# Chat GPT suggestion
 
 from astropy.io import fits
 import numpy as np
 import os
+import sys
+from matplotlib import pyplot as plt
 
 def process_astronomical_images(light_folder, dark_folder, bias_folder, flat_folder):
     """
@@ -123,7 +122,7 @@ def process_astronomical_images(light_folder, dark_folder, bias_folder, flat_fol
     def combine_images(folder):
         images = []
         for filename in os.listdir(folder):
-            if filename.endswith('.fits'):
+            if filename.endswith('.fits' or '.fit' or 'new'):
                 with fits.open(os.path.join(folder, filename)) as hdul:
                     image_data = hdul[0].data
                     images.append(image_data)
@@ -148,13 +147,16 @@ def process_astronomical_images(light_folder, dark_folder, bias_folder, flat_fol
                 light_image /= flat_image
                 # Additional processing steps can be added here
                 # Save or return processed light image
+                
 
-    return light_image  # or whatever you want to return
+                return light_image  # or whatever you want to return
 
 # Example usage:
-light_folder = '/path/to/light_images/'
-dark_folder = '/path/to/dark_images/'
-bias_folder = '/path/to/bias_images/'
-flat_folder = '/path/to/flat_images/'
+light_folder = sys.argv[1]
+dark_folder = '/home/gergoe/Képek/Atik/DARK'
+bias_folder = '/home/gergoe/Képek/Atik/BIAS'
+flat_folder = '/home/gergoe/Képek/Atik/FLAT'
 
 processed_light_image = process_astronomical_images(light_folder, dark_folder, bias_folder, flat_folder)
+
+print(process_astronomical_images)'''
