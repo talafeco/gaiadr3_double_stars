@@ -66,31 +66,61 @@ dark_corrected_image = image_data - master_dark
 
 ## Remove bias
 bias_corrected_image = dark_corrected_image - master_bias
+normalized_image = bias_corrected_image + math.fabs(np.min(bias_corrected_image))
+
 
 ## Remove negative values from the image
 #bias_corrected_image[bias_corrected_image<0] = 0
 
 ## Correct flat
 flat_average = np.mean(master_flat)
-flat_corrected_image = dark_corrected_image / master_flat
+flat_corrected_image = normalized_image / master_flat
 
 ## Create final image by correctiong the grayscale
-#final_image = flat_corrected_image * flat_average
-#final_image = flat_corrected_image + math.fabs(np.min(flat_corrected_image))
+final_image = normalized_image * (np.max(raw_image) / np.max(flat_corrected_image))
+print('image intensity ratio: ', np.max(raw_image) / np.max(flat_corrected_image))
+print('np.max(raw_image): ', np.max(raw_image))
+print('np.max(normalized_image)', np.max(normalized_image))
+print('np.max(final_image)', np.max(final_image))
 #new_image_min = 0.
 #new_image_max = np.max(final_image)
 #gray_scaling = 65535 / np.max(final_image)
 #corrected_image = gray_scaling * final_image
 
 ## Troubleshooting
-plt.imshow(flat_corrected_image, aspect='equal', vmax=np.max(flat_corrected_image), vmin=np.min(flat_corrected_image), cmap='Greys', origin='lower') # 
+plt.imshow(final_image, aspect='equal', vmax=np.max(final_image), vmin=np.min(final_image), cmap='Greys', origin='lower') # 
 plt.savefig('final_image.jpg',dpi=150.0, bbox_inches='tight', pad_inches=0.2)
 plt.show()
-print(flat_corrected_image)
-print('final image min: ', np.min(flat_corrected_image))
-print('final image max: ', np.max(flat_corrected_image))
+print('\n### Master Dark Image ###')
+print(master_dark)
+print('master_dark min: ', np.min(master_dark))
+print('master_dark max: ', np.max(master_dark))
+print('\n### Master Bias Image ###')
+print(master_bias)
+print('master_bias min: ', np.min(master_bias))
+print('master_bias max: ', np.max(master_bias))
+print('\n### Master Flat Image ###')
+print(master_flat)
+print('master_flat min: ', np.min(master_flat))
+print('master_flat max: ', np.max(master_flat))
+print('\n### RAW Image ###')
+print(raw_image)
+print('raw_image min: ', np.min(raw_image))
+print('raw_image max: ', np.max(raw_image))
+print('\n### Dark Corrected Image ###')
+print(dark_corrected_image)
+print('dark_corrected_image min: ', np.min(dark_corrected_image))
+print('dark_corrected_image max: ', np.max(dark_corrected_image))
+print('\n### Bias Corrected Image ###')
+print(bias_corrected_image)
+print('bias_corrected_image min: ', np.min(bias_corrected_image))
+print('bias_corrected_image max: ', np.max(bias_corrected_image))
+print('\n### Final Image ###')
+print(final_image)
+print('final_image min: ', np.min(final_image))
+print('final_image max: ', np.max(final_image))
 
-outhdu = fits.PrimaryHDU(flat_corrected_image)
+outhdu = fits.PrimaryHDU(final_image)
 outhdr = outhdu.header
 outhdr.extend(raw_image_header)
 outhdu.writeto('new_file.fits', overwrite=True)
