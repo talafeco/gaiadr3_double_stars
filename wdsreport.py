@@ -9,30 +9,18 @@
 # Search double stars based on magnitude difference, separation and position angle, if not found based on the coordinates
 
 ''' Errors:  fizikai jellemzők egyeznek az Excellel.
-
 szeparáció átszámítás: wdsreport 37 171 AU - OK
-
-                                                           Excel 38 708 AU ( képlet: WTD Dist*Gaia Sep)
-
+Excel 38 708 AU ( képlet: WTD Dist*Gaia Sep)
 szökési sebesség:            wdsreport  0,561 - OK
-
-                                                           Excel   0,55 (ezzel együtt lehet élni!)
-
+Excel   0,55 (ezzel együtt lehet élni!)
 sajátmozgás (rPM)           wdsreport   CPM
-
-                                                           Excel    SPM (0,31) ez azért gond, mert nem CPM!
-
+xcel    SPM (0,31) ez azért gond, mert nem CPM!
 Harshaw faktor                   wdsreport 0,352
-
-                                                            Excel  0,4457 végülis ez is az is „??” eredményez
-
+Excel  0,4457 végülis ez is az is „??” eredményez
 Historic velocity                 wdsreport max orbit 0,5571
-
-                                                              Excel max orbit 0,43
-
-                                                    wdsreport obs orbit 23,6803
-
-                                                              Excel obs orbit 3,1109 optikai így is, úgy is, de az eltérés nagy, lehet a képlet hibás?  '''
+Excel max orbit 0,43
+wdsreport obs orbit 23,6803
+Excel obs orbit 3,1109 optikai így is, úgy is, de az eltérés nagy, lehet a képlet hibás?  '''
 
 import os
 import sys
