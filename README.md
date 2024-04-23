@@ -13,23 +13,21 @@ Search visual double star candidates in Gaia DR3. Mag &lt; 15, par > 0.5.
 
 # Changelog 2023-04-08
 (wdsreport.py)
-1. All component are measured on images
-    - Done
-2. Mean and error values are calculated for each component measurements: theta, rho, magnitude difference
-    - Done
+1. OK - All component are measured on images
+2. OK - Mean and error values are calculated for each component measurements: theta, rho, magnitude difference
 
 ## TBD
 1. Clean up code
 2. Extend data table with additional useful columns
-3. Extend reports: list of individual measurements - Done
-4. Add Gaia DR3 identification of the components - Done
-5. Calculate Physical properties of the double star: mass, absolute magnitude, luminosity, gravitational bound - Done
+3. OK - Extend reports: list of individual measurements
+4. OK - Add Gaia DR3 identification of the components
+5. OK - Calculate Physical properties of the double star: mass, absolute magnitude, luminosity, gravitational bound
 6. Extend star mass calculation with alternate equation based on measured temperature
-7. Create HRD diagram of the components - Done
-8. Update report file path to be created in the image directory - Done  
-9. Fix magnitude error calculation algorithm - Done
-10. Add magnitude difference to the updated table - Done
-11. Calculate Gaia star position for current epoch from 2016 + proper motion, calculate measurement difference - Done
+7. OK - Create HRD diagram of the components
+8. OK - Update report file path to be created in the image directory
+9. OK - Fix magnitude error calculation algorithm
+10. OK - Add magnitude difference to the updated table
+11. OK - Calculate Gaia star position for current epoch from 2016 + proper motion, calculate measurement difference
 12. Add rp calculation
 13. Query Tycho database for stars? (wdsreport, Astroquery)
 14. Check pair magnitude difference (wds + gaia + measured), calculate difference
@@ -56,15 +54,12 @@ Search visual double star candidates in Gaia DR3. Mag &lt; 15, par > 0.5.
 12. Calculate double star orbit plane (inclination) for components, compare component planes.
 
 ## Function externsions
-1. Gaia data collection in one line
-    - Done
-2. Calculate hrd placement based on temperature & luminosity
-    - Done
-3. Create HRD plot
-    - Done
+1. OK - Gaia data collection in one line
+2. OK - Calculate hrd placement based on temperature & luminosity
+3. OK - Create HRD plot
 4. Calculate orbit period
 5. Check, if absolute magnitude measurement is possible on the images
-6. Calculate Gaia source positions to the current epoch and compare them to the measurement results.
+6. OK - Calculate Gaia source positions to the current epoch and compare them to the measurement results.
 
 
 # Zsolti's input
@@ -79,5 +74,5 @@ Search visual double star candidates in Gaia DR3. Mag &lt; 15, par > 0.5.
 9. OK - radial velocity error nem jelenik meg a listában rendesen
 
 # Tools
-1. Convert date/time object to julian year
+1. OK - Convert date/time object to julian year
 2. Run calculation functions manually based on coordinates / Gaia designations
