@@ -29,7 +29,7 @@ Search visual double star candidates in Gaia DR3. Mag &lt; 15, par > 0.5.
 8. Update report file path to be created in the image directory - Done  
 9. Fix magnitude error calculation algorithm - Done
 10. Add magnitude difference to the updated table - Done
-11. Calculate Gaia star position for current epoch from 2016 + proper motion, calculate measurement difference
+11. Calculate Gaia star position for current epoch from 2016 + proper motion, calculate measurement difference - Done
 12. Add rp calculation
 13. Query Tycho database for stars? (wdsreport, Astroquery)
 14. Check pair magnitude difference (wds + gaia + measured), calculate difference

@@ -1,3 +1,7 @@
+'''
+This function subtract_and_clip takes two arguments: arr, the NumPy array, and num, the number to subtract from each element. It subtracts num from each element of arr, and then any elements that become negative are set to zero. Finally, it returns the resulting array.
+'''
+
 import numpy as np
 
 def subtract_and_clip(arr, num):

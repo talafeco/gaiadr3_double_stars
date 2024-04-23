@@ -1,3 +1,7 @@
+'''
+This code defines a function transform_coordinates_to_current_date that takes a QTable and the current date as inputs. It iterates over each row of the QTable, extracts the RA and Dec values, transforms them from J2000 to the current date, and then adds new columns to the QTable with the transformed coordinates. Finally, it prints the transformed QTable.
+'''
+
 from astropy.time import Time
 from astropy.coordinates import SkyCoord
 from astropy.table import QTable
