@@ -32,10 +32,11 @@ Search visual double star candidates in Gaia DR3. Mag &lt; 15, par > 0.5.
 13. Query Tycho database for stars? (wdsreport, Astroquery)
 14. Check pair magnitude difference (wds + gaia + measured), calculate difference
 15. Calculate background, calculate star magnitudes with photometry
-16. Remove spaces from filenames
+16. OK - Remove spaces from filenames
 17. Calclate sensor tilt
 18. Calcuate fwhm of the image
 19. Increase plot resolution and create colors for the stars, optionally color black the background
+20. Fix B-V index by calculating gaia B - gaia R magnitude difference
 
 
 # New functions

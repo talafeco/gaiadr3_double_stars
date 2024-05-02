@@ -53,7 +53,7 @@ dao_sigma = 3.0
 dao_fwhm = 7.0
 dao_threshold = 12.0
 possible_distance = 30000.0 # AU
-search_cone = 0.001 # Decimal degree
+search_cone = 0.004 # Decimal degree
 dummyObservationDate = "2022-01-01T12:00:00"
 
 
@@ -411,22 +411,28 @@ def create_unique_id(wds_id, discov):
     return id_array
 
 def delete_invalid_lines_wds(catalog):
-    rows_to_delete = np.where(catalog['Coord (RA) hms'] == '.hms')
-    catalog.remove_rows(rows_to_delete)
+    rows_to_delete_ra = np.where(catalog['Coord (RA) hms'] == '.')
+    catalog.remove_rows(rows_to_delete_ra)
+    rows_to_delete_dec = np.where(catalog['Coord (DEC) dms'] == '.')
+    catalog.remove_rows(rows_to_delete_dec)
     return catalog
 
 def calculate_wds_ra_hourangle(wds_ra_array):
-    #print(wds_ra_array)
     wds_ra_hms = []
     for star in wds_ra_array:
-        wds_ra_hms.append(str(star[0:2]) + 'h' + str(star[2:4]) + 'm' + str(star[4:9]) + 's')
+        if len(str(star)) == 9:
+            wds_ra_hms.append(str(star[0:2]) + 'h' + str(star[2:4]) + 'm' + str(star[4:9]) + 's')
+        else:
+            wds_ra_hms.append('.')
     return wds_ra_hms
 
 def calculate_wds_dec_hourangle(wds_dec_array):
-    #print(wds_dec_array)
     wds_dec_dms = []
     for star in wds_dec_array:
-        wds_dec_dms.append(str(star[0:3]) + 'd' + str(star[3:5]) + 'm' + str(star[5:9]) + 's')
+        if len(str(star)) == 9:
+            wds_dec_dms.append(str(star[0:3]) + 'd' + str(star[3:5]) + 'm' + str(star[5:9]) + 's')
+        else:
+            wds_dec_dms.append('.')
     return wds_dec_dms
 
 # Create HRD plot of the double stars based on Hipparcos
@@ -444,7 +450,7 @@ def hrdPlot(pairname, mag_abs_a, mag_abs_b, bv_a, bv_b):
         plt.xlabel('B-V index')
         plt.ylabel('Absolute magnitude')
         plt.gca().set_aspect(0.07)
-        savename = str(workingDirectory + '/' + pairname + '_hrd.jpg')
+        savename = str(workingDirectory + '/' + pairname + '_hrd.jpg').replace(' ', '')
         plt.savefig(savename, bbox_inches='tight', dpi=150.0)
         plt.close()
     else:
@@ -496,7 +502,7 @@ def imagePlot(filename, pairname, raa, deca, rab, decb):
     plt.title(pairname)
 
     plt.imshow(image, origin='lower',cmap='Greys', aspect='equal', vmax=image_limit, vmin=0) # , cmap='cividis'
-    plt.savefig(workingDirectory + '/' + pairname + '_img.jpg',dpi=150.0, bbox_inches='tight', pad_inches=0.2)
+    plt.savefig(str(workingDirectory + '/' + pairname + '_img.jpg').replace(' ', ''),dpi=150.0, bbox_inches='tight', pad_inches=0.2)
     plt.close()
     #plt.show()
 
@@ -517,8 +523,7 @@ def calc_average_distance(star_a_par, star_a_par_err, star_b_par, star_b_par_err
     wtd_px = (((1-err_a_per)*star_a_par)+((1-err_b_per)*star_b_par))/((1-err_a_per)+(1-err_b_per))
     wtd_dist = 1000 / wtd_px
     wtd_sep = wtd_dist * sep
-    
-    return wtd_sep
+    return wtd_sep, wtd_dist, wtd_sep
     
 
 
@@ -656,7 +661,7 @@ wdsTable = delete_invalid_lines_wds(wdsTable)
 
 print('WDS angle formatting done, creating catalog... - ' , datetime.datetime.now())
 
-wds_catalog = SkyCoord(ra=wdsTable['Coord (RA) hms'], dec=Angle(wdsTable['Coord (DEC) dms']), unit='hour, degree', frame="icrs")
+wds_catalog = SkyCoord(ra=wdsTable['Coord (RA) hms'], dec=Angle(wdsTable['Coord (DEC) dms']), unit='hour, degree', frame="icrs") #
 
 print('WDS Catalog created successfully - ' , datetime.datetime.now())
 
@@ -693,7 +698,7 @@ for fitsFile in files:
     sources.add_column(ra2, name='ra_deg') 
     sources.add_column(dec2, name='dec_deg')
 
-    sources_catalog = SkyCoord(ra=sources['ra_deg']*u.degree, dec=sources['dec_deg']*u.degree)
+    sources_catalog = SkyCoord(ra=sources['ra_deg']*u.degree, dec=sources['dec_deg']*u.degree, frame='fk5')
     idxw, idxs, wsd2d, wsd3d = search_around_sky(wds_catalog, sources_catalog, search_cone*u.deg)
     composit_catalog = hstack([wdsTable[idxw]['2000 Coord', 'Discov', 'Comp', 'Date (first)', 'PA_f', 'PA_l', 'Sep_f', 'Sep_l', 'Mag_A', 'Mag_B'], sources[idxs]['id', 'mag', 'ra_deg', 'dec_deg']])
     companion_catalog = SkyCoord(ra=composit_catalog['ra_deg'] * u.degree, dec=composit_catalog['dec_deg'] * u.degree).directional_offset_by(composit_catalog['PA_l']*u.degree, composit_catalog['Sep_l']*u.arcsec)
@@ -828,14 +833,14 @@ for ds in upd_sources_ds_by_object.groups:
         pairDR3Rho = rhoStar
         pairMass1 = calcMass(pairLum1)
         pairMass2 = calcMass(pairLum2)
-        pairBVIndexA = gaiaAStar[0]['phot_bp_mean_mag'] - gaiaAStar[0]['phot_g_mean_mag']
-        pairBVIndexB = gaiaBStar[0]['phot_bp_mean_mag'] - gaiaBStar[0]['phot_g_mean_mag']
+        pairBVIndexA = gaiaAStar[0]['phot_bp_mean_mag'] - gaiaAStar[0]['phot_rp_mean_mag']
+        pairBVIndexB = gaiaBStar[0]['phot_bp_mean_mag'] - gaiaBStar[0]['phot_rp_mean_mag']
         pairSepPar2 = sepCalc(pairDistanceMinA, pairDistanceMinB, rhoStar) # Separation of the pairs in parsecs
         pairDistance = calc_average_distance(float(gaiaAStar[0]['parallax']), float(gaiaAStar[0]['parallax_error']), float(gaiaBStar[0]['parallax']), float(gaiaBStar[0]['parallax_error']), pairDR3Rho)
-        pairSepPar = pairDistance * auToParsec
+        pairSepPar = pairDistance[2] * auToParsec
         print('pairSepPar: ', pairSepPar)
         print('pairSepPar2: ', pairSepPar2)
-        print('pairDistance: ', pairDistance)
+        print('pairDistance: ', pairDistance[1])
 
         pairEscapeVelocity = calcEscapevelocity(pairMass1, pairMass2, pairSepPar, gravConst)
         pairRelativeVelocity = calcRelativeVelocity(gaiaAStar[0]['pmra'], gaiaAStar[0]['pmdec'], gaiaBStar[0]['pmra'], gaiaBStar[0]['pmdec'], gaiaAStar[0]['radial_velocity'], gaiaBStar[0]['radial_velocity'], pairDistanceMinA, pairDistanceMinB)
@@ -878,15 +883,15 @@ for ds in upd_sources_ds_by_object.groups:
         pairBCoordErr = pairBCurrentCoord.separation(pairBMeasuredCoord)
         # Caculate the common distance from Earth
         
-        pair_orbit = calc_historic_orbit(pairMass1, pairMass2, pairSepPar, pairDistance, pairACurrentCoord.separation(pairBCurrentCoord).arcsecond, ds[0]['Sep_f'], pairMeanRho, ds[0]['PA_f'], pairMeanTheta, ds[0]['Date (first)'], dateOfObservation)
+        pair_orbit = calc_historic_orbit(pairMass1, pairMass2, pairSepPar, pairDistance[1], pairACurrentCoord.separation(pairBCurrentCoord).arcsecond, ds[0]['Sep_f'], pairMeanRho, ds[0]['PA_f'], pairMeanTheta, ds[0]['Date (first)'], dateOfObservation)
         
         preciseCoord = str(getPreciseCoord(pairRaA, pairDecA, fitsFileDate))
-        reportName = (workingDirectory + '/' + pairObjectId + '.txt')
+        reportName = (workingDirectory + '/' + pairObjectId + '.txt').replace(' ', '')
         reportFile = open(reportName, "a")
         gaiaData = str(ds[0]['2000 Coord']) + ',' + str(ds[0]['Discov']) + ',' + str(gaiaAStar[0]['pmra']) + ',' + str(gaiaAStar[0]['pmdec']) + ',' + str(gaiaBStar[0]['pmra']) + ',' + str(gaiaBStar[0]['pmdec']) + ',' + str(gaiaAStar[0]['parallax']) + ',' + str(gaiaBStar[0]['parallax']) + ',' + str(calcDistance(gaiaAStar[0]['parallax'])) + ',' + str(calcDistance(gaiaBStar[0]['parallax'])) + ',' + str(gaiaAStar[0]['radial_velocity']) + ',' + str(gaiaBStar[0]['radial_velocity']) + ',' + 'pairRad1' + ',' + 'pairRad2' + ',' + str(pairLum1) + ',' + str(pairLum2) + ',' + str(gaiaAStar[0]['teff_gspphot']) + ',' + str(gaiaBStar[0]['teff_gspphot']) + ',' + str(gaiaAStar[0]['phot_g_mean_mag']) + ',' + str(gaiaBStar[0]['phot_g_mean_mag']) + ',' + str(gaiaAStar[0]['phot_bp_mean_mag']) + ',' + str(gaiaBStar[0]['phot_bp_mean_mag']) + ',' + str(gaiaAStar[0]['phot_rp_mean_mag']) + ',' + str(gaiaBStar[0]['phot_rp_mean_mag']) + ',' + str(pairDR3Theta) + ',' + str(pairDR3Rho) + ',' + str(gaiaAStar[0]['ra']) + ',' + str(gaiaAStar[0]['dec']) + ',' + str(gaiaBStar[0]['ra']) + ',' + str(gaiaBStar[0]['dec']) + ',' + str(gaiaAStar[0]['parallax_error']) + ',' + str(gaiaBStar[0]['parallax_error'])
         hrdPlot(pairObjectId, pairAbsMag1, pairAbsMag2, pairBVIndexA, pairBVIndexB)
         
-    
+    print(files[0], pairObjectId, pairRaA, pairDecA, pairRaB, pairDecB)
     imagePlot(files[0], pairObjectId, pairRaA, pairDecA, pairRaB, pairDecB)
     
     # Print temp data
@@ -1000,7 +1005,7 @@ for ds in upd_sources_ds_by_object.groups:
     reportFile.write('\nRadial velocity of the stars ' + 'A:' + str(roundNumber(pairRadVelA)) + 'km/s (Err:' + str(roundNumber(pairRadVelErrA)) + 'km/s)' + ' B:' + str(roundNumber(pairRadVelB)) + 'km/s (Err:' + str(roundNumber(pairRadVelErrB)) + 'km/s)')
     reportFile.write('\nRadial velocity ratio A: ' + str(roundNumber(pairRadVelRatioA)) + ' %')
     reportFile.write('\nRadial velocity ratio B: ' + str(roundNumber(pairRadVelRatioB)) + ' %')
-    reportFile.write('\nSeparation: ' + str(roundNumber(pairDistance * auToParsec)) + ' parsec, ' + str(roundNumber((pairDistance))) + ' AU')
+    reportFile.write('\nSeparation: ' + str(roundNumber(pairDistance[2] * auToParsec)) + ' parsec, ' + str(roundNumber((pairDistance[2]))) + ' AU')
     reportFile.write('\nPair Escape velocity: ' + str(roundNumber(pairEscapeVelocity)) + ' km/s')
     reportFile.write('\nPair Relative velocity: ' + str(roundNumber(pairRelativeVelocity)) + ' km/s')
     reportFile.write('\n\n### Analysis ###')
@@ -1010,12 +1015,14 @@ for ds in upd_sources_ds_by_object.groups:
     reportFile.write('\nPair Harshaw factor: ' + str(roundNumber(pairHarshawFactor)))
     reportFile.write('\nPair Harshaw physicality: ' + str(pairHarshawPhysicality))
     reportFile.write('\nPair binarity: ' + str(pairBinarity))
+    
     # new function - orbit calculation
     reportFile.write('\n### Pair historical orbit calculations ###')
     reportFile.write('\nHistoric criterion: ' + str(pair_orbit[0]))
     reportFile.write('\nMax orbit velolicy: ' + str(pair_orbit[1]))
     reportFile.write('\nObserved velocity: ' + str(pair_orbit[2]))
     reportFile.write('\nInput data variables: ' + str(pair_orbit[3]))
+    
     reportFile.write('\n\n### WDS form:\n')
     wdsform = str(ds[0]['2000 Coord']) + ',' + dateOfObservation + ',' +  str(roundNumber(pairMeanTheta)) + ',' +  str(roundNumber(pairMeanThetaErr)) + ',' +  str(roundNumber(pairMeanRho)) + ',' +  str(roundNumber(pairMeanRhoErr)) + ',' +  'nan' + ',' +  'nan' + ',' +  str(roundNumber(pairMagDiff)) + ',' +  str(roundNumber(pairMagDiffErr)) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TLB_2023' + ',' +  'C' + ',' + '7'+ ',' + str(getPreciseCoord(pairRaA, pairDecA, fitsFileDate))
     reportFile.write(str(wdsform))
