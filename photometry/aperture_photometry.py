@@ -1,12 +1,18 @@
+#! /usr/bin/python3
+
 import os
+import sys
 import csv
 import numpy as np
 from astropy.io import fits
+from astropy.stats import sigma_clipped_stats
 from astropy.wcs import WCS
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 from photutils import DAOStarFinder, aperture_photometry, CircularAperture, CircularAnnulus
 from astroquery.gaia import Gaia
+
+
 
 def find_stars(fits_file):
     hdul = fits.open(fits_file)
@@ -24,7 +30,7 @@ def find_stars(fits_file):
     return sky_coords
 
 def retrieve_gaia_info(sky_coords):
-    gaia_info = Gaia.query_object_async(coordinate=sky_coords, width=1*u.arcsecond)
+    gaia_info = Gaia.query_object_async(coordinate=sky_coords, width=1*u.arcsecond, height=1*u.arcsecond)
     return gaia_info
 
 def perform_aperture_photometry(fits_file, sky_coords):
@@ -51,7 +57,7 @@ def perform_aperture_photometry(fits_file, sky_coords):
 
 def main(folder_path, output_csv):
     # Find all FITS files in the folder
-    fits_files = [os.path.join(folder_path, file) for file in os.listdir(folder_path) if file.endswith('.fits')]
+    fits_files = [os.path.join(folder_path, file) for file in os.listdir(folder_path) if file.endswith('.new')]
     
     # Open CSV file for writing
     with open(output_csv, 'w', newline='') as csvfile:
@@ -92,7 +98,7 @@ def main(folder_path, output_csv):
                                  'Magnitude difference': phot_table['aper_sum_bkgsub'][closest_match_idx] - gaia_row['phot_g_mean_mag']})
 
 # Example usage
-folder_path = 'path/to/folder'
+folder_path = sys.argv[1]
 output_csv = 'stars_magnitudes.csv'
 
 main(folder_path, output_csv)
