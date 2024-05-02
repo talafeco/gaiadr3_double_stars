@@ -441,17 +441,18 @@ def hrdPlot(pairname, mag_abs_a, mag_abs_b, bv_a, bv_b):
     if pairname and mag_abs_a and mag_abs_b and bv_a and bv_b:
         hipparcos_abs_mag = hipparcos_file['Abs_mag']
         hipparcos_bv_index = hipparcos_file['B-V']
-        plt.scatter(hipparcos_bv_index, hipparcos_abs_mag, s=0.5, alpha=0.2, color="grey") #, 
+        colors = (hipparcos_bv_index)
+        plt.scatter(hipparcos_bv_index, hipparcos_abs_mag, c=colors, s=0.5, alpha=0.1, cmap='RdYlBu_r', vmax=1.9, vmin=-0.4) #, 
         plt.scatter(bv_a, mag_abs_a, s=14, color="blue", label='Main star') # s= 1 / mag_abs_a
         plt.scatter(bv_b, mag_abs_b, s=7, color="red", label='Companion star') # s= 1 / mag_abs_a
         plt.legend(loc="upper left")
-        plt.axis((-0.4,1.9,21,-16))
+        plt.axis((-0.4,1.9,15,-10))
         plt.title('Double Star ' + pairname + ' H-R Diagram')
         plt.xlabel('B-V index')
         plt.ylabel('Absolute magnitude')
-        plt.gca().set_aspect(0.07)
+        plt.gca().set_aspect(0.1)
         savename = str(workingDirectory + '/' + pairname + '_hrd.jpg').replace(' ', '')
-        plt.savefig(savename, bbox_inches='tight', dpi=150.0)
+        plt.savefig(savename, bbox_inches='tight', dpi=300.0)
         plt.close()
     else:
         print('Data is missiong, HRD plot cannot be created!')
@@ -502,7 +503,7 @@ def imagePlot(filename, pairname, raa, deca, rab, decb):
     plt.title(pairname)
 
     plt.imshow(image, origin='lower',cmap='Greys', aspect='equal', vmax=image_limit, vmin=0) # , cmap='cividis'
-    plt.savefig(str(workingDirectory + '/' + pairname + '_img.jpg').replace(' ', ''),dpi=150.0, bbox_inches='tight', pad_inches=0.2)
+    plt.savefig(str(workingDirectory + '/' + pairname + '_img.jpg').replace(' ', ''),dpi=300.0, bbox_inches='tight', pad_inches=0.2)
     plt.close()
     #plt.show()
 
@@ -883,7 +884,10 @@ for ds in upd_sources_ds_by_object.groups:
         pairBCoordErr = pairBCurrentCoord.separation(pairBMeasuredCoord)
         # Caculate the common distance from Earth
         
-        pair_orbit = calc_historic_orbit(pairMass1, pairMass2, pairSepPar, pairDistance[1], pairACurrentCoord.separation(pairBCurrentCoord).arcsecond, ds[0]['Sep_f'], pairMeanRho, ds[0]['PA_f'], pairMeanTheta, ds[0]['Date (first)'], dateOfObservation)
+        if (pairMass1 is not None and pairMass2 is not None and pairSepPar is not None and pairDistance[1] is not None and pairACurrentCoord.separation(pairBCurrentCoord).arcsecond is not None and ds[0]['Sep_f'] is not None and pairMeanRho is not None and ds[0]['PA_f'] is not None and pairMeanTheta is not None and ds[0]['Date (first)'] is not None and dateOfObservation):
+            pair_orbit = calc_historic_orbit(pairMass1, pairMass2, pairSepPar, pairDistance[1], pairACurrentCoord.separation(pairBCurrentCoord).arcsecond, ds[0]['Sep_f'], pairMeanRho, ds[0]['PA_f'], pairMeanTheta, ds[0]['Date (first)'], dateOfObservation)
+        else:
+            pair_orbit = ['Cannot be determined, missing data.', 'Cannot be determined, missing data.', 'Cannot be determined, missing data.']
         
         preciseCoord = str(getPreciseCoord(pairRaA, pairDecA, fitsFileDate))
         reportName = (workingDirectory + '/' + pairObjectId + '.txt').replace(' ', '')
