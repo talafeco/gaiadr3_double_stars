@@ -1,6 +1,13 @@
+#! /usr/bin/python3
+
 '''
-To calculate the probability of gravitational binding between two stars, we need to compare the escape velocity of the system with the relative velocity of the stars. The escape velocity represents the minimum velocity required for an object to escape the gravitational influence of another object. If the relative velocity of the stars is less than the escape velocity, then they are bound together by gravity.
-This function takes as input the masses of the two stars (in solar masses), the distance between them (in AU), and their 3D motion vectors (in km/s). It returns the probability of gravitational binding between the stars. Remember to provide the velocity vectors of the stars in the same reference frame.
+To calculate the probability of gravitational binding between two stars, we need to compare the escape velocity of the system with the relative velocity of the stars. 
+The escape velocity represents the minimum velocity required for an object to escape the gravitational influence of another object.
+If the relative velocity of the stars is less than the escape velocity, then they are bound together by gravity.
+This function takes as input the masses of the two stars (in solar masses),
+the distance between them (in AU), and their 3D motion vectors (in km/s).
+It returns the probability of gravitational binding between the stars.
+Remember to provide the velocity vectors of the stars in the same reference frame.
 '''
 
 import numpy as np
@@ -30,14 +37,14 @@ def calculate_gravitational_binding_probability(mass_star1, mass_star2, distance
     # Calculate the probability of gravitational binding
     probability_binding = relative_velocity / escape_velocity
 
-    return probability_binding
+    return probability_binding, relative_velocity, escape_velocity
 
 # Example usage
-mass_star1 = 1.5  # Mass of star 1 in solar masses
-mass_star2 = 2.0  # Mass of star 2 in solar masses
-distance = 10.0  # Distance between stars in AU
-velocity_vector_star1 = np.array([10, 0, 0])  # 3D velocity vector of star 1 in km/s
-velocity_vector_star2 = np.array([-5, 0, 0])  # 3D velocity vector of star 2 in km/s
+mass_star1 = 1.27  # Mass of star 1 in solar masses
+mass_star2 = 1.7  # Mass of star 2 in solar masses
+distance = 4.071  # Distance between stars in AU
+velocity_vector_star1 = np.array([-66.71272791555867, -2.8372787751705295, -25.264393])  # 3D velocity vector of star 1 in km/s
+velocity_vector_star2 = np.array([-66.18234160241312, -2.970262523025885, -24.513504])  # 3D velocity vector of star 2 in km/s
 
 probability = calculate_gravitational_binding_probability(mass_star1, mass_star2, distance, velocity_vector_star1, velocity_vector_star2)
 print("Probability of gravitational binding:", probability)
