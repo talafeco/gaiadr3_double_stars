@@ -50,10 +50,10 @@ Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"  # Reselect Data Release 3, default
 # Configuration for the ATIK camera
 
 dao_sigma = 3.0
-dao_fwhm = 7.0
+dao_fwhm = 8.0
 dao_threshold = 12.0
 possible_distance = 30000.0 # AU
-search_cone = 0.004 # Decimal degree
+search_cone = 0.001 # Decimal degree
 dummyObservationDate = "2022-01-01T12:00:00"
 
 

@@ -297,7 +297,29 @@ def convertStringToNan(str):
     return wdsPair'''
 
 # Create HRD plot of the double stars based on Hipparcos
+# Create HRD plot of the double stars based on Hipparcos
 def hrdPlot(designation_a, designation_b, mag_abs_a, mag_abs_b, bv_a, bv_b):
+    print(designation_a, designation_b, mag_abs_a, mag_abs_b, bv_a, bv_b)
+    if designation_a and designation_b and mag_abs_a and mag_abs_b and bv_a and bv_b:
+        hipparcos_abs_mag = hipparcos_file['Abs_mag']
+        hipparcos_bv_index = hipparcos_file['B-V']
+        colors = (hipparcos_bv_index)
+        plt.scatter(hipparcos_bv_index, hipparcos_abs_mag, c=colors, s=0.5, alpha=0.1, cmap='RdYlBu_r', vmax=1.9, vmin=-0.4) #, 
+        plt.scatter(bv_a, mag_abs_a, s=14, color="blue", label='Main star') # s= 1 / mag_abs_a
+        plt.scatter(bv_b, mag_abs_b, s=7, color="red", label='Companion star') # s= 1 / mag_abs_a
+        plt.legend(loc="upper left")
+        plt.axis((-0.4,1.9,15,-10))
+        plt.title('Double Star ' + designation_a + ' - ' + designation_b + ' H-R Diagram')
+        plt.xlabel('B-V index')
+        plt.ylabel('Absolute magnitude')
+        plt.gca().set_aspect(0.1)
+        savename = str(workingDirectory + '/' + designation_a + ' - ' + designation_b + '_hrd.jpg').replace(' ', '')
+        plt.savefig(savename, bbox_inches='tight', dpi=300.0)
+        plt.close()
+    else:
+        print('Data is missiong, HRD plot cannot be created!')
+
+'''def hrdPlot(designation_a, designation_b, mag_abs_a, mag_abs_b, bv_a, bv_b):
     hipparcos_abs_mag = hipparcos_file['Abs_mag']
     hipparcos_bv_index = hipparcos_file['B-V']
     plt.scatter(hipparcos_bv_index, hipparcos_abs_mag, s=0.5, alpha=0.2, color="grey") #, 
@@ -310,7 +332,7 @@ def hrdPlot(designation_a, designation_b, mag_abs_a, mag_abs_b, bv_a, bv_b):
     plt.ylabel('Absolute magnitude')
     plt.gca().set_aspect(0.07)
     plt.savefig(workingDirectory + '/' + designation_a + ' - ' + designation_b + '_hrd.jpg', dpi=150.0, bbox_inches='tight')
-    plt.close()
+    plt.close()'''
 
 # Create Image plot of the double stars
 '''def imagePlot(filename, designation_a, designation_b, raa, deca, rab, decb):
@@ -702,8 +724,8 @@ for ds in reportTable_by_object.groups:
     pairAltLum2 = calcLuminosityAlternate(pairAbsMag2)
     pairMass1 = calcMass(pairAltLum1)
     pairMass2 = calcMass(pairAltLum2)
-    pairBVIndexA = ds[0][10] - ds[0][9]
-    pairBVIndexB = ds[0][27] - ds[0][26]
+    pairBVIndexA = ds[0][11] - ds[0][9]
+    pairBVIndexB = ds[0][28] - ds[0][26]
     pairSepPar = sepCalc(pairDistanceMinA, pairDistanceMinB, rhoPairDr3) # Separation of the pairs in parsecs
     pairEscapeVelocity = calcEscapevelocity(pairMass1, pairMass2, pairSepPar, gravConst)
     pairRelativeVelocity = calcRelativeVelocity(ds[0][7], ds[0][8], ds[0][24], ds[0][25], ds[0][12], ds[0][29], pairDistanceMinA, pairDistanceMinB)
