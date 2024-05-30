@@ -43,9 +43,9 @@ hipparcos_bv_index = hipparcos_file['B-V']
 # Configuration for the ATIK camera
 
 dao_sigma = 3.0
-dao_fwhm = 7.0
+dao_fwhm = 8.0
 dao_threshold = 12.0
-possible_distance = 10000.0 # AU
+possible_distance = 30000.0 # AU
 search_cone = 0.001 # Decimal degree
 image_limit = 2000
 
@@ -431,8 +431,9 @@ imageId = np.array([], dtype=np.int32)
 sourceRa = np.array([], dtype=np.float64)
 sourceDec = np.array([], dtype=np.float64)
 sourceMag = np.array([], dtype=np.float64)
+imageDate = np.array([], dtype=str)
 # Create source table
-sourceTable = QTable([fileName, sourceId, dr3Designation, dr3Ra, dr3Dec, dr3Parallax, dr3ParallaxError, dr3PmRa, dr3PmDec, dr3gMag, dr3bpMag, dr3rpMag, dr3RadVel, dr3RadVelErr, dr3Temp, imageId, sourceRa, sourceDec, sourceMag], names=('filename', 'source_id', 'designation', 'ra', 'dec', 'parallax', 'parallax_error', 'pmra', 'pmdec','phot_g_mean_mag', 'phot_bp_mean_mag', 'phot_rp_mean_mag', 'radial_velocity', 'radial_velocity_error', 'teff_gspphot', 'image_id', 'source_ra', 'source_dec', 'source_mag'), meta={'name': 'source table'})
+sourceTable = QTable([fileName, sourceId, dr3Designation, dr3Ra, dr3Dec, dr3Parallax, dr3ParallaxError, dr3PmRa, dr3PmDec, dr3gMag, dr3bpMag, dr3rpMag, dr3RadVel, dr3RadVelErr, dr3Temp, imageId, sourceRa, sourceDec, sourceMag, imageDate], names=('filename', 'source_id', 'designation', 'ra', 'dec', 'parallax', 'parallax_error', 'pmra', 'pmdec','phot_g_mean_mag', 'phot_bp_mean_mag', 'phot_rp_mean_mag', 'radial_velocity', 'radial_velocity_error', 'teff_gspphot', 'image_id', 'source_ra', 'source_dec', 'source_mag', 'image_date'), meta={'name': 'source table'})
 
 # Define Qtable to record Gaia data for each image about the doubles
 reportFileName = np.array([], dtype=str)
@@ -477,19 +478,11 @@ reportThetaMeasured = np.array([], dtype=np.float64)
 reportRhoDr3= np.array([], dtype=np.float64)
 reportRhoMeasured = np.array([], dtype=np.float64)
 reportObjectId = np.array([], dtype=str)
-reportTable = QTable([reportFileName, reportSourceIdA, reportDr3DesignationA, reportDr3RaA, reportDr3DecA, reportDr3ParallaxA, reportDr3ParallaxErrorA, reportDr3PmRaA, reportDr3PmDecA, reportDr3gMagA, reportDr3bpMagA, reportDr3rpMagA, reportDr3RadVelA, reportDr3RadVelErrA, reportDr3TempA, reportRaMeasuredA, reportDecMeasuredA, reportMagMeasuredA, reportSourceIdB, reportDr3DesignationB, reportDr3RaB, reportDr3DecB, reportDr3ParallaxB, reportDr3ParallaxErrorB, reportDr3PmRaB, reportDr3PmDecB, reportDr3gMagB, reportDr3bpMagB, reportDr3rpMagB, reportDr3RadVelB, reportDr3RadVelErrB, reportDr3TempB, reportRaMeasuredB, reportDecMeasuredB, reportMagMeasuredB, reportThetaDr3, reportThetaMeasured, reportRhoDr3, reportRhoMeasured, reportObjectId], names=('filename', 'source_id_a', 'designation_a', 'ra_a', 'dec_a', 'parallax_a', 'parallax_error_a', 'pmra_a', 'pmdec_a', 'phot_g_mean_mag_a', 'phot_bp_mean_mag_a', 'phot_rp_mean_mag_a', 'radial_velocity_a', 'radial_velocity_error_a', 'teff_gspphot_a', 'rameasured_a', 'decmeasured_a', 'magmeasured_a', 'source_id_b', 'designation_b', 'ra_b', 'dec_b', 'parallax_b', 'parallax_error_b', 'pmra_b', 'pmdec_b', 'phot_g_mean_mag_b', 'phot_bp_mean_mag_b', 'phot_rp_mean_mag_b', 'radial_velocity_b', 'radial_velocity_error_b', 'teff_gspphot_b', 'rameasured_b', 'decmeasured_b', 'magmeasured_b', 'theta_dr3', 'theta_measured', 'rho_dr3', 'rho_measured', 'object_id'), meta={'name': 'report table'})
+reportImageDate = np.array([], dtype=str)
+reportTable = QTable([reportFileName, reportSourceIdA, reportDr3DesignationA, reportDr3RaA, reportDr3DecA, reportDr3ParallaxA, reportDr3ParallaxErrorA, reportDr3PmRaA, reportDr3PmDecA, reportDr3gMagA, reportDr3bpMagA, reportDr3rpMagA, reportDr3RadVelA, reportDr3RadVelErrA, reportDr3TempA, reportRaMeasuredA, reportDecMeasuredA, reportMagMeasuredA, reportSourceIdB, reportDr3DesignationB, reportDr3RaB, reportDr3DecB, reportDr3ParallaxB, reportDr3ParallaxErrorB, reportDr3PmRaB, reportDr3PmDecB, reportDr3gMagB, reportDr3bpMagB, reportDr3rpMagB, reportDr3RadVelB, reportDr3RadVelErrB, reportDr3TempB, reportRaMeasuredB, reportDecMeasuredB, reportMagMeasuredB, reportThetaDr3, reportThetaMeasured, reportRhoDr3, reportRhoMeasured, reportObjectId, reportImageDate], names=('filename', 'source_id_a', 'designation_a', 'ra_a', 'dec_a', 'parallax_a', 'parallax_error_a', 'pmra_a', 'pmdec_a', 'phot_g_mean_mag_a', 'phot_bp_mean_mag_a', 'phot_rp_mean_mag_a', 'radial_velocity_a', 'radial_velocity_error_a', 'teff_gspphot_a', 'rameasured_a', 'decmeasured_a', 'magmeasured_a', 'source_id_b', 'designation_b', 'ra_b', 'dec_b', 'parallax_b', 'parallax_error_b', 'pmra_b', 'pmdec_b', 'phot_g_mean_mag_b', 'phot_bp_mean_mag_b', 'phot_rp_mean_mag_b', 'radial_velocity_b', 'radial_velocity_error_b', 'teff_gspphot_b', 'rameasured_b', 'decmeasured_b', 'magmeasured_b', 'theta_dr3', 'theta_measured', 'rho_dr3', 'rho_measured', 'object_id', 'image_date'), meta={'name': 'report table'})
 
 # Set observation date and time
-fitsFileDate = ''
-fitsHeader = fits.open(workingDirectory + '/' + files[0])[0].header
-key_to_lookup_a = 'DATE-OBS'
-key_to_lookup_b = 'DATE'
-if key_to_lookup_a in fitsHeader:
-    fitsFileDate = fitsHeader['DATE-OBS']
-elif key_to_lookup_b in fitsHeader:
-    fitsFileDate = fitsHeader['DATE']
-else:
-    fitsFileDate = np.nan
+
 
 file_counter = 0
 
@@ -500,6 +493,17 @@ for fitsFile in files:
     fitsFileName = workingDirectory + '/' + fitsFile
     hdu = fits.open(fitsFileName)
     mywcs = WCS(hdu[0].header)
+    file_header = hdu[0].header
+
+    fitsFileDate = ''
+    key_to_lookup_a = 'DATE-OBS'
+    key_to_lookup_b = 'DATE'
+    if key_to_lookup_a in file_header:
+        fitsFileDate = file_header['DATE-OBS']
+    elif key_to_lookup_b in file_header:
+        fitsFileDate = file_header['DATE']
+    else:
+        fitsFileDate = np.nan
 
     # Estimate the background and background noise
     data = hdu[0].data
@@ -507,44 +511,19 @@ for fitsFile in files:
 
     daofind = DAOStarFinder(fwhm=dao_fwhm, threshold=dao_threshold*std)  
     sources = daofind(data - median)
-
-    '''# 2. Define the catalog file based on the source coordinate and read data from catalog file(s) to a catalog
-    segments = []
-    for star in sources:
-        ra, dec = mywcs.all_pix2world([[star ['xcentroid'], star ['ycentroid']]], 0)[0]
-        segmentRaCalc = int((float(ra) // 5) + 1)
-        segmentDecCalc = int((float(dec) // 5) + 1)
-        segmentName = f"{segmentRaCalc}-{segmentDecCalc}.csv"
-        if segmentName not in segments:
-            segments.append(segmentName)
-    print('### Segments are:',segments)
-
-    # Read all segments into an array
-    gaiaStars = np.empty((0, 152))
-
-    # Add all segments to the numpy array
-    for seg in segments:
-        if len(segments) > 1:
-            #segmentpart = Table.read(f"C:\Astro\catalogs\GaiaDR3\gaiadr3_15mag_catalog\{seg}", format='ascii')
-            segmentpart = Table.read(segment_lib + str(seg), format='ascii')
-            gaiaStars = vstack([gaiaStars, segmentpart])
-        else:
-            #segmentpart = Table.read(f"C:\Astro\catalogs\GaiaDR3\gaiadr3_15mag_catalog\{seg}", format='ascii')
-            segmentpart = Table.read(segment_lib + str(seg), format='ascii')
-            gaiaStars = segmentpart'''
     
     photo_left_upper = SkyCoord.from_pixel(0, 0, mywcs, origin=0, mode='all')
-    photo_right_lower = SkyCoord.from_pixel(fitsHeader['NAXIS2'], fitsHeader['NAXIS1'], mywcs, origin=0, mode='all')
-    photo_center = SkyCoord(fitsHeader['CRVAL1'] * u.degree, fitsHeader['CRVAL2'] * u.degree)
+    photo_right_lower = SkyCoord.from_pixel(file_header['NAXIS2'], file_header['NAXIS1'], mywcs, origin=0, mode='all')
+    photo_center = SkyCoord(file_header['CRVAL1'] * u.degree, file_header['CRVAL2'] * u.degree)
     photo_radius = photo_left_upper.separation(photo_right_lower) / 2
-    print('Center of photo (hours / decimal degree): ', photo_center.to_string('hmsdms'), '/', photo_center.to_string('decimal'),
+    print('Center of photo: ', photo_center.to_string('hmsdms'), '/', photo_center.to_string('decimal'),
       '\nRadius of photo: ', photo_radius)
     gaia_photo_catalog = Gaia.cone_search_async(photo_center, radius=u.Quantity(photo_radius))
     gaiaStars = gaia_photo_catalog.get_results()
-
+ 
     #dr3TableFileName = (str('dr3stars.csv'))
     #gaiaStars.write(dr3TableFileName, format='ascii.ecsv', overwrite=True, delimiter=',')
-    
+    print(sources)
     # Search sources in the segment catalog
     for star in sources:
         ra2, dec2 = mywcs.all_pix2world([[star ['xcentroid'], star ['ycentroid']]], 0)[0]   
@@ -555,7 +534,7 @@ for fitsFile in files:
         catalogstar = SkyCoord(ra=gaiaStars[idx]['ra']*u.degree, dec=gaiaStars[idx]['dec']*u.degree)
         sep = c.separation(catalogstar)
         if sep < Angle('00d00m02s'):
-            sourceTable.add_row([fitsFile, gaiaStars[idx]['SOURCE_ID'], gaiaStars[idx]['DESIGNATION'], convertStringToNan(gaiaStars[idx]['ra']), convertStringToNan(gaiaStars[idx]['dec']), convertStringToNan(gaiaStars[idx]['parallax']), convertStringToNan(gaiaStars[idx]['parallax_error']), convertStringToNan(gaiaStars[idx]['pmra']), convertStringToNan(gaiaStars[idx]['pmdec']), convertStringToNan(gaiaStars[idx]['phot_g_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_bp_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_rp_mean_mag']), convertStringToNan(gaiaStars[idx]['radial_velocity']), convertStringToNan(gaiaStars[idx]['radial_velocity_error']), convertStringToNan(gaiaStars[idx]['teff_gspphot']), star['id'], ra2, dec2, star['mag']])
+            sourceTable.add_row([fitsFile, gaiaStars[idx]['SOURCE_ID'], gaiaStars[idx]['DESIGNATION'], convertStringToNan(gaiaStars[idx]['ra']), convertStringToNan(gaiaStars[idx]['dec']), convertStringToNan(gaiaStars[idx]['parallax']), convertStringToNan(gaiaStars[idx]['parallax_error']), convertStringToNan(gaiaStars[idx]['pmra']), convertStringToNan(gaiaStars[idx]['pmdec']), convertStringToNan(gaiaStars[idx]['phot_g_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_bp_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_rp_mean_mag']), convertStringToNan(gaiaStars[idx]['radial_velocity']), convertStringToNan(gaiaStars[idx]['radial_velocity_error']), convertStringToNan(gaiaStars[idx]['teff_gspphot']), star['id'], ra2, dec2, star['mag'], fitsFileDate])
 
 #gaiaStarsTableFileName = (str('gaiaStarsTab.csv'))
 
@@ -565,15 +544,16 @@ sourceTable.write(tableFileName, format='ascii', overwrite=True, delimiter=',')
 
 ### Search double stars on the image sequence
 sourceTable_by_file = sourceTable.group_by('filename')
+print(sourceTable_by_file)
 
 for group in sourceTable_by_file.groups:
     # Creating empty arrays for Star related calculations
     StarA = []
     StarB = []
     for star in group: ## modify according to arrays instead of starlist
-        StarA = (star['filename'], star['source_id'], star['designation'], star['ra'], star['dec'], star['parallax'], star['parallax_error'], star['pmra'], star['pmdec'],star['phot_g_mean_mag'], star['phot_bp_mean_mag'], star['phot_rp_mean_mag'], star['radial_velocity'], star['radial_velocity_error'], star['teff_gspphot'], star['image_id'], star['source_ra'], star['source_dec'], star['source_mag'])
+        StarA = (star['filename'], star['source_id'], star['designation'], star['ra'], star['dec'], star['parallax'], star['parallax_error'], star['pmra'], star['pmdec'],star['phot_g_mean_mag'], star['phot_bp_mean_mag'], star['phot_rp_mean_mag'], star['radial_velocity'], star['radial_velocity_error'], star['teff_gspphot'], star['image_id'], star['source_ra'], star['source_dec'], star['source_mag'], star['image_date'])
         for star in group:
-            StarB = (star['filename'], star['source_id'], star['designation'], star['ra'], star['dec'], star['parallax'], star['parallax_error'], star['pmra'], star['pmdec'],star['phot_g_mean_mag'], star['phot_bp_mean_mag'], star['phot_rp_mean_mag'], star['radial_velocity'], star['radial_velocity_error'], star['teff_gspphot'], star['image_id'], star['source_ra'], star['source_dec'], star['source_mag'])
+            StarB = (star['filename'], star['source_id'], star['designation'], star['ra'], star['dec'], star['parallax'], star['parallax_error'], star['pmra'], star['pmdec'],star['phot_g_mean_mag'], star['phot_bp_mean_mag'], star['phot_rp_mean_mag'], star['radial_velocity'], star['radial_velocity_error'], star['teff_gspphot'], star['image_id'], star['source_ra'], star['source_dec'], star['source_mag'], star['image_date'])
             if StarA != StarB and float(StarA[9]) < float(StarB[9]) and float(StarA[5]) != 0 and float(StarB[5]) != 0:
                 #Set input data
                 starRa1 = float(StarA[3])
@@ -622,6 +602,7 @@ for group in sourceTable_by_file.groups:
                     starActualCoord1 = SkyCoord(starActualRa1, starActualDec1, unit="deg")
                     starActualCoord2 = SkyCoord(starActualRa2, starActualDec2, unit="deg")
                     starObjectId = (str(starId1) + '_' + str(starId2))
+                    starImageDate = StarA[19]
 
                     # Value to modify Theta according to the appropriate quadrant
                     '''addThetaValue = ()
@@ -662,7 +643,7 @@ for group in sourceTable_by_file.groups:
 
                     #Print data, if stars are close and share a common distance range
                     if distanceCommon == 'overlapping':
-                        reportTable.add_row([star[0], starId1, starName1, starRa1, starDec1, starParallax1, starParallaxError1, starPmRa1, starPmDec1, starGMag1, starBpMag1, starRpMag1, starRadVel1, starRadVelErr1, starTemp1, starActualRa1, starActualDec1, starActualMag1, starId2, starName2, starRa2, starDec2, starParallax2, starParallaxError2, starPmRa2, starPmDec2, starGMag2, starBpMag2, starRpMag2, starRadVel2, starRadVelErr2, starTemp2, starActualRa2, starActualDec2, starActualMag2, thetaStar, thetaActual, rhoStar, rhoActual, starObjectId])
+                        reportTable.add_row([star[0], starId1, starName1, starRa1, starDec1, starParallax1, starParallaxError1, starPmRa1, starPmDec1, starGMag1, starBpMag1, starRpMag1, starRadVel1, starRadVelErr1, starTemp1, starActualRa1, starActualDec1, starActualMag1, starId2, starName2, starRa2, starDec2, starParallax2, starParallaxError2, starPmRa2, starPmDec2, starGMag2, starBpMag2, starRpMag2, starRadVel2, starRadVelErr2, starTemp2, starActualRa2, starActualDec2, starActualMag2, thetaStar, thetaActual, rhoStar, rhoActual, starObjectId, starImageDate])
 
 # print('### Report Table ###')
 # print(reportTable)
@@ -724,15 +705,15 @@ for ds in reportTable_by_object.groups:
     pairAltLum2 = calcLuminosityAlternate(pairAbsMag2)
     pairMass1 = calcMass(pairAltLum1)
     pairMass2 = calcMass(pairAltLum2)
-    pairBVIndexA = ds[0][11] - ds[0][9]
-    pairBVIndexB = ds[0][28] - ds[0][26]
+    pairBVIndexA = ds[0][10] - ds[0][11]
+    pairBVIndexB = ds[0][27] - ds[0][28]
     pairSepPar = sepCalc(pairDistanceMinA, pairDistanceMinB, rhoPairDr3) # Separation of the pairs in parsecs
     pairEscapeVelocity = calcEscapevelocity(pairMass1, pairMass2, pairSepPar, gravConst)
     pairRelativeVelocity = calcRelativeVelocity(ds[0][7], ds[0][8], ds[0][24], ds[0][25], ds[0][12], ds[0][29], pairDistanceMinA, pairDistanceMinB)
     pairHarshawFactor = calcHarshaw(pairParallaxFactor, pairPmFactor)
     pairHarshawPhysicality = calcHarshawPhysicality(pairHarshawFactor)
     pairBinarity = calcBinarity(pairRelativeVelocity, pairEscapeVelocity)
-    dateOfObservation = getUTC(fitsFileDate)
+    dateOfObservation = getUTC(Time(ds['image_date']).mean())
 
     pairACurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaA, pairDecA, ds[0][7], ds[0][8])
     pairBCurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaB, pairDecB, ds[0][24], ds[0][25])
