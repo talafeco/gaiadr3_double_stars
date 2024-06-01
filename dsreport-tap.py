@@ -523,7 +523,6 @@ for fitsFile in files:
  
     #dr3TableFileName = (str('dr3stars.csv'))
     #gaiaStars.write(dr3TableFileName, format='ascii.ecsv', overwrite=True, delimiter=',')
-    print(sources)
     # Search sources in the segment catalog
     for star in sources:
         ra2, dec2 = mywcs.all_pix2world([[star ['xcentroid'], star ['ycentroid']]], 0)[0]   
