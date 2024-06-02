@@ -20,7 +20,7 @@ Excel  0,4457 végülis ez is az is „??” eredményez
 Historic velocity                 wdsreport max orbit 0,5571
 Excel max orbit 0,43
 wdsreport obs orbit 23,6803
-Excel obs orbit 3,1109 optikai így is, úgy is, de az eltérés nagy, lehet a képlet hibás?  '''
+Excel obs orbit 3,1109 optikai így is, úgy is, de az eltérés nagy, lehet a képlet hibás? '''
 
 import os
 import sys
