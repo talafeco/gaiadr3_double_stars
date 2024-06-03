@@ -668,14 +668,6 @@ print('WDS Catalog created successfully - ' , datetime.datetime.now())
 
 sources_ds = Table()
 
-# Set observation date and time
-fitsFileDate = ''
-fitsHeader = fits.open(workingDirectory + '/' + files[0])[0].header
-key_to_lookup = 'DATE-OBS'
-if key_to_lookup in fitsHeader:
-    fitsFileDate = fits.open(workingDirectory + '/' + files[0])[0].header['DATE-OBS']
-else:
-    fitsFileDate = dummyObservationDate
 
 file_counter = 0
 
@@ -688,6 +680,18 @@ for fitsFile in files:
     fitsFileName = workingDirectory + '/' + fitsFile
     hdu = fits.open(fitsFileName)
     mywcs = WCS(hdu[0].header)
+    file_header = hdu[0].header
+    
+	# Set observation date and time
+    fitsFileDate = ''
+    key_to_lookup_a = 'DATE-OBS'
+    key_to_lookup_b = 'DATE'
+    if key_to_lookup_a in file_header:
+        fitsFileDate = file_header['DATE-OBS']
+    elif key_to_lookup_b in file_header:
+        fitsFileDate = file_header['DATE']
+    else:
+        fitsFileDate = np.nan
 
     # Estimate the background and background noise
     data = hdu[0].data
@@ -698,6 +702,7 @@ for fitsFile in files:
     ra2, dec2 = mywcs.all_pix2world(sources['xcentroid'], sources['ycentroid'], 1)
     sources.add_column(ra2, name='ra_deg') 
     sources.add_column(dec2, name='dec_deg')
+    sources.add_column(fitsFileDate, name='image_date')
 
     sources_catalog = SkyCoord(ra=sources['ra_deg']*u.degree, dec=sources['dec_deg']*u.degree, frame='fk5')
     idxw, idxs, wsd2d, wsd3d = search_around_sky(wds_catalog, sources_catalog, search_cone*u.deg)
@@ -721,9 +726,9 @@ for fitsFile in files:
 upd_sources_ds = sources_ds[sources_ds['rho_measured'] != 0]
 upd_sources_ds_by_object = upd_sources_ds.group_by(['2000 Coord', 'Discov', 'Comp'])
 
-# print(upd_sources_ds.info)
-# print('### Updated sources DS table grouped by WDS Identifier, Discoverer and Components ###')
-# print(upd_sources_ds_by_object)
+print(upd_sources_ds.info)
+print('### Updated sources DS table grouped by WDS Identifier, Discoverer and Components ###')
+print(upd_sources_ds_by_object)
 
 upd_sources_ds_by_object.write(workingDirectory + '/double_stars.csv', format='ascii', overwrite=True, delimiter=',')
 
@@ -875,7 +880,9 @@ for ds in upd_sources_ds_by_object.groups:
         pairRadVelRatioB = convertStringToNan(math.fabs(gaiaBStar[0]['radial_velocity_error'] / gaiaBStar[0]['radial_velocity']) * 100)
         pairDesA = str(gaiaAStar[0]['DESIGNATION'])
         pairDesB = str(gaiaBStar[0]['DESIGNATION'])
-        dateOfObservation = getUTC(fitsFileDate)
+        # dateOfObservation = getUTC(fitsFileDate)
+        print('dateOfObservation: ', Time(ds['image_date']))
+        dateOfObservation = getUTC(np.mean(Time(ds['image_date'])))
         pairACurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaA, pairDecA, gaiaAStar[0]['pmra'], gaiaAStar[0]['pmdec'])
         pairBCurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaB, pairDecB, gaiaBStar[0]['pmra'], gaiaBStar[0]['pmdec'])
         pairAMeasuredCoord = SkyCoord(ra=ds['ra_deg_1'].groups.aggregate(np.mean) * u.deg, dec=ds['dec_deg_1'].groups.aggregate(np.mean) * u.deg)

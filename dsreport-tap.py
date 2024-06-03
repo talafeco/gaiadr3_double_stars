@@ -543,7 +543,8 @@ sourceTable.write(tableFileName, format='ascii', overwrite=True, delimiter=',')
 
 ### Search double stars on the image sequence
 sourceTable_by_file = sourceTable.group_by('filename')
-print(sourceTable_by_file)
+#print(sourceTable_by_file.info)
+#print(sourceTable_by_file)
 
 for group in sourceTable_by_file.groups:
     # Creating empty arrays for Star related calculations
@@ -658,8 +659,8 @@ meanTable = QTable([measuredObject, measuredMeanTheta, measuredMeanThetaErr, mea
 
 ### Search double stars on the image sequence
 reportTable_by_object = reportTable.group_by('object_id')
-# print('\n### Report Table by object ###')
-# print(reportTable_by_object)
+print('\n### Report Table by object ###')
+print(reportTable_by_object.info)
 
 objectMean = reportTable_by_object.groups.aggregate(np.mean)
 
