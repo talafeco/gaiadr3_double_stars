@@ -25,9 +25,11 @@ Excel obs orbit 3,1109 optikai így is, úgy is, de az eltérés nagy, lehet a k
 import os
 import sys
 import numpy as np
+import numpy.ma as ma
 import math
 import sys
 import datetime
+from time import gmtime, strftime
 from astropy.coordinates import SkyCoord, Angle, FK5
 from astropy.coordinates import match_coordinates_sky, search_around_sky, position_angle, angular_separation
 from astropy import units as u
@@ -36,6 +38,7 @@ from astropy.stats import sigma_clipped_stats
 from astropy.table import QTable
 from astropy.table import Table, vstack, hstack
 from astropy.table import Column, MaskedColumn
+from astropy.utils.masked import MaskedNDArray
 from photutils.detection import DAOStarFinder
 from astropy.wcs import WCS
 import astropy.units as u
@@ -726,7 +729,8 @@ for fitsFile in files:
 upd_sources_ds = sources_ds[sources_ds['rho_measured'] != 0]
 upd_sources_ds_by_object = upd_sources_ds.group_by(['2000 Coord', 'Discov', 'Comp'])
 
-print(upd_sources_ds.info)
+print(upd_sources_ds_by_object.info)
+
 print('### Updated sources DS table grouped by WDS Identifier, Discoverer and Components ###')
 print(upd_sources_ds_by_object)
 
@@ -880,9 +884,13 @@ for ds in upd_sources_ds_by_object.groups:
         pairRadVelRatioB = convertStringToNan(math.fabs(gaiaBStar[0]['radial_velocity_error'] / gaiaBStar[0]['radial_velocity']) * 100)
         pairDesA = str(gaiaAStar[0]['DESIGNATION'])
         pairDesB = str(gaiaBStar[0]['DESIGNATION'])
+        
         # dateOfObservation = getUTC(fitsFileDate)
-        print('dateOfObservation: ', Time(ds['image_date']))
-        dateOfObservation = getUTC(np.mean(Time(ds['image_date'])))
+        print('dateOfObservation: ', Time(ds['image_date'].data))
+        print('dateOfObservationMean: ', Time(ds['image_date'].data).mean())
+        #dateOfObservation = getUTC(Time(ds['image_date']).mean())
+        dateOfObservation = getUTC(Time(ds['image_date'].data).mean())
+
         pairACurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaA, pairDecA, gaiaAStar[0]['pmra'], gaiaAStar[0]['pmdec'])
         pairBCurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaB, pairDecB, gaiaBStar[0]['pmra'], gaiaBStar[0]['pmdec'])
         pairAMeasuredCoord = SkyCoord(ra=ds['ra_deg_1'].groups.aggregate(np.mean) * u.deg, dec=ds['dec_deg_1'].groups.aggregate(np.mean) * u.deg)
