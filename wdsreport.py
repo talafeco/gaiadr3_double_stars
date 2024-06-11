@@ -7,7 +7,6 @@
 # Calculate the double star's precise coordinates for current epoch
 # Get all double stars from wds, which should be found on the images
 # Search double stars based on magnitude difference, separation and position angle, if not found based on the coordinates
-# Update to use the median coordiantes for gaia search instead of the first! (get_gaia_dr3_data)
 
 ''' Errors:  fizikai jellemzők egyeznek az Excellel.
 szeparáció átszámítás: wdsreport 37 171 AU - OK
@@ -512,9 +511,8 @@ def imagePlot(filename, pairname, raa, deca, rab, decb):
     #plt.show()
 
 def get_gaia_dr3_data(doublestars):
-    # Update to use the median coordiantes instead of the first!
-    pairACoord = SkyCoord(ra=doublestars[0]['ra_deg_1'], dec=doublestars[0]['dec_deg_1'], unit=(u.degree, u.degree), frame='icrs')
-    pairBCoord = SkyCoord(ra=doublestars[0]['ra_deg_2'], dec=doublestars[0]['dec_deg_2'], unit=(u.degree, u.degree), frame='icrs')
+    pairACoord = SkyCoord(ra=doublestars['ra_deg_1'].mean(), dec=doublestars['dec_deg_1'].mean(), unit=(u.degree, u.degree), frame='icrs')
+    pairBCoord = SkyCoord(ra=doublestars['ra_deg_2'].mean(), dec=doublestars['dec_deg_2'].mean(), unit=(u.degree, u.degree), frame='icrs')
     a = Gaia.cone_search_async(pairACoord, radius=u.Quantity(search_cone, u.deg))
     b = Gaia.cone_search_async(pairBCoord, radius=u.Quantity(search_cone, u.deg))
     a_query = a.get_results()
