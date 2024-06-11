@@ -7,6 +7,7 @@
 # Calculate the double star's precise coordinates for current epoch
 # Get all double stars from wds, which should be found on the images
 # Search double stars based on magnitude difference, separation and position angle, if not found based on the coordinates
+# Update to use the median coordiantes for gaia search instead of the first! (get_gaia_dr3_data)
 
 ''' Errors:  fizikai jellemzők egyeznek az Excellel.
 szeparáció átszámítás: wdsreport 37 171 AU - OK
@@ -511,6 +512,7 @@ def imagePlot(filename, pairname, raa, deca, rab, decb):
     #plt.show()
 
 def get_gaia_dr3_data(doublestars):
+    # Update to use the median coordiantes instead of the first!
     pairACoord = SkyCoord(ra=doublestars[0]['ra_deg_1'], dec=doublestars[0]['dec_deg_1'], unit=(u.degree, u.degree), frame='icrs')
     pairBCoord = SkyCoord(ra=doublestars[0]['ra_deg_2'], dec=doublestars[0]['dec_deg_2'], unit=(u.degree, u.degree), frame='icrs')
     a = Gaia.cone_search_async(pairACoord, radius=u.Quantity(search_cone, u.deg))
@@ -706,6 +708,7 @@ for fitsFile in files:
     sources.add_column(ra2, name='ra_deg') 
     sources.add_column(dec2, name='dec_deg')
     sources.add_column(fitsFileDate, name='image_date')
+    sources.add_column(fitsFileName, name='file')
 
     sources_catalog = SkyCoord(ra=sources['ra_deg']*u.degree, dec=sources['dec_deg']*u.degree, frame='fk5')
     idxw, idxs, wsd2d, wsd3d = search_around_sky(wds_catalog, sources_catalog, search_cone*u.deg)
@@ -890,6 +893,7 @@ for ds in upd_sources_ds_by_object.groups:
         print('dateOfObservationMean: ', Time(ds['image_date'].data).mean())
         #dateOfObservation = getUTC(Time(ds['image_date']).mean())
         dateOfObservation = getUTC(Time(ds['image_date'].data).mean())
+        firstFitsImageFileName = ds['file'][0]
 
         pairACurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaA, pairDecA, gaiaAStar[0]['pmra'], gaiaAStar[0]['pmdec'])
         pairBCurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaB, pairDecB, gaiaBStar[0]['pmra'], gaiaBStar[0]['pmdec'])
@@ -910,8 +914,8 @@ for ds in upd_sources_ds_by_object.groups:
         gaiaData = str(ds[0]['2000 Coord']) + ',' + str(ds[0]['Discov']) + ',' + str(gaiaAStar[0]['pmra']) + ',' + str(gaiaAStar[0]['pmdec']) + ',' + str(gaiaBStar[0]['pmra']) + ',' + str(gaiaBStar[0]['pmdec']) + ',' + str(gaiaAStar[0]['parallax']) + ',' + str(gaiaBStar[0]['parallax']) + ',' + str(calcDistance(gaiaAStar[0]['parallax'])) + ',' + str(calcDistance(gaiaBStar[0]['parallax'])) + ',' + str(gaiaAStar[0]['radial_velocity']) + ',' + str(gaiaBStar[0]['radial_velocity']) + ',' + 'pairRad1' + ',' + 'pairRad2' + ',' + str(pairLum1) + ',' + str(pairLum2) + ',' + str(gaiaAStar[0]['teff_gspphot']) + ',' + str(gaiaBStar[0]['teff_gspphot']) + ',' + str(gaiaAStar[0]['phot_g_mean_mag']) + ',' + str(gaiaBStar[0]['phot_g_mean_mag']) + ',' + str(gaiaAStar[0]['phot_bp_mean_mag']) + ',' + str(gaiaBStar[0]['phot_bp_mean_mag']) + ',' + str(gaiaAStar[0]['phot_rp_mean_mag']) + ',' + str(gaiaBStar[0]['phot_rp_mean_mag']) + ',' + str(pairDR3Theta) + ',' + str(pairDR3Rho) + ',' + str(gaiaAStar[0]['ra']) + ',' + str(gaiaAStar[0]['dec']) + ',' + str(gaiaBStar[0]['ra']) + ',' + str(gaiaBStar[0]['dec']) + ',' + str(gaiaAStar[0]['parallax_error']) + ',' + str(gaiaBStar[0]['parallax_error'])
         hrdPlot(pairObjectId, pairAbsMag1, pairAbsMag2, pairBVIndexA, pairBVIndexB)
         
-    print(files[0], pairObjectId, pairRaA, pairDecA, pairRaB, pairDecB)
-    imagePlot(files[0], pairObjectId, pairRaA, pairDecA, pairRaB, pairDecB)
+    print(firstFitsImageFileName, pairObjectId, pairRaA, pairDecA, pairRaB, pairDecB)
+    imagePlot(firstFitsImageFileName, pairObjectId, pairRaA, pairDecA, pairRaB, pairDecB)
     
     # Print temp data
     print('\n### COMPONENTS ###')
@@ -968,7 +972,7 @@ for ds in upd_sources_ds_by_object.groups:
     print('Analysis finished: ' , datetime.datetime.now())
     
     # Write results to file
-    reportTable.add_row([ds[0]['2000 Coord'] + ds[0]['Discov'] + str(ds[0]['Comp']), dateOfObservation, pairMeanTheta, pairMeanThetaErr, pairMeanRho, pairMeanRhoErr, np.nan, np.nan, pairMagDiff, pairMagDiffErr, 'Filter wawelenght', 'filter FWHM', '0.2', '1', 'TAL_2022', 'C', '7', preciseCoord])
+    reportTable.add_row([ds[0]['2000 Coord'] + ds[0]['Discov'] + str(ds[0]['Comp']), dateOfObservation, pairMeanTheta, pairMeanThetaErr, pairMeanRho, pairMeanRhoErr, np.nan, np.nan, pairMagDiff, pairMagDiffErr, 'Filter wawelenght', 'filter FWHM', '0.2', '1', 'TLB_2024', 'C', '7', preciseCoord])
     reportFile.write('### WDS Data ###')
     reportFile.write('\nWDS Identifier: ' + ds[0]['2000 Coord'])
     reportFile.write('\nDiscoverer and components: ' + str(ds[0]['Discov']) + ' ' + str(ds[0]['Comp']))
