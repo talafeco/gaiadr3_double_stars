@@ -120,4 +120,7 @@ major_differences_table = QTable(np.hstack(major_differences))
 
 # Save results to files
 all_sources_table.write('all_sources_summary.fits', format='fits', overwrite=True)
+all_sources_table.write('all_sources_summary.txt',  format='ascii', overwrite=True, delimiter=',')
+
 major_differences_table.write('major_differences_summary.fits', format='fits', overwrite=True)
+major_differences_table.write('major_differences_summary.txt', format='ascii', overwrite=True, delimiter=',')
