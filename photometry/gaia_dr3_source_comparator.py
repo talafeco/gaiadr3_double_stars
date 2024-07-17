@@ -92,12 +92,12 @@ for fits_file in os.listdir(fits_dir):
         sources['gaia_id'] = ''
         sources['gaia_g_mag'] = np.nan
         
-        print(gaia_sources)
-        
         for i, source in enumerate(sources):
             ra, dec = source['ra'], source['dec']
             idx = np.argmin(np.sqrt((gaia_sources['ra'] - ra)**2 + (gaia_sources['dec'] - dec)**2))
+            
             gaia_source = gaia_sources[idx]
+            print(gaia_source)
             
             sources['gaia_id'][i] = gaia_source['SOURCE_ID']
             sources['gaia_g_mag'][i] = gaia_source['phot_g_mean_mag']
