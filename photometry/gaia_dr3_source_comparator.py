@@ -1,3 +1,5 @@
+#! /usr/bin/python3
+
 '''
 To achieve the task, you'll need to combine several steps using astropy, numpy, and astroquery. Below is a detailed Python script to perform the required tasks:
 
@@ -19,7 +21,7 @@ Comparing Magnitudes: Calculates the difference between measured magnitudes and 
 Storing Results: Aggregates all sources and major differences into QTables and saves them as FITS files.
 '''
 
-
+import sys
 import os
 import numpy as np
 from astropy.io import fits
@@ -31,7 +33,7 @@ from astroquery.gaia import Gaia
 import astropy.units as u
 
 # Define the directory containing the FITS files
-fits_dir = 'path_to_fits_files'
+fits_dir = sys.argv[1]
 
 # Initialize lists to store results
 all_sources = []
@@ -79,7 +81,7 @@ def calculate_limiting_magnitude(data, std, wcs, num_sources):
 
 # Read FITS files and process each one
 for fits_file in os.listdir(fits_dir):
-    if fits_file.endswith('.fits'):
+    if fits_file.endswith('.new'):
         fits_path = os.path.join(fits_dir, fits_file)
         
         sources, wcs, data = extract_sources(fits_path)
