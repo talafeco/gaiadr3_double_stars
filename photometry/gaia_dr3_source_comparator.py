@@ -119,5 +119,5 @@ all_sources_table = QTable(np.hstack(all_sources))
 major_differences_table = QTable(np.hstack(major_differences))
 
 # Save results to files
-all_sources_table.write('all_sources_summary.fits', format='fits')
-major_differences_table.write('major_differences_summary.fits', format='fits')
+all_sources_table.write('all_sources_summary.fits', format='fits', overwrite=True)
+major_differences_table.write('major_differences_summary.fits', format='fits', overwrite=True)
