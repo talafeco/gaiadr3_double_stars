@@ -89,7 +89,7 @@ for fits_file in os.listdir(fits_dir):
             continue
         
         gaia_sources = query_gaia_sources(wcs, data.shape)
-        sources['gaia_id'] = ''
+        sources['gaia_id'] = np.str
         sources['gaia_g_mag'] = np.nan
         
         for i, source in enumerate(sources):
