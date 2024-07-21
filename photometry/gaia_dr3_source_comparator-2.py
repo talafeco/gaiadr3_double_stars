@@ -28,11 +28,12 @@ import os
 import numpy as np
 import math
 from astropy.io import fits
-from astropy.table import QTable, Table
+from astropy.table import QTable, Table, Column
 from astropy.wcs import WCS
 from astropy.stats import sigma_clipped_stats
 from photutils import DAOStarFinder
 from astroquery.gaia import Gaia
+from astropy.coordinates import SkyCoord
 import astropy.units as u
 
 # Define the directory containing the FITS files
@@ -50,7 +51,8 @@ def extract_sources(fits_file):
         wcs = WCS(header)
         
         mean, median, std = sigma_clipped_stats(data, sigma=3.0)
-        daofind = DAOStarFinder(fwhm=3.0, threshold=5.*std)
+        # daofind = DAOStarFinder(fwhm=3.0, threshold=5.*std)
+        daofind = DAOStarFinder(fwhm=8.0, threshold=12.0*std)
         sources = daofind(data - median)
         
         if sources is None:
@@ -95,19 +97,42 @@ for fits_file in os.listdir(fits_dir):
         print('### SOURCES TALBE ###\n', sources)
         
         gaia_sources = query_gaia_sources(wcs, data.shape)
-        sources.add_column(np.empty, name='gaia_id')
+        sources.add_column(np.empty, name='gaia_designation')
+        sources.add_column(np.empty, name='gaia_source_id')
+        sources.add_column(np.empty, name='object_id')
+        sources['gaia_bp_mag'] = np.nan
         sources['gaia_g_mag'] = np.nan
-        print('### SOURCES INFO ###\n', sources.info)
-        
+        sources['gaia_rp_mag'] = np.nan
+        sources.add_column(fits_file, name='file_name')
+        '''
         for i, source in enumerate(sources):
             ra, dec = source['ra'], source['dec']
             idx = np.argmin(np.sqrt((gaia_sources['ra'] - ra)**2 + (gaia_sources['dec'] - dec)**2))
-            
+            print('### IDX 1. ###\n', idx)
             gaia_source = gaia_sources[idx]
-            print('GAIA SOURCE', gaia_source['DESIGNATION'])
-            
             sources['gaia_id'][i] = gaia_source['DESIGNATION']
             sources['gaia_g_mag'][i] = gaia_source['phot_g_mean_mag']
+        '''
+
+        for i, source in enumerate(sources):
+            ra, dec = wcs.all_pix2world([[source ['xcentroid'], source ['ycentroid']]], 0)[0]   
+            source_catalog_coords = SkyCoord(ra=ra*u.degree, dec=dec*u.degree)  
+            catalog = SkyCoord(ra=gaia_sources['ra'], dec=gaia_sources['dec'])
+            idx, d2d, d3d = source_catalog_coords.match_to_catalog_sky(catalog)
+
+            gaia_source = gaia_sources[idx]
+            sources['gaia_designation'][i] = gaia_source['DESIGNATION']
+            sources['gaia_source_id'][i] = str(gaia_source['SOURCE_ID'])
+            sources['object_id'][i] = str(gaia_source['SOURCE_ID']) + str(source['file_name'])
+            sources['gaia_g_mag'][i] = gaia_source['phot_g_mean_mag']
+            sources['gaia_bp_mag'][i] = gaia_source['phot_bp_mean_mag']
+            sources['gaia_rp_mag'][i] = gaia_source['phot_rp_mean_mag']
+
+            # sources['gaia_bp_rp'][i] = gaia_source['bp_rp']
+            # sources['gaia_bp_g'][i] = gaia_source['bp_g']
+            # sources['gaia_g_rp'][i] = gaia_source['g_rp']
+
+
         
         mean, median, std = sigma_clipped_stats(data, sigma=3.0)
         bkg_limiting_mag = calculate_limiting_magnitude(sources['mag'], sources['gaia_g_mag'] )
@@ -116,7 +141,7 @@ for fits_file in os.listdir(fits_dir):
         sources['measured_mag'] = bkg_limiting_mag + sources['mag']
         sources['mag_difference'] = sources['gaia_g_mag'] - sources['measured_mag']
         
-        major_diff = sources[np.abs(sources['mag_difference']) > 0.5]
+        major_diff = sources[np.abs(sources['mag_difference']) > 1]
         major_differences.append(major_diff)
         
         all_sources.append(sources)
@@ -125,9 +150,42 @@ for fits_file in os.listdir(fits_dir):
 all_sources_table = QTable(np.hstack(all_sources))
 major_differences_table = QTable(np.hstack(major_differences))
 
+# Create table for the aggregated data
+designation, sourceid, flux, mag, ra_deg, de_deg, bp_mag, g_mag, rp_mag, background_mag, measured_mag, measured_mag_err, mag_difference, mag_difference_err = np.array([], dtype=str), np.array([], dtype=str), np.array([], dtype=np.float64), np.array([], dtype=np.float64), np.array([], dtype=np.float64), np.array([], dtype=np.float64), np.array([], dtype=np.float64), np.array([], dtype=np.float64), np.array([], dtype=np.float64), np.array([], dtype=np.float64), np.array([], dtype=np.float64), np.array([], dtype=np.float64), np.array([], dtype=np.float64), np.array([], dtype=np.float64)
+
+aggregated_table = Table([designation, sourceid, flux, mag, ra_deg, de_deg, bp_mag, g_mag, rp_mag, background_mag, measured_mag, measured_mag_err, mag_difference, mag_difference_err], names=('Gaia DR3 Designation', 'Gaia DR3 Source ID', 'Flux', 'Magnitude', 'RA', 'DEC', 'Gaia DR3 Bp Magnitude', 'Gaia DR3 G Magnitude', 'Gaia DR3 Rp Magnitude', 'Background Limiting Magnitude', 'Measured Magnitude', 'Std. Error of Measured Magnitude', 'Magnitude Difference', 'Std. Error of Magnitude Difference'))
+
+# Average measurements
+reportTable_by_object = all_sources_table.group_by('gaia_source_id')
+
+# print('reportTable_by_object: ', reportTable_by_object.info)
+
+count = 1
+for star in reportTable_by_object.groups:
+    # print(len(star['gaia_designation']))
+    # print(len(os.listdir(fits_dir)) / 2)
+
+    if len(star['gaia_designation']) >= len(os.listdir(fits_dir)) / 2:
+        
+        '''print('\n### Star index:', count, '###')
+        count = count + 1
+        print('\nStar DR3 Designation: ', star['gaia_designation'][0])
+        print('\nGaia G Magnitude: ', star['gaia_g_mag'].groups.aggregate(np.mean))
+        print('\nMeasured Magnitude: ', star['measured_mag'].groups.aggregate(np.mean))
+        print('\nMagnitude Difference: ', star['mag_difference'].groups.aggregate(np.mean))'''
+
+        aggregated_table.add_row([star[0]['gaia_designation'], star[0]['gaia_source_id'], star['flux'].groups.aggregate(np.mean), star['mag'].groups.aggregate(np.mean), star['ra'].groups.aggregate(np.mean), star['dec'].groups.aggregate(np.mean), star[0]['gaia_bp_mag'], star[0]['gaia_g_mag'], star[0]['gaia_rp_mag'], star['bkg_limiting_mag'].groups.aggregate(np.mean), star['measured_mag'].groups.aggregate(np.mean), star['measured_mag'].groups.aggregate(np.std), star['mag_difference'].groups.aggregate(np.mean), star['mag_difference'].groups.aggregate(np.std)])
+
+        # print('\nStar DR3 Designation: ', star['gaia_designation'])
+        # print('\nStar DR3 Designation: ', star['gaia_designation'])
+
+
 # Save results to files
 # all_sources_table.write('all_sources_summary.fits', format='fits', overwrite=True)
 all_sources_table.write('all_sources_summary.csv',  format='ascii', overwrite=True, delimiter=',')
 
 # major_differences_table.write('major_differences_summary.fits', format='fits', overwrite=True)
 major_differences_table.write('major_differences_summary.csv', format='ascii', overwrite=True, delimiter=',')
+
+aggregated_table.write('aggregated_table.csv', format='ascii', overwrite=True, delimiter=',')
+
