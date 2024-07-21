@@ -26,6 +26,7 @@ Storing Results: Aggregates all sources and major differences into QTables and s
 import sys
 import os
 import numpy as np
+import math
 from astropy.io import fits
 from astropy.table import QTable, Table
 from astropy.wcs import WCS
@@ -77,8 +78,9 @@ def query_gaia_sources(wcs, data_shape):
     return gaia_sources
 
 # Function to calculate background limiting magnitude
-def calculate_limiting_magnitude(data, std, wcs, num_sources):
-    bkg_mag = -2.5 * np.log10(std / np.sqrt(num_sources))
+def calculate_limiting_magnitude(measured_mags, dr3_mags):
+    # bkg_mag = -2.5 * np.log10(math.fabs(std) / np.sqrt(num_sources))
+    bkg_mag = np.mean(dr3_mags - measured_mags)
     return bkg_mag
 
 # Read FITS files and process each one
@@ -105,13 +107,13 @@ for fits_file in os.listdir(fits_dir):
             sources['gaia_g_mag'][i] = gaia_source['phot_g_mean_mag']
         
         mean, median, std = sigma_clipped_stats(data, sigma=3.0)
-        bkg_limiting_mag = calculate_limiting_magnitude(data, std, wcs, len(sources))
+        bkg_limiting_mag = calculate_limiting_magnitude(sources['mag'], sources['gaia_g_mag'] )
         sources['bkg_limiting_mag'] = bkg_limiting_mag
         
-        sources['measured_mag'] = -2.5 * np.log10(sources['flux'] / bkg_limiting_mag)
-        sources['mag_difference'] = sources['measured_mag'] - sources['gaia_g_mag']
+        sources['measured_mag'] = bkg_limiting_mag + sources['mag']
+        sources['mag_difference'] = sources['gaia_g_mag'] - sources['measured_mag']
         
-        major_diff = sources[np.abs(sources['mag_difference']) > 1]
+        major_diff = sources[np.abs(sources['mag_difference']) > 0.5]
         major_differences.append(major_diff)
         
         all_sources.append(sources)
@@ -122,7 +124,7 @@ major_differences_table = QTable(np.hstack(major_differences))
 
 # Save results to files
 # all_sources_table.write('all_sources_summary.fits', format='fits', overwrite=True)
-all_sources_table.write('all_sources_summary.txt',  format='ascii', overwrite=True, delimiter=',')
+all_sources_table.write('all_sources_summary.csv',  format='ascii', overwrite=True, delimiter=',')
 
 # major_differences_table.write('major_differences_summary.fits', format='fits', overwrite=True)
-major_differences_table.write('major_differences_summary.txt', format='ascii', overwrite=True, delimiter=',')
+major_differences_table.write('major_differences_summary.csv', format='ascii', overwrite=True, delimiter=',')
