@@ -97,6 +97,7 @@ for fits_file in os.listdir(fits_dir):
         print('### SOURCES TALBE ###\n', sources)
         
         gaia_sources = query_gaia_sources(wcs, data.shape)
+        print('Gaia Query completed!')
         sources.add_column(np.empty, name='gaia_designation')
         sources.add_column(np.empty, name='gaia_source_id')
         sources.add_column(np.empty, name='object_id')
