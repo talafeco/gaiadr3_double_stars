@@ -91,19 +91,22 @@ for fits_file in os.listdir(fits_dir):
         sources, wcs, data = extract_sources(fits_path)
         if sources is None:
             continue
+
+        print('### SOURCES TALBE ###\n', sources)
         
         gaia_sources = query_gaia_sources(wcs, data.shape)
-        sources['gaia_id'] = ''
+        sources.add_column(np.empty, name='gaia_id')
         sources['gaia_g_mag'] = np.nan
+        print('### SOURCES INFO ###\n', sources.info)
         
         for i, source in enumerate(sources):
             ra, dec = source['ra'], source['dec']
             idx = np.argmin(np.sqrt((gaia_sources['ra'] - ra)**2 + (gaia_sources['dec'] - dec)**2))
             
             gaia_source = gaia_sources[idx]
-            print('Gaia Source ID: ', gaia_source['SOURCE_ID'])
+            print('GAIA SOURCE', gaia_source['DESIGNATION'])
             
-            sources['gaia_id'][i] = gaia_source['SOURCE_ID']
+            sources['gaia_id'][i] = gaia_source['DESIGNATION']
             sources['gaia_g_mag'][i] = gaia_source['phot_g_mean_mag']
         
         mean, median, std = sigma_clipped_stats(data, sigma=3.0)
