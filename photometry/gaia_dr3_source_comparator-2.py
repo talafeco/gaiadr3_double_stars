@@ -150,6 +150,8 @@ for fits_file in os.listdir(fits_dir):
             idx, d2d, d3d = match_coordinates_sky(source_catalog_coords, gaia_catalog)
 
             gaia_source = gaia_sources[idx]
+
+            print('gaia_source: ', gaia_source, '\n', idx, d2d)
             sources['gaia_designation'][i] = gaia_source['DESIGNATION']
             sources['gaia_source_id'][i] = str(gaia_source['SOURCE_ID'])
             sources['object_id'][i] = str(gaia_source['SOURCE_ID']) + str(source['file_name'])
