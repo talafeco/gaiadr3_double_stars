@@ -17,6 +17,7 @@ from astropy.coordinates import match_coordinates_sky, search_around_sky, positi
 from astropy.table import Table, vstack, hstack
 import astropy.units as u
 from astropy.time import Time, TimeDelta
+from astropy.utils.masked import Masked
 
 Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"  # Reselect Data Release 3, default
 Gaia.ROW_LIMIT = -1 # To return an unlimited number of rows
@@ -25,13 +26,11 @@ Gaia.ROW_LIMIT = -1 # To return an unlimited number of rows
 workingDirectory = sys.argv[1]
 
 # Define the magnitude limit of the image used during Gaia DR3 queries
-gaia_dr3_magnitude_limit = 18
+gaia_dr3_magnitude_limit = 20
 dao_sigma = 3.0
 dao_fwhm = 8.0
 dao_threshold = 12.0
-possible_distance = 30000.0 # AU
-search_cone = 0.001 # Decimal degree
-
+search_cone = 0.002 # Decimal degree
 
 directoryContent = os.listdir(workingDirectory)
 print('Working directory: ', workingDirectory)
@@ -88,7 +87,15 @@ def create_master_catalog():
     
     return gaia_stars
 
-master_catalog = create_master_catalog()
+# Function to calculate background limiting magnitude
+def calculate_limiting_magnitude(measured_mags, dr3_mags):
+    # bkg_mag = -2.5 * np.log10(math.fabs(std) / np.sqrt(num_sources))
+    print('limiting_magnitudes: ', type(np.mean(dr3_mags.data)), type(np.mean(measured_mags)))
+    bkg_mag = np.mean(dr3_mags.data) - np.mean(measured_mags)
+
+    return bkg_mag
+
+gaia_catalog = create_master_catalog()
 
 file_counter = 0
 
@@ -97,9 +104,20 @@ for fitsFile in files:
     file_counter = file_counter + 1
     print('\n\n### Processing file', file_counter, 'out of', len(files),': ', fitsFile, '###')
     sources = extract_sources(workingDirectory + '/' + fitsFile)
-
+    print('Number of sources: ', len(sources))
+    master_catalog = SkyCoord(ra=gaia_catalog['ra'], dec=gaia_catalog['dec'], frame='icrs')
     sources_catalog = SkyCoord(ra=sources['ra_deg']*u.degree, dec=sources['dec_deg']*u.degree, frame='fk5')
     idxw, idxs, wsd2d, wsd3d = search_around_sky(master_catalog, sources_catalog, search_cone*u.deg)
-    composit_catalog = hstack([master_catalog[idxw], sources[idxs]])
+    composit_catalog = hstack([gaia_catalog[idxw], sources[idxs]])
+    
+    composit_catalog.add_column(wsd2d * u.arcsecond, name='separation', index=-1)
+
+    bkg_limiting_mag = calculate_limiting_magnitude(composit_catalog['mag'], composit_catalog['phot_g_mean_mag'])
+    composit_catalog['bkg_limiting_mag'] = bkg_limiting_mag
+    composit_catalog.add_column(bkg_limiting_mag + composit_catalog['mag'], name='measured_mag')
+    composit_catalog.add_column(composit_catalog['phot_g_mean_mag'].data - composit_catalog['measured_mag'], name='mag_difference')
+
     print('### Composit Catalog No. ', file_counter, '\n', composit_catalog)
+    sources.write('sources' + str(file_counter) + '.csv', format='ascii', overwrite=True, delimiter=',')
+    composit_catalog.write('composit_catalog' + str(file_counter) + '.csv', format='ascii', overwrite=True, delimiter=',')
 
