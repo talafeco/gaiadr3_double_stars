@@ -70,10 +70,18 @@ def extract_sources(fits_file):
             return None, None, None
         
         sources['ra'], sources['dec'] = wcs.all_pix2world(sources['xcentroid'], sources['ycentroid'], 0)
-        return sources, wcs, data
+
+        photo_left_upper = SkyCoord.from_pixel(0, 0, wcs, origin=0, mode='all')
+        photo_right_lower = SkyCoord.from_pixel(header['NAXIS2'], header['NAXIS1'], wcs, origin=0, mode='all')
+        photo_center = SkyCoord(header['CRVAL1'] * u.degree, header['CRVAL2'] * u.degree)
+        photo_radius = photo_left_upper.separation(photo_right_lower) / 2
+
+        
+
+        return sources, wcs, data, photo_center, photo_radius
 
 # Function to query Gaia DR3 for sources in the same area
-def query_gaia_sources(wcs, data_shape, limit):
+'''def query_gaia_sources(wcs, data_shape, limit):
     ny, nx = data_shape
     corners = np.array([[0, 0], [0, ny], [nx, 0], [nx, ny]])
     ra_dec_corners = wcs.all_pix2world(corners, 0)
@@ -90,7 +98,16 @@ def query_gaia_sources(wcs, data_shape, limit):
     """
     job = Gaia.launch_job(query)
     gaia_sources = job.get_results()
+    return gaia_sources'''
+
+# Function to query Gaia DR3 for sources in the same area
+def query_gaia_sources(photo_center, photo_radius):
+    print('Center of photo: ', photo_center.to_string('hmsdms'), '/', photo_center.to_string('decimal'),
+      '\nRadius of photo: ', photo_radius)
+    gaia_photo_catalog = Gaia.cone_search_async(photo_center, radius=u.Quantity(photo_radius))
+    gaia_sources = gaia_photo_catalog.get_results()
     return gaia_sources
+
 
 # Function to calculate background limiting magnitude
 def calculate_limiting_magnitude(measured_mags, dr3_mags):
@@ -113,8 +130,10 @@ def calcCurrentDR3Coord(date, star_ra, star_dec, star_pr_ra, star_pr_dec):
 # Get Gaia DR3 catalog data based on the first image WCS coordinates
 fits_master = os.listdir(fits_dir)[0]
 fits_master_file = os.path.join(fits_dir, fits_master)
-master_sources, master_wcs, master_data = extract_sources(fits_master)
-gaia_sources = query_gaia_sources(master_wcs, master_data.shape, gaia_dr3_magnitude_limit)
+master_sources, master_wcs, master_data, master_photo_center, master_radius = extract_sources(fits_master)
+# gaia_sources = query_gaia_sources(master_wcs, master_data.shape, gaia_dr3_magnitude_limit)
+
+gaia_sources = query_gaia_sources(master_photo_center, master_radius * 1.1)
 print('### gaia_sources: ', len(gaia_sources))
 gaia_catalog = SkyCoord(gaia_sources['ra']*u.degree, gaia_sources['dec']*u.degree, frame='fk5')
 
@@ -122,11 +141,13 @@ gaia_catalog = SkyCoord(gaia_sources['ra']*u.degree, gaia_sources['dec']*u.degre
 for fits_file in os.listdir(fits_dir):
     if fits_file.endswith('.new'):
         fits_path = os.path.join(fits_dir, fits_file)
-        sources, wcs, data = extract_sources(fits_path)
+        sources, wcs, data, photo_center, radius = extract_sources(fits_path)
         if sources is None:
             continue
 
         # print('### SOURCES TALBE ###\n', sources)
+
+        idx, d2d, d3d = sources.match_to_catalog_sky(gaia_catalog)
 
         sources.add_column(np.empty, name='gaia_designation')
         sources.add_column(np.empty, name='gaia_source_id')
@@ -138,15 +159,15 @@ for fits_file in os.listdir(fits_dir):
         sources['gaia_dec'] = 0.0
         sources.add_column(fits_file, name='file_name')
         
-        for i, source in enumerate(sources):
-            ra, dec = source['ra'], source['dec']
-            idx = np.argmin(np.sqrt((gaia_sources['ra'] - ra)**2 + (gaia_sources['dec'] - dec)**2))
+        # for i, source in enumerate(sources):
+            # ra, dec = source['ra'], source['dec']
+            # idx = np.argmin(np.sqrt((gaia_sources['ra'] - ra)**2 + (gaia_sources['dec'] - dec)**2))
             # print('### IDX 1. ###\n', idx)
-            gaia_source = gaia_sources[idx]
+            # gaia_source = gaia_sources[idx]
             # sources['gaia_id'][i] = gaia_source['DESIGNATION']
             # sources['gaia_g_mag'][i] = gaia_source['phot_g_mean_mag']
         
-            '''
+        '''
         for i, source in enumerate(sources):
             source_ra, source_dec = wcs.all_pix2world([[source ['xcentroid'], source ['ycentroid']]], 0)[0]   
             source_catalog_coords = SkyCoord(ra=source_ra*u.degree, dec=source_dec*u.degree, frame='fk5')  
@@ -155,19 +176,23 @@ for fits_file in os.listdir(fits_dir):
 
             gaia_source = gaia_sources[idx]
             '''
-            sep_source = SkyCoord(gaia_source['ra']*u.degree, gaia_source['dec']*u.degree, frame='fk5')
-            sep_target = SkyCoord(ra*u.degree, dec*u.degree, frame='fk5')
-            separation_final = sep_source.separation(sep_target)*u.arcsecond
-            print('gaia_star: ', gaia_source['DESIGNATION'], '\n', idx, sep_target)
-            #print('gaia_star: ', gaia_source['DESIGNATION'], '\n', idx, d2d)
-            sources['gaia_designation'][i] = gaia_source['DESIGNATION']
-            sources['gaia_source_id'][i] = str(gaia_source['SOURCE_ID'])
-            sources['object_id'][i] = str(gaia_source['SOURCE_ID']) + str(source['file_name'])
-            sources['gaia_g_mag'][i] = gaia_source['phot_g_mean_mag']
-            sources['gaia_bp_mag'][i] = gaia_source['phot_bp_mean_mag']
-            sources['gaia_rp_mag'][i] = gaia_source['phot_rp_mean_mag']
-            sources['gaia_ra'][i] = gaia_source['ra']
-            sources['gaia_dec'][i] = gaia_source['dec']
+            # sep_source = SkyCoord(gaia_source['ra']*u.degree, gaia_source['dec']*u.degree, frame='fk5')
+            # sep_target = SkyCoord(ra*u.degree, dec*u.degree, frame='fk5')
+            # separation_final = sep_source.separation(sep_target)*u.arcsecond
+            
+            
+            
+            
+        print('gaia_star: ', gaia_source['DESIGNATION'], '\n', idx, sep_target)
+        #print('gaia_star: ', gaia_source['DESIGNATION'], '\n', idx, d2d)
+        sources['gaia_designation'] = gaia_source['DESIGNATION']
+        sources['gaia_source_id'] = str(gaia_source['SOURCE_ID'])
+        sources['object_id'] = str(gaia_source['SOURCE_ID']) + str(source['file_name'])
+        sources['gaia_g_mag'] = gaia_source['phot_g_mean_mag']
+        sources['gaia_bp_mag'] = gaia_source['phot_bp_mean_mag']
+        sources['gaia_rp_mag'] = gaia_source['phot_rp_mean_mag']
+        sources['gaia_ra'] = gaia_source['ra']
+        sources['gaia_dec'] = gaia_source['dec']
 
             # sources['gaia_bp_rp'][i] = gaia_source['bp_rp']
             # sources['gaia_bp_g'][i] = gaia_source['bp_g']
