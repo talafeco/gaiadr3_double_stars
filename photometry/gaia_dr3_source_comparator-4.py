@@ -30,7 +30,7 @@ gaia_dr3_magnitude_limit = 20
 dao_sigma = 3.0
 dao_fwhm = 8.0
 dao_threshold = 12.0
-search_cone = 0.002 # Decimal degree
+search_cone = 0.0005 # Decimal degree
 
 directoryContent = os.listdir(workingDirectory)
 print('Working directory: ', workingDirectory)
@@ -110,7 +110,7 @@ for fitsFile in files:
     idxw, idxs, wsd2d, wsd3d = search_around_sky(master_catalog, sources_catalog, search_cone*u.deg)
     composit_catalog = hstack([gaia_catalog[idxw], sources[idxs]])
     
-    composit_catalog.add_column(wsd2d * u.arcsecond, name='separation', index=-1)
+    composit_catalog.add_column(wsd2d.arcsecond, name='separation', index=-1)
 
     bkg_limiting_mag = calculate_limiting_magnitude(composit_catalog['mag'], composit_catalog['phot_g_mean_mag'])
     composit_catalog['bkg_limiting_mag'] = bkg_limiting_mag
