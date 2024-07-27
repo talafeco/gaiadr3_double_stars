@@ -22,6 +22,8 @@ Excel max orbit 0,43
 wdsreport obs orbit 23,6803
 Excel obs orbit 3,1109 optikai így is, úgy is, de az eltérés nagy, lehet a képlet hibás? '''
 
+# 2024-07-27: updated only data[0] is counted due to rgb images
+
 import os
 import sys
 import numpy as np
@@ -53,10 +55,10 @@ Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"  # Reselect Data Release 3, default
 # Configuration for the ATIK camera
 
 dao_sigma = 3.0
-dao_fwhm = 8.0
-dao_threshold = 12.0
+dao_fwhm = 9.0
+dao_threshold = 9.0
 possible_distance = 30000.0 # AU
-search_cone = 0.001 # Decimal degree
+search_cone = 0.002 # Decimal degree
 dummyObservationDate = "2022-01-01T12:00:00"
 
 
@@ -310,17 +312,17 @@ def calcHarshaw(parallaxFactor, pmFactor):
 
 # Function to calculate Harshaw physicality of the system based on the parallax and pm factors
 def calcHarshawPhysicality(harfac):
-    if harfac >= 0.85:
+    if harfac >= 85.0:
         HarshawPhysicality = 'yes'
-    elif 0.65 <= harfac < 0.85:
+    elif 65.0 <= harfac < 85.0:
         HarshawPhysicality = '?'
-    elif 0.5 <= harfac < 0.65:
+    elif 50.0 <= harfac < 65.0:
         HarshawPhysicality = 'Maybe'
-    elif 0.35 <= harfac < 0.5:
+    elif 35.0 <= harfac < 50.0:
         HarshawPhysicality = '??'
-    elif 0.0 <= harfac < 0.35:
+    elif 0.0 <= harfac < 35.0:
         HarshawPhysicality = 'No'
-    elif harfac <= 0:
+    elif harfac <= 0.0:
         HarshawPhysicality = 'Something went wrong... (so NO)'
     else:
         HarshawPhysicality = 'Something went wrong... (so NO)'
@@ -379,11 +381,11 @@ def calcStandardError(arr):
 # Calculate Common Proper Motion category
 def calcPmCategory(pmfact):
     pmCommon = ()
-    if pmfact >= 0.8:
+    if pmfact >= 80.0:
         pmCommon = 'CPM'
-    elif 0.4 <= pmfact < 0.8:
+    elif 40.0 <= pmfact < 80.0:
         pmCommon = 'SPM'
-    elif pmfact < 0.4:
+    elif pmfact < 40.0:
         pmCommon = 'DPM'
     return pmCommon
 
@@ -473,8 +475,8 @@ def imagePlot(filename, pairname, raa, deca, rab, decb):
     
     image_data = fits.open(workingDirectory + '/' + filename)
     header = image_data[0].header
-    wcs_helix = WCS(image_data[0].header)
-    image = image_data[0].data
+    wcs_helix = WCS(image_data[0].header, naxis=2)
+    image = image_data[0].data[0]
     image_height = header['NAXIS2']
 
     star_a = SkyCoord(raa * u.deg, deca * u.deg, frame='icrs')
@@ -682,7 +684,7 @@ for fitsFile in files:
     print('\n\n### Processing file', file_counter, 'out of', len(files),': ', fitsFile, '###')
     fitsFileName = workingDirectory + '/' + fitsFile
     hdu = fits.open(fitsFileName)
-    mywcs = WCS(hdu[0].header)
+    mywcs = WCS(hdu[0].header, naxis=2)
     file_header = hdu[0].header
     
 	# Set observation date and time
@@ -701,7 +703,7 @@ for fitsFile in files:
     mean, median, std = sigma_clipped_stats(data, sigma = dao_sigma)  
 
     daofind = DAOStarFinder(fwhm=dao_fwhm, threshold=dao_threshold*std)  
-    sources = daofind(data - median)
+    sources = daofind(data[0] - median)
     ra2, dec2 = mywcs.all_pix2world(sources['xcentroid'], sources['ycentroid'], 1)
     sources.add_column(ra2, name='ra_deg') 
     sources.add_column(dec2, name='dec_deg')

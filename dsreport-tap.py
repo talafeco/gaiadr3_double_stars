@@ -44,10 +44,10 @@ hipparcos_bv_index = hipparcos_file['B-V']
 # Configuration for the ATIK camera
 
 dao_sigma = 3.0
-dao_fwhm = 8.0
-dao_threshold = 12.0
+dao_fwhm = 9.0
+dao_threshold = 9.0
 possible_distance = 30000.0 # AU
-search_cone = 0.001 # Decimal degree
+search_cone = 0.002 # Decimal degree
 image_limit = 2000
 
 # Gravitational constant is convenient if measure distances in parsecs (pc), velocities in kilometres per second (km/s) and masses in solar units M
@@ -212,17 +212,19 @@ def calcHarshaw(parallaxFactor, pmFactor):
 
 # Function to calculate Harshaw physicality of the system based on the parallax and pm factors
 def calcHarshawPhysicality(harfac):
-    if harfac >= 0.85:
+    if harfac >= 85.0:
         HarshawPhysicality = 'yes'
-    elif 0.65 <= harfac < 0.85:
+    elif 65.0 <= harfac < 85.0:
         HarshawPhysicality = '?'
-    elif 0.5 <= harfac < 0.65:
+    elif 50.0 <= harfac < 65.0:
         HarshawPhysicality = 'Maybe'
-    elif 0.35 <= harfac < 0.5:
+    elif 35.0 <= harfac < 50.0:
         HarshawPhysicality = '??'
-    elif 0.0 <= harfac < 0.35:
+    elif 0.0 <= harfac < 35.0:
         HarshawPhysicality = 'No'
-    elif harfac <= 0:
+    elif harfac <= 0.0:
+        HarshawPhysicality = 'Something went wrong... (so NO)'
+    else:
         HarshawPhysicality = 'Something went wrong... (so NO)'
     return HarshawPhysicality
 
@@ -273,11 +275,11 @@ def calcStandardError(arr):
 # Calculate Common Proper Motion category
 def calcPmCategory(pmfact):
     pmCommon = ()
-    if pmfact >= 0.8:
+    if pmfact >= 80.0:
         pmCommon = 'CPM'
-    elif 0.4 <= pmfact < 0.8:
+    elif 40.0 <= pmfact < 80.0:
         pmCommon = 'SPM'
-    elif pmfact < 0.4:
+    elif pmfact < 40.0:
         pmCommon = 'DPM'
     return pmCommon
 
@@ -367,8 +369,8 @@ def imagePlot(filename, designation_a, designation_b, raa, deca, rab, decb):
     
     image_data = fits.open(workingDirectory + '/' + filename)
     header = image_data[0].header
-    wcs_helix = WCS(image_data[0].header)
-    image = image_data[0].data
+    wcs_helix = WCS(image_data[0].header, naxis=2)
+    image = image_data[0].data[0]
     image_height = header['NAXIS2']
 
     star_a = SkyCoord(raa * u.deg, deca * u.deg, frame='icrs')
@@ -493,7 +495,7 @@ for fitsFile in files:
     print('Processing file', file_counter, 'out of', len(files),': ', fitsFile)
     fitsFileName = workingDirectory + '/' + fitsFile
     hdu = fits.open(fitsFileName)
-    mywcs = WCS(hdu[0].header)
+    mywcs = WCS(hdu[0].header, naxis=2)
     file_header = hdu[0].header
 
     fitsFileDate = ''
@@ -511,7 +513,7 @@ for fitsFile in files:
     mean, median, std = sigma_clipped_stats(data, sigma=dao_sigma)  
 
     daofind = DAOStarFinder(fwhm=dao_fwhm, threshold=dao_threshold*std)  
-    sources = daofind(data - median)
+    sources = daofind(data[0] - median)
     
     photo_left_upper = SkyCoord.from_pixel(0, 0, mywcs, origin=0, mode='all')
     photo_right_lower = SkyCoord.from_pixel(file_header['NAXIS2'], file_header['NAXIS1'], mywcs, origin=0, mode='all')
