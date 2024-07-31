@@ -23,6 +23,7 @@ wdsreport obs orbit 23,6803
 Excel obs orbit 3,1109 optikai így is, úgy is, de az eltérés nagy, lehet a képlet hibás? '''
 
 # 2024-07-27: updated only data[0] is counted due to rgb images
+# check color fits file, then slice and measure independently: https://astronomy.stackexchange.com/questions/32222/converting-an-rgb-image-to-fits-astropy
 
 import os
 import sys
@@ -55,10 +56,10 @@ Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"  # Reselect Data Release 3, default
 # Configuration for the ATIK camera
 
 dao_sigma = 3.0
-dao_fwhm = 9.0
-dao_threshold = 9.0
+dao_fwhm = 8.0
+dao_threshold = 12.0
 possible_distance = 30000.0 # AU
-search_cone = 0.002 # Decimal degree
+search_cone = 0.001 # Decimal degree
 dummyObservationDate = "2022-01-01T12:00:00"
 
 
@@ -473,10 +474,11 @@ def imagePlot(filename, pairname, raa, deca, rab, decb):
     coord_meta['name'] = 'ra', 'dec'
     '''
     
+    # data[0]
     image_data = fits.open(workingDirectory + '/' + filename)
     header = image_data[0].header
     wcs_helix = WCS(image_data[0].header, naxis=2)
-    image = image_data[0].data[0]
+    image = image_data[0].data
     image_height = header['NAXIS2']
 
     star_a = SkyCoord(raa * u.deg, deca * u.deg, frame='icrs')
@@ -699,11 +701,12 @@ for fitsFile in files:
         fitsFileDate = np.nan
 
     # Estimate the background and background noise
+    # data[0]
     data = hdu[0].data
     mean, median, std = sigma_clipped_stats(data, sigma = dao_sigma)  
 
     daofind = DAOStarFinder(fwhm=dao_fwhm, threshold=dao_threshold*std)  
-    sources = daofind(data[0] - median)
+    sources = daofind(data - median)
     ra2, dec2 = mywcs.all_pix2world(sources['xcentroid'], sources['ycentroid'], 1)
     sources.add_column(ra2, name='ra_deg') 
     sources.add_column(dec2, name='dec_deg')
@@ -831,7 +834,7 @@ for ds in upd_sources_ds_by_object.groups:
 
         pairParallaxFactor = (calcParallaxFactor(gaiaAStar[0]['parallax'], gaiaBStar[0]['parallax'])) * 100
         pairPmFactor = (calcPmFactor(gaiaAStar[0]['pmra'], gaiaAStar[0]['pmdec'], gaiaBStar[0]['pmra'], gaiaBStar[0]['pmdec']))
-        pairPmCommon = calcPmCategory(pairPmFactor)
+        pairPmCommon = calcPmCategory(pairPmFactor * 100)
         pairAbsMag1 = calcAbsMag(gaiaAStar[0]['phot_g_mean_mag'], gaiaAStar[0]['parallax']) # Calculate Absolute magnitude
         pairAbsMag2 = calcAbsMag(gaiaBStar[0]['phot_g_mean_mag'], gaiaBStar[0]['parallax']) # Calculate Absolute magnitude
         pairLum1 = calcLuminosity(pairAbsMag1)
@@ -857,7 +860,7 @@ for ds in upd_sources_ds_by_object.groups:
 
         pairEscapeVelocity = calcEscapevelocity(pairMass1, pairMass2, pairSepPar, gravConst)
         pairRelativeVelocity = calcRelativeVelocity(gaiaAStar[0]['pmra'], gaiaAStar[0]['pmdec'], gaiaBStar[0]['pmra'], gaiaBStar[0]['pmdec'], gaiaAStar[0]['radial_velocity'], gaiaBStar[0]['radial_velocity'], pairDistanceMinA, pairDistanceMinB)
-        pairHarshawFactor = calcHarshaw((pairParallaxFactor / 100), (pairPmFactor /100))
+        pairHarshawFactor = calcHarshaw((pairParallaxFactor / 100), (pairPmFactor))
         pairHarshawPhysicality = calcHarshawPhysicality(pairHarshawFactor)
         pairBinarity = calcBinarity(pairRelativeVelocity, pairEscapeVelocity)
         

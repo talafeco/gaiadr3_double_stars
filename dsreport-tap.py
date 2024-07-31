@@ -9,6 +9,8 @@
 #rhocalc to be fixed!
 #show progress by x/y files processed - OK
 #show the number of measurements - OK
+# 2024-07-27: updated only data[0] is counted due to rgb images
+# check color fits file, then slice and measure independently: https://astronomy.stackexchange.com/questions/32222/converting-an-rgb-image-to-fits-astropy
 
 import os
 import sys
@@ -44,10 +46,10 @@ hipparcos_bv_index = hipparcos_file['B-V']
 # Configuration for the ATIK camera
 
 dao_sigma = 3.0
-dao_fwhm = 9.0
-dao_threshold = 9.0
+dao_fwhm = 8.0
+dao_threshold = 12.0
 possible_distance = 30000.0 # AU
-search_cone = 0.002 # Decimal degree
+search_cone = 0.001 # Decimal degree
 image_limit = 2000
 
 # Gravitational constant is convenient if measure distances in parsecs (pc), velocities in kilometres per second (km/s) and masses in solar units M
@@ -370,7 +372,7 @@ def imagePlot(filename, designation_a, designation_b, raa, deca, rab, decb):
     image_data = fits.open(workingDirectory + '/' + filename)
     header = image_data[0].header
     wcs_helix = WCS(image_data[0].header, naxis=2)
-    image = image_data[0].data[0]
+    image = image_data[0].data
     image_height = header['NAXIS2']
 
     star_a = SkyCoord(raa * u.deg, deca * u.deg, frame='icrs')
@@ -513,7 +515,7 @@ for fitsFile in files:
     mean, median, std = sigma_clipped_stats(data, sigma=dao_sigma)  
 
     daofind = DAOStarFinder(fwhm=dao_fwhm, threshold=dao_threshold*std)  
-    sources = daofind(data[0] - median)
+    sources = daofind(data - median)
     
     photo_left_upper = SkyCoord.from_pixel(0, 0, mywcs, origin=0, mode='all')
     photo_right_lower = SkyCoord.from_pixel(file_header['NAXIS2'], file_header['NAXIS1'], mywcs, origin=0, mode='all')
