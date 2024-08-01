@@ -56,11 +56,12 @@ Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"  # Reselect Data Release 3, default
 # Configuration for the ATIK camera
 
 dao_sigma = 3.0
-dao_fwhm = 8.0
-dao_threshold = 12.0
+dao_fwhm = 14.0
+dao_threshold = 5.0
 possible_distance = 30000.0 # AU
 search_cone = 0.001 # Decimal degree
 dummyObservationDate = "2022-01-01T12:00:00"
+gaia_dr3_epoch = 2016.0
 
 
 # Configuration for the CANON camera
@@ -251,6 +252,7 @@ def calcDistanceMax(par, err):
 # Function to calculate the parallax factor of the pair
 # EXCEL formula =1-ABS((raA-raB)/(0,5*(raA+raB)))
 def calcParallaxFactor(para, parb):
+    # =HA(VAGY(A plx<0;B plx<0);"N/R";HA(VAGY(Dist A=0;Dist B=0);0;ABS(HA(ÉS(A plx=0;B plx=0);0;HA((Dist A-Dist B)=0;0.75;((1-ABS((Dist A-Dist B)/((Dist A+Dist B)/2)))*0.75))))))
     parfac = 1 - math.fabs((para-parb)/(0.5*(para+parb)))
     return parfac
 
@@ -258,6 +260,12 @@ def calcParallaxFactor(para, parb):
 # EXCEL formula =ABS(1-((SQRT(pmraA-pmraB)^2+(pmdecA-pmdecB)^2)/(SQRT(pmraA^2+pmdecA^2)+(pmraB^2+pmdecB^2)))))
 def calcPmFactor(pmraa, pmdeca, pmrab, pmdecb):
     pmfac = math.fabs(1-((math.sqrt(((pmraa-pmrab) ** 2) + ((pmdeca-pmdecb) ** 2))/(math.sqrt((pmraa ** 2) + (pmdeca ** 2))+((pmrab ** 2) + pmdecb ** 2)))))
+    ### 2 Átlag saját mozgás vektor: AVG PM prob
+    ### =(GYÖK(pmra A^2+pm dec A^2)+GYÖK(pm ra B^2+pm dec B^2))/2
+    ### 3 sajátmozgás valószínűség: PM prob
+    ### =HA(Vr A=0;0;ABS(1-(GYÖK((pm ra A-pm ra B)^2+(pm dec A-pm dec B)^2)/2 pont eredménye))*0.15)
+    ### distance = math.sqrt((pmraa - pmrab)**2 + (pmdeca - pmdecb)**2)
+    ### pmfac = abs(1 - (distance / 2)) * 0.15
     return pmfac
 
 # Function to calculate the Star's absolute magnitude
@@ -308,6 +316,7 @@ def calcRadius(luminosity, teffStar):
 
 # Function to calculate Harshaw probapility of duplicity based on the parallax and proper motion factors
 def calcHarshaw(parallaxFactor, pmFactor):
+    ### =HA(VAGY(A plx<0;B plx <0);1 pont eredménye;SZUM(3 pont eredménye+1 pont eredménye))
     HarshawFactor = (parallaxFactor * 0.75) + (pmFactor * 0.15)
     return HarshawFactor
 
@@ -476,6 +485,7 @@ def imagePlot(filename, pairname, raa, deca, rab, decb):
     
     # data[0]
     image_data = fits.open(workingDirectory + '/' + filename)
+    print('IMAGE DATA:', workingDirectory, '/', filename)
     header = image_data[0].header
     wcs_helix = WCS(image_data[0].header, naxis=2)
     image = image_data[0].data
@@ -594,7 +604,7 @@ def calc_historic_orbit(massa, massb, sep_pc, avg_distance, dr3_rho, wds_first_r
         historic_criterion = 'Physical'
     else:
         historic_criterion = 'Optical'   
-    return historic_criterion, max_orbit_velolicy, observed_velocity, input_data_variables
+    return historic_criterion, max_orbit_velolicy, observed_velocity, input_data_variables, delta_theta, delta_rho, delta_time
 
 
 ###################################################################################################################################
@@ -860,8 +870,8 @@ for ds in upd_sources_ds_by_object.groups:
 
         pairEscapeVelocity = calcEscapevelocity(pairMass1, pairMass2, pairSepPar, gravConst)
         pairRelativeVelocity = calcRelativeVelocity(gaiaAStar[0]['pmra'], gaiaAStar[0]['pmdec'], gaiaBStar[0]['pmra'], gaiaBStar[0]['pmdec'], gaiaAStar[0]['radial_velocity'], gaiaBStar[0]['radial_velocity'], pairDistanceMinA, pairDistanceMinB)
-        pairHarshawFactor = calcHarshaw((pairParallaxFactor / 100), (pairPmFactor))
-        pairHarshawPhysicality = calcHarshawPhysicality(pairHarshawFactor)
+        pairHarshawFactor = calcHarshaw((pairParallaxFactor) / 100, (pairPmFactor))
+        pairHarshawPhysicality = calcHarshawPhysicality(pairHarshawFactor * 100)
         pairBinarity = calcBinarity(pairRelativeVelocity, pairEscapeVelocity)
         
         # Calculate values for each pair based on the groups
@@ -907,7 +917,11 @@ for ds in upd_sources_ds_by_object.groups:
         # Caculate the common distance from Earth
         
         if (pairMass1 is not None and pairMass2 is not None and pairSepPar is not None and pairDistance[1] is not None and pairACurrentCoord.separation(pairBCurrentCoord).arcsecond is not None and ds[0]['Sep_f'] is not None and pairMeanRho is not None and ds[0]['PA_f'] is not None and pairMeanTheta is not None and ds[0]['Date (first)'] is not None and dateOfObservation):
-            pair_orbit = calc_historic_orbit(pairMass1, pairMass2, pairSepPar, pairDistance[1], pairACurrentCoord.separation(pairBCurrentCoord).arcsecond, ds[0]['Sep_f'], pairMeanRho, ds[0]['PA_f'], pairMeanTheta, ds[0]['Date (first)'], dateOfObservation)
+            # OLD function to calculate the historical orbit values based on the first measurements found in WDS
+            # pair_orbit = calc_historic_orbit(pairMass1, pairMass2, pairSepPar, pairDistance[1], pairACurrentCoord.separation(pairBCurrentCoord).arcsecond, ds[0]['Sep_f'], pairMeanRho, ds[0]['PA_f'], pairMeanTheta, ds[0]['Date (first)'], dateOfObservation)
+            
+            # NEW function to calculate the historical orbit values based on the calculated PA and SEP from Gaia DR3 on epoch 2016
+            pair_orbit = calc_historic_orbit(pairMass1, pairMass2, pairSepPar, pairDistance[1], pairACurrentCoord.separation(pairBCurrentCoord).arcsecond, SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond, pairMeanRho, SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree, pairMeanTheta, gaia_dr3_epoch, dateOfObservation)
         else:
             pair_orbit = ['Cannot be determined, missing data.', 'Cannot be determined, missing data.', 'Cannot be determined, missing data.']
         
@@ -936,8 +950,9 @@ for ds in upd_sources_ds_by_object.groups:
     print('Component B DR3 on date:', pairBCurrentCoord.ra.degree, pairBCurrentCoord.dec.degree)
     print('Component B measured:', pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree)
     print('Component B error (on date - measured):', pairBCoordErr.arcsecond)
-    print('2016 Calculared Position angle / Separation: ', pairACurrentCoord.position_angle(pairBCurrentCoord).degree, pairACurrentCoord.separation(pairBCurrentCoord).arcsecond)
-    print('Current Calculared Position angle / Separation: ', SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree, SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond)
+    print('2016 Calculated Position angle / Separation: ', SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree, SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond)
+    #print('Current Calculated Position angle / Separation: ', SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree, SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond)
+    print('Current Calculated Position angle / Separation: ', pairACurrentCoord.position_angle(pairBCurrentCoord).degree, pairACurrentCoord.separation(pairBCurrentCoord).arcsecond)
     print('\nTheta measurements\n') # , ds['dspaactual']
     print('Mean:', pairMeanTheta)
     print('Error:', pairMeanThetaErr)
@@ -1001,8 +1016,8 @@ for ds in upd_sources_ds_by_object.groups:
     reportFile.write('\nComponent B DR3 on date: ' + str(pairBCurrentCoord.ra.degree) + ' ' + str(pairBCurrentCoord.dec.degree))
     reportFile.write('\nComponent B measured: ' + str(pairBMeasuredCoord.ra.degree) + ' ' + str(pairBMeasuredCoord.dec.degree))
     reportFile.write('\nComponent B error (on date - measured): ' + str(pairBCoordErr.arcsecond))
-    reportFile.write('\n\n2016 Calculared Position angle / Separation: '  + str(pairACurrentCoord.position_angle(pairBCurrentCoord).degree) + ' ' + str(pairACurrentCoord.separation(pairBCurrentCoord).arcsecond))
-    reportFile.write('\nCurrent Calculared Position angle / Separation: ' + str(SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree) + ' ' + str(SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond))
+    reportFile.write('\n\n2016 Calculated Position angle / Separation: '  + str(SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree) + ' ' + str(SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond))
+    reportFile.write('\nCurrent Calculated Position angle / Separation: ' + str(pairACurrentCoord.position_angle(pairBCurrentCoord).degree) + ' ' + str(pairACurrentCoord.separation(pairBCurrentCoord).arcsecond))
     reportFile.write('\n\n### Measurements ###')
     reportFile.write('\nPosition angle:')
     reportFile.write('\nTheta measurements' + str(ds['theta_measured'].degree))
@@ -1043,8 +1058,11 @@ for ds in upd_sources_ds_by_object.groups:
     reportFile.write('\nPair binarity: ' + str(pairBinarity))
     
     # new function - orbit calculation
-    reportFile.write('\n### Pair historical orbit calculations ###')
+    reportFile.write('\n\n### Pair historical orbit calculations ###')
     reportFile.write('\nHistoric criterion: ' + str(pair_orbit[0]))
+    reportFile.write('\nDelta theta: ' + str(pair_orbit[4]))
+    reportFile.write('\nDelta rho: ' + str(pair_orbit[5]))
+    reportFile.write('\nDelta time: ' + str(pair_orbit[6]))
     reportFile.write('\nMax orbit velolicy: ' + str(pair_orbit[1]))
     reportFile.write('\nObserved velocity: ' + str(pair_orbit[2]))
     reportFile.write('\nInput data variables: ' + str(pair_orbit[3]))
