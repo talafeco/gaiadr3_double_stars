@@ -43,14 +43,35 @@ segment_lib = "/usr/share/dr3map/gaiadr3_15mag_catalog/"
 hipparcos_abs_mag = hipparcos_file['Abs_mag']
 hipparcos_bv_index = hipparcos_file['B-V']
 
-# Configuration for the ATIK camera
+# Configuration for the SeeStar camera
 
 dao_sigma = 3.0
+dao_fwhm = 14.0
+dao_threshold = 5.0
+
+# Configuration for the CANON camera
+'''
+dao_sigma = 2.0
+dao_fwhm = 3.0
+dao_threshold = 5.0
+possible_distance = 30000.0 # AU
+search_cone = 0.001 # Decimal degree
+'''
+
+# Configuration for the ATIK camera
+'''
+dao_sigma = 2.0
 dao_fwhm = 8.0
 dao_threshold = 12.0
 possible_distance = 30000.0 # AU
 search_cone = 0.001 # Decimal degree
+'''
+
+# Configurations for calculations
+possible_distance = 30000.0 # AU
+search_cone = 0.001 # Decimal degree
 image_limit = 2000
+gaia_dr3_epoch = 2016.0
 
 # Gravitational constant is convenient if measure distances in parsecs (pc), velocities in kilometres per second (km/s) and masses in solar units M
 gravConst = 0.0043009 
@@ -58,15 +79,6 @@ gravConst = 0.0043009
 # Constant to calculate star luminosity and mass
 sun_luminosity = 3.0128 * (10 ** 28)
 sun_absolute_luminosity = 3.828 * (10 ** 26)
-
-# Configuration for the CANON camera
-'''
-dao_sigma = 2.0
-dao_fwhm = 3.0
-dao_threshold = 5.0
-possible_distance = 10000.0 # AU
-search_cone = 0.001 # Decimal degree
-'''
 
 #########################
 ### Declare functions ###
@@ -408,6 +420,77 @@ def imagePlot(filename, designation_a, designation_b, raa, deca, rab, decb):
     plt.close()
     #plt.show()
 
+# Calculate maximum orbit speed
+def calc_historic_orbit(massa, massb, sep_pc, avg_distance, dr3_rho, wds_first_rho, measured_rho, wds_first_theta, measured_theta, wds_first_obs, obs_time):
+    # Check data types
+    print('\n ##### Calc history orbit #####\n')
+    print('massa: ', massa, ' (', type(massa), ')')
+    print('massb: ', massb, ' (', type(massb), ')')
+    print('sep_pc: ', sep_pc, ' (', type(sep_pc), ')')
+    print('avg_distance: ', avg_distance, ' (', type(avg_distance), ')')
+    print('dr3_rho: ', dr3_rho, ' (', type(dr3_rho), ')')
+    print('wds_first_rho: ', wds_first_rho, ' (', type(wds_first_rho), ')')
+    print('measured_rho: ', measured_rho, ' (', type(measured_rho), ')')
+    print('wds_first_theta: ', wds_first_theta, ' (', type(wds_first_theta), ')')
+    print('measured_theta: ', measured_theta, ' (', type(measured_theta), ')')
+    print('wds_first_obs: ', wds_first_obs, ' (', type(wds_first_obs), ')')
+    print('obs_time: ', obs_time, ' (', type(obs_time), ')')
+
+    # Calculate historical delta position angle (theta in decimal degree)
+    delta_theta = math.fabs(wds_first_theta - measured_theta)
+    
+    # Calculate historical delta separation (rho in arcsconds)
+    delta_rho = math.fabs(wds_first_rho - measured_rho)
+    
+    # Calculate historical delta time (years)
+    delta_time = float(obs_time) - float(wds_first_obs)
+    
+    # Calculate half axis
+    half_axis = avg_distance * (1.26 * dr3_rho)
+    print('half_axis: ', half_axis, ' (', type(half_axis), ')')
+    
+    # Calculate maximum orbital velocity
+    # GYÖK(0.0043*($M$20+$N$20)*(2/($N$11*0.00000485)-1/(N25*0.00000485)))
+    max_orbit_velolicy = math.sqrt(gravConst * ((massa + massb) * (2 / (sep_pc)) - 1 / (half_axis * 0.00000485)))
+    #max_orbit_velolicy_alt = math.sqrt(0.0043 * (massa + massb) * (2 / (sep_pc) - 1 / (half_axis * 0.00000485)))
+    
+    # GYÖK((P33*(P35/$I$11))^2+(P34/$I$11)^2)
+    relative_velocity = math.sqrt((measured_rho * (delta_theta / delta_time)) ** 2 + (delta_rho / delta_time) ** 2)
+    #relative_velocity_alt = math.sqrt((measured_rho * (delta_theta / delta_time)) ** 2 + (delta_rho / delta_time) ** 2)
+    
+    # 0.0474*$N$10*P36
+    observed_velocity = 0.0474 * avg_distance * relative_velocity
+    historic_criterion = ''
+    input_data_variables = {
+        "massa" : massa,
+        "massb" : massb,
+        "sep_pc" : sep_pc, 
+        "avg_distance" : avg_distance, 
+        "dr3_rho" : dr3_rho, 
+        "wds_first_rho" : wds_first_rho, 
+        "measured_rho" : measured_rho, 
+        "wds_first_theta" : wds_first_theta, 
+        "measured_theta" : measured_theta, 
+        "wds_first_obs" : wds_first_obs, 
+        "obs_time" : obs_time
+    }
+    
+    if observed_velocity < max_orbit_velolicy:
+        historic_criterion = 'Physical'
+    else:
+        historic_criterion = 'Optical'   
+    return historic_criterion, max_orbit_velolicy, observed_velocity, input_data_variables, delta_theta, delta_rho, delta_time
+
+def calc_average_distance(star_a_par, star_a_par_err, star_b_par, star_b_par_err, sep):
+    # Calcualte average distance in lightyears
+    # Excel formula: = 1000 / (((1-star A parallax) * star A parallax error in %)+((1-star B parallax) * star B parallax error in %))/((1-star A parallax error in %)+(1-star B parallax error in %))
+    err_a_per = star_a_par_err / star_a_par
+    err_b_per = star_b_par_err / star_b_par
+    wtd_px = (((1-err_a_per)*star_a_par)+((1-err_b_per)*star_b_par))/((1-err_a_per)+(1-err_b_per))
+    wtd_dist = 1000 / wtd_px
+    wtd_sep = wtd_dist * sep
+    return wtd_sep, wtd_dist, wtd_sep
+
 ### Run source detection, collect star data to Qtable
 workingDirectory = sys.argv[1]
 directoryContent = os.listdir(workingDirectory)
@@ -681,6 +764,7 @@ for ds in reportTable_by_object.groups:
     pairDecB = ds[0][21]
     pairDistanceMinA = calcDistanceMin(ds[0][5], ds[0][6])
     pairDistanceMinB = calcDistanceMin(ds[0][22], ds[0][23])
+    pairDistance = calc_average_distance(float(ds[0][5]), float(ds[0][6]), float(ds[0][22]), float(ds[0][23]), rhoPairDr3)
     pairMeanTheta = ds['theta_measured'].groups.aggregate(np.mean)
     pairMeanThetaErr = ds['theta_measured'].groups.aggregate(np.std)
     pairMeanRho = ds['rho_measured'].groups.aggregate(np.mean)
@@ -727,6 +811,12 @@ for ds in reportTable_by_object.groups:
     pairACoordErr = pairACurrentCoord.separation(pairAMeasuredCoord)
     pairBCoordErr = pairBCurrentCoord.separation(pairBMeasuredCoord)
 
+    if (pairMass1 is not None and pairMass2 is not None and pairSepPar is not None and pairDistance[1] is not None and pairACurrentCoord.separation(pairBCurrentCoord).arcsecond is not None and pairMeanRho is not None and pairMeanTheta is not None and dateOfObservation):
+        # NEW function to calculate the historical orbit values based on the calculated PA and SEP from Gaia DR3 on epoch 2016
+        pair_orbit = calc_historic_orbit(pairMass1, pairMass2, pairSepPar, pairDistance[1], pairACurrentCoord.separation(pairBCurrentCoord).arcsecond, SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond, pairMeanRho, SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree, pairMeanTheta, gaia_dr3_epoch, dateOfObservation)
+    else:
+        pair_orbit = ['Cannot be determined, missing data.', 'Cannot be determined, missing data.', 'Cannot be determined, missing data.', 'Cannot be determined, missing data.', 'Cannot be determined, missing data.', 'Cannot be determined, missing data.']
+
     preciseCoord = str(getPreciseCoord(pairRaA, pairDecA, fitsFileDate))
 
     pairNumTheta = len(ds['theta_measured'])
@@ -754,8 +844,8 @@ for ds in reportTable_by_object.groups:
     print('Component B DR3 on date:', pairBCurrentCoord.ra.degree, pairBCurrentCoord.dec.degree)
     print('Component B measured:', pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree)
     print('Component B error (on date - measured):', pairBCoordErr.arcsecond)
-    print('2016 Calculared Position angle / Separation: ', pairACurrentCoord.position_angle(pairBCurrentCoord).degree, pairACurrentCoord.separation(pairBCurrentCoord).arcsecond)
-    print('Current Calculared Position angle / Separation: ', SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree, SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond)
+    print('2016 Calculared Position angle / Separation: ', SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree, SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond)
+    print('Current Calculared Position angle / Separation: ', pairACurrentCoord.position_angle(pairBCurrentCoord).degree, pairACurrentCoord.separation(pairBCurrentCoord).arcsecond)
     print('\nTheta measurements\n', ds['theta_measured'])
     print('Number of measurements: ', pairNumTheta)
     print('Mean:', pairMeanTheta[0])
@@ -812,8 +902,8 @@ for ds in reportTable_by_object.groups:
     reportFile.write('\nComponent B DR3 on date: ' + str(pairBCurrentCoord.ra.degree) + ' ' + str(pairBCurrentCoord.dec.degree))
     reportFile.write('\nComponent B measured: ' + str(pairBMeasuredCoord.ra.degree) + ' ' + str(pairBMeasuredCoord.dec.degree))
     reportFile.write('\nComponent B error (on date - measured): ' + str(pairBCoordErr.arcsecond))
-    reportFile.write('\n\n2016 Calculared Position angle / Separation: '  + str(pairACurrentCoord.position_angle(pairBCurrentCoord).degree) + ' ' + str(pairACurrentCoord.separation(pairBCurrentCoord).arcsecond))
-    reportFile.write('\nCurrent Calculared Position angle / Separation: ' + str(SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree) + ' ' + str(SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond))
+    reportFile.write('\n\n2016 Calculared Position angle / Separation: '  + str(SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree) + ' ' + str(SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond))
+    reportFile.write('\nCurrent Calculared Position angle / Separation: ' + str(pairACurrentCoord.position_angle(pairBCurrentCoord).degree) + ' ' + str(pairACurrentCoord.separation(pairBCurrentCoord).arcsecond))
     reportFile.write('\n\nTheta measurements\n' + str(ds['theta_measured']))
     reportFile.write('\nMean: ' + str(pairMeanTheta[0]))
     reportFile.write('\nError: ' + str(pairMeanThetaErr[0]))
@@ -849,6 +939,16 @@ for ds in reportTable_by_object.groups:
     reportFile.write('\nPair Harshaw factor: ' + str(pairHarshawFactor))
     reportFile.write('\nPair Harshaw physicality: ' + str(pairHarshawPhysicality))
     reportFile.write('\nPair binarity: ' + str(pairBinarity))
+
+    # new function - orbit calculation
+    reportFile.write('\n\n### Pair historical orbit calculations ###')
+    reportFile.write('\nHistoric criterion: ' + str(pair_orbit[0]))
+    reportFile.write('\nDelta theta: ' + str(pair_orbit[4]))
+    reportFile.write('\nDelta rho: ' + str(pair_orbit[5]))
+    reportFile.write('\nDelta time: ' + str(pair_orbit[6]))
+    reportFile.write('\nMax orbit velolicy: ' + str(pair_orbit[1]))
+    reportFile.write('\nObserved velocity: ' + str(pair_orbit[2]))
+    reportFile.write('\nInput data variables: ' + str(pair_orbit[3]))
 
     reportFile.write('\n\n### Publication table 1. ###')
     reportFile.write('\n' + str(pairDesignationA) + ',' + str(pairMagMeasuredA[0]) + ',' + str(pairMagMeasuredAErr[0]) + ',' + str(pairGMagnitudeA) + ',' + str(pairAbsMag1) + ',' + str(pairLum1) + ',' + str(pairMass1) + ',' + dateOfObservation)

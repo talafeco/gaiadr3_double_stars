@@ -53,24 +53,31 @@ warnings.filterwarnings("ignore")
 from astroquery.gaia import Gaia
 Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"  # Reselect Data Release 3, default
  
-# Configuration for the ATIK camera
+# Configuration for the SeeStar camera
 
 dao_sigma = 3.0
 dao_fwhm = 14.0
 dao_threshold = 5.0
+
+# Configuration for the CANON camera
+'''
+dao_sigma = 2.0
+dao_fwhm = 3.0
+dao_threshold = 5.0
+'''
+
+# Configuration for the ATIK camera
+'''
+dao_sigma = 2.0
+dao_fwhm = 8.0
+dao_threshold = 12.0
+'''
+
+# Configurations for calculations
 possible_distance = 30000.0 # AU
 search_cone = 0.001 # Decimal degree
 dummyObservationDate = "2022-01-01T12:00:00"
 gaia_dr3_epoch = 2016.0
-
-
-# Configuration for the CANON camera
-
-'''dao_sigma = 2.0
-dao_fwhm = 3.0
-dao_threshold = 5.0
-possible_distance = 10000.0 # AU
-search_cone = 0.001 # Decimal degree'''
 
 # Gravitational constant is convenient if measure distances in parsecs (pc), velocities in kilometres per second (km/s) and masses in solar units M
 gravConst = 0.0043009 
