@@ -29,12 +29,12 @@ Gaia.ROW_LIMIT = -1 # To return an unlimited number of rows
 workingDirectory = sys.argv[1]
 
 # Define the magnitude limit of the image used during Gaia DR3 queries
-gaia_dr3_magnitude_limit = 20
+gaia_dr3_magnitude_limit = 17
 dao_sigma = 3.0
 dao_fwhm = 8.0
 dao_threshold = 12.0
 search_cone = 0.00028 # Decimal degree
-image_limit = 2000
+image_limit = 500
 
 directoryContent = os.listdir(workingDirectory)
 print('Working directory: ', workingDirectory)

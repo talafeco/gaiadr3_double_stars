@@ -45,31 +45,27 @@ hipparcos_bv_index = hipparcos_file['B-V']
 
 # Configuration for the SeeStar camera
 
-dao_sigma = 3.0
+'''dao_sigma = 3.0
 dao_fwhm = 14.0
-dao_threshold = 5.0
+dao_threshold = 5.0'''
 
 # Configuration for the CANON camera
-'''
-dao_sigma = 2.0
-dao_fwhm = 3.0
-dao_threshold = 5.0
-possible_distance = 30000.0 # AU
-search_cone = 0.001 # Decimal degree
-'''
+
+dao_sigma = 3.0
+dao_fwhm = 8.0
+dao_threshold = 12.0
+
 
 # Configuration for the ATIK camera
 '''
 dao_sigma = 2.0
 dao_fwhm = 8.0
 dao_threshold = 12.0
-possible_distance = 30000.0 # AU
-search_cone = 0.001 # Decimal degree
 '''
 
 # Configurations for calculations
 possible_distance = 30000.0 # AU
-search_cone = 0.001 # Decimal degree
+search_cone = 0.0005 # Decimal degree
 image_limit = 2000
 gaia_dr3_epoch = 2016.0
 
