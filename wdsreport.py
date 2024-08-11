@@ -24,6 +24,7 @@ Excel obs orbit 3,1109 optikai így is, úgy is, de az eltérés nagy, lehet a k
 
 # 2024-07-27: updated only data[0] is counted due to rgb images
 # check color fits file, then slice and measure independently: https://astronomy.stackexchange.com/questions/32222/converting-an-rgb-image-to-fits-astropy
+# Check, which double stars should be on the image?
 
 import os
 import sys
@@ -61,9 +62,9 @@ dao_threshold = 5.0'''
 
 # Configuration for the CANON camera
 
-dao_sigma = 2.0
-dao_fwhm = 6.0
-dao_threshold = 3.0
+dao_sigma = 3.0
+dao_fwhm = 8.0
+dao_threshold = 9.0
 
 
 # Configuration for the ATIK camera
@@ -81,7 +82,7 @@ gaia_dr3_epoch = 2016.0
 
 # Gravitational constant is convenient if measure distances in parsecs (pc), velocities in kilometres per second (km/s) and masses in solar units M
 gravConst = 0.0043009 
-image_limit = 2000
+image_limit = 20000
 
 # Constant to calculate star luminosity and mass
 sun_luminosity = 3.0128 * (10 ** 28)
