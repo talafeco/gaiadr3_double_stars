@@ -13,8 +13,7 @@ starList = []
 
 
 for line in file:
-    print(line)
-    starList.append(line[2])
+    starList.append(line)
 
 print('starList:', starList)
 # printList = []
