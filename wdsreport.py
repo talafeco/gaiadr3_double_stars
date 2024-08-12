@@ -83,7 +83,7 @@ gaia_dr3_epoch = 2016.0
 
 # Gravitational constant is convenient if measure distances in parsecs (pc), velocities in kilometres per second (km/s) and masses in solar units M
 gravConst = 0.0043009 
-image_limit = 10000
+image_limit = 5000
 
 # Constant to calculate star luminosity and mass
 sun_luminosity = 3.0128 * (10 ** 28)
