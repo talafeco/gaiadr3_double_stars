@@ -16,7 +16,7 @@ gzip -dk "$PWD/$file"
 now=$(date)
 echo "# $now Extraction finished, start normalizing file content (${file:0:28})." | tee -a "$logfile"
 awk '!/^#/' "$PWD/${file:0:28}" > "$PWD/tmp_${file:0:28}"
-python3 gaia_list_filter_v2.py "$PWD/tmp_${file:0:28}" | tee -a "$logfile"
+python3 ~/Git/gaiadr3_double_stars/tools/gaia_list_filter_v2.py "$PWD/tmp_${file:0:28}" | tee -a "$logfile"
 mv "$PWD/result.csv" "$PWD/final_${file:0:28}"
 
 #now=$(date)
