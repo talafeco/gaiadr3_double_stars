@@ -624,7 +624,7 @@ def calculate_photo_center(wcs, header):
     return center, radius
 
 def get_objects_from_catalog(catalog, photo_center, photo_radius):
-    d2d = photo_center.search_around_sky(catalog)
+    d2d = photo_center.separation(catalog)
     catalog_mask = d2d < photo_radius
     return catalog_mask
 
