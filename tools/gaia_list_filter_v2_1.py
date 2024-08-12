@@ -12,7 +12,7 @@ starList = []
 # newFileName = str(filename[-28:])
 
 for line in file:
-    starList.append(line['DESIGNATION'])
+    starList.append(line[2])
 
 print('starList:', starList)
 # printList = []
