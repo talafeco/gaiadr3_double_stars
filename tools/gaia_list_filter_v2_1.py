@@ -12,7 +12,7 @@ starList = []
 # newFileName = str(filename[-28:])
 
 for line in file:
-    starList.append(line['designation', 'ra', 'dec', 'parallax', 'parallax_error', 'pm', 'pmra', 'pmdec', 'ruwe', 'phot_g_mean_mag', 'phot_bp_mean_mag', 'phot_rp_mean_mag', 'bp_rp', 'bp_g', 'g_rp', 'radial_velocity', 'radial_velocity_error', 'phot_variable_flag', 'non_single_star', 'teff_gspphot'])
+    starList.append(line['designation'])
 
 # printList = []
 
