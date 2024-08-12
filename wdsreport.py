@@ -614,6 +614,19 @@ def calc_historic_orbit(massa, massb, sep_pc, avg_distance, dr3_rho, wds_first_r
         historic_criterion = 'Optical'   
     return historic_criterion, max_orbit_velolicy, observed_velocity, input_data_variables, delta_theta, delta_rho, delta_time
 
+def calculate_photo_center(wcs, header):
+    photo_left_upper = SkyCoord.from_pixel(0, 0, wcs, origin=0, mode='all')
+    photo_right_lower = SkyCoord.from_pixel(header['NAXIS2'], header['NAXIS1'], wcs, origin=0, mode='all')
+    center = SkyCoord(header['CRVAL1'] * u.degree, header['CRVAL2'] * u.degree)
+    radius = photo_left_upper.separation(photo_right_lower) / 2
+    print('Center of photo: ', center.to_string('hmsdms'), '/', center.to_string('decimal'),
+      '\nRadius of photo: ', radius)
+    return center, radius
+
+def get_objects_from_catalog(catalog, photo_center, photo_radius):
+    idxsource, idxcatalog, d2d, d3d = catalog.search_around_sky(photo_center, photo_radius)
+    return idxsource, idxcatalog, d2d, d3d
+
 
 ###################################################################################################################################
 
@@ -730,6 +743,11 @@ for fitsFile in files:
     sources.add_column(dec2, name='dec_deg')
     sources.add_column(fitsFileDate, name='image_date')
     sources.add_column(fitsFileName, name='file')
+
+    
+    photo_center, photo_radius = calculate_photo_center(mywcs, file_header)
+    doubles_on_photo = get_objects_from_catalog(wds_catalog, photo_center, photo_radius)
+    print(doubles_on_photo)
 
     sources_catalog = SkyCoord(ra=sources['ra_deg']*u.degree, dec=sources['dec_deg']*u.degree, frame='fk5')
     idxw, idxs, wsd2d, wsd3d = search_around_sky(wds_catalog, sources_catalog, search_cone*u.deg)
