@@ -83,7 +83,7 @@ gaia_dr3_epoch = 2016.0
 
 # Gravitational constant is convenient if measure distances in parsecs (pc), velocities in kilometres per second (km/s) and masses in solar units M
 gravConst = 0.0043009 
-image_limit = 40000
+image_limit = 10000
 
 # Constant to calculate star luminosity and mass
 sun_luminosity = 3.0128 * (10 ** 28)
@@ -749,7 +749,7 @@ for fitsFile in files:
     
     photo_center, photo_radius = calculate_photo_center(mywcs, file_header)
     print('photo_center, photo_radius:', photo_center, photo_radius)
-    doubles_on_photo = get_objects_from_catalog(wds_catalog, photo_center, u.Quantity(photo_radius))
+    doubles_on_photo = get_objects_from_catalog(wds_catalog, photo_center, photo_radius)
     print(wdsTable[doubles_on_photo])
 
     sources_catalog = SkyCoord(ra=sources['ra_deg']*u.degree, dec=sources['dec_deg']*u.degree, frame='fk5')
