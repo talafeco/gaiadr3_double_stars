@@ -15,9 +15,8 @@ starList = []
 for line in file:
     starList.append(line)
 
-print('starList:', starList)
 # printList = []
-'''
+
 for star in starList:
     if star['ra'] != 'null' and star['dec'] != 'null' and star['parallax'] != 'null' and star['parallax_error'] != 'null' and star['phot_g_mean_mag'] != 'null':
         floatParallax = float(star['parallax'])
@@ -47,4 +46,3 @@ for star in starList:
                     # print('no file exists, creating')
                     # Close the file object
                     f.close()
-'''
