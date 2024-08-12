@@ -76,7 +76,7 @@ dao_threshold = 12.0
 
 # Configurations for calculations
 possible_distance = 30000.0 # AU
-search_cone = 0.001 # Decimal degree
+search_cone = 0.002 # Decimal degree
 dummyObservationDate = "2022-01-01T12:00:00"
 gaia_dr3_epoch = 2016.0
 
