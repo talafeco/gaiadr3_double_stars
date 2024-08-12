@@ -108,6 +108,10 @@ for fitsFile in files:
     master_catalog = SkyCoord(ra=gaia_catalog['ra'], dec=gaia_catalog['dec'], frame='icrs')
     sources_catalog = SkyCoord(ra=sources['ra_deg']*u.degree, dec=sources['dec_deg']*u.degree, frame='fk5')
     idxw, idxs, wsd2d, wsd3d = search_around_sky(master_catalog, sources_catalog, search_cone*u.deg)
+<<<<<<< HEAD
+    composit_catalog = hstack([master_catalog[idxw], sources[idxs]])
+    print('### Composit Catalog No. ', file_counter, '\n', )
+=======
     composit_catalog = hstack([gaia_catalog[idxw], sources[idxs]])
     
     composit_catalog.add_column(wsd2d.arcsecond, name='separation', index=-1)
@@ -120,4 +124,5 @@ for fitsFile in files:
     print('### Composit Catalog No. ', file_counter, '\n', composit_catalog)
     sources.write('sources' + str(file_counter) + '.csv', format='ascii', overwrite=True, delimiter=',')
     composit_catalog.write('composit_catalog' + str(file_counter) + '.csv', format='ascii', overwrite=True, delimiter=',')
+>>>>>>> b03bd5ebec285d9eb36626ad1074440c6af2d47c
 
