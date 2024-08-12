@@ -746,7 +746,7 @@ for fitsFile in files:
 
     
     photo_center, photo_radius = calculate_photo_center(mywcs, file_header)
-    doubles_on_photo = get_objects_from_catalog(wds_catalog, photo_center, radius=u.Quantity(photo_radius))
+    doubles_on_photo = get_objects_from_catalog(wds_catalog, photo_center, u.Quantity(photo_radius))
     print(doubles_on_photo)
 
     sources_catalog = SkyCoord(ra=sources['ra_deg']*u.degree, dec=sources['dec_deg']*u.degree, frame='fk5')
