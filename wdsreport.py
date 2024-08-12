@@ -77,13 +77,13 @@ dao_threshold = 12.0
 
 # Configurations for calculations
 possible_distance = 30000.0 # AU
-search_cone = 0.002 # Decimal degree
+search_cone = 0.001 # Decimal degree
 dummyObservationDate = "2022-01-01T12:00:00"
 gaia_dr3_epoch = 2016.0
 
 # Gravitational constant is convenient if measure distances in parsecs (pc), velocities in kilometres per second (km/s) and masses in solar units M
 gravConst = 0.0043009 
-image_limit = 5000
+image_limit = 10000
 
 # Constant to calculate star luminosity and mass
 sun_luminosity = 3.0128 * (10 ** 28)
@@ -748,7 +748,6 @@ for fitsFile in files:
 
     
     photo_center, photo_radius = calculate_photo_center(mywcs, file_header)
-    print('photo_center, photo_radius:', photo_center, photo_radius)
     doubles_on_photo = get_objects_from_catalog(wds_catalog, photo_center, photo_radius)
     print(wdsTable[doubles_on_photo])
 
