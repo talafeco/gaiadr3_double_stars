@@ -11,7 +11,6 @@ fieldnames = ['solution_id', 'designation', 'source_id', 'random_index', 'ref_ep
 starList = []
 # newFileName = str(filename[-28:])
 
-
 for line in file:
     starList.append(line)
 

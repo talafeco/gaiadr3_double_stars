@@ -1,9 +1,10 @@
 #! /usr/bin/python3
 
 import sys
-from astropy.table import Table
+import os
+import csv
 import numpy as np
-
+from astropy.table import Table
 
 
 filename = sys.argv[1]
@@ -23,4 +24,28 @@ print(file_data_write_raw.info)
 file_data_write_par = file_data_write_raw[file_data_write_raw['parallax'] > 0.5]
 file_data_write_mag = file_data_write_par[file_data_write_par['phot_g_mean_mag'] < 18.0]
 
-file_data_write_mag.write(filename[0:24] + '-summary.csv', format='ascii', delimiter=',')
+# file_data_write_mag.write(filename[0:24] + '-summary.csv', format='ascii', delimiter=',')
+
+for star in file_data_write_mag:
+    segmentRaCalc = int((float(star['ra']) // 5) + 1)
+    segmentDecCalc = int((float(star['dec']) // 5) + 1)
+    segmentName = f"{segmentRaCalc}-{segmentDecCalc}.csv"
+    dir_path = os.getcwd()
+    # print(star['designation'], dir_path, segmentName)
+    isFile = os.path.isfile(f"{dir_path}/{segmentName}")
+    # print(isFile)
+    if isFile == True:
+        with open(f"{segmentName}", 'a') as f:
+            mywriter = csv.DictWriter(f, delimiter=',', fieldnames = ['designation', 'ra', 'dec', 'parallax', 'parallax_error', 'pm', 'pmra', 'pmdec', 'ruwe', 'phot_g_mean_mag', 'phot_bp_mean_mag', 'phot_rp_mean_mag', 'bp_rp', 'bp_g', 'g_rp', 'radial_velocity', 'radial_velocity_error', 'phot_variable_flag', 'non_single_star', 'teff_gspphot'])
+            mywriter.writerow(star) # Add selected rows to file
+            # print('file exists')
+            # Close the file object
+            f.close()
+    else:
+        with open(f"{segmentName}", 'w') as f:
+            mywriter = csv.DictWriter(f, delimiter=',', fieldnames = ['designation', 'ra', 'dec', 'parallax', 'parallax_error', 'pm', 'pmra', 'pmdec', 'ruwe', 'phot_g_mean_mag', 'phot_bp_mean_mag', 'phot_rp_mean_mag', 'bp_rp', 'bp_g', 'g_rp', 'radial_velocity', 'radial_velocity_error', 'phot_variable_flag', 'non_single_star', 'teff_gspphot'])
+            mywriter.writeheader()    #Add header
+            mywriter.writerow(star) # Add selected rows to file
+            # print('no file exists, creating')
+            # Close the file object
+            f.close()
