@@ -28,7 +28,7 @@ warnings.filterwarnings("ignore")
 # List of constances
 #wdsFile = Table.read(f"/usr/share/dr3map/wds/dr3-wds.csv", format='ascii')
 hipparcos_file = Table.read(f"/usr/share/dr3map/hipparcos/I_239_selection.csv", format='ascii')
-segment_lib = "/usr/share/dr3map/gaiadr3_15mag_catalog/"
+segment_lib = "/usr/share/dr3map/gaiadr3_18mag_catalog/"
 hipparcos_abs_mag = hipparcos_file['Abs_mag']
 hipparcos_bv_index = hipparcos_file['B-V']
 
@@ -368,7 +368,7 @@ def imagePlot(filename, designation_a, designation_b, raa, deca, rab, decb):
     #plt.title(str(designation_a) + ' - ' + str(designation_b), pad=50.0)
     plt.title(str(designation_a) + ' - ' + str(designation_b))
 
-    plt.imshow(image, origin='lower',cmap='grey', aspect='equal', vmax=image_limit, vmin=0) # , cmap='cividis'
+    plt.imshow(image, origin='lower',cmap='Greys', aspect='equal', vmax=image_limit, vmin=0) # , cmap='cividis'
     plt.savefig(workingDirectory + '/' + str(designation_a) + '-' + str(designation_b) + '_img.jpg', dpi=150.0, bbox_inches='tight', pad_inches=0.2)
     plt.close()
     #plt.show()
@@ -383,7 +383,6 @@ print(files)
 
 # Define Qtable for sources
 fileName = np.array([], dtype=str)
-sourceId = np.array([], dtype=np.int64)
 dr3Designation = np.array([], dtype=str)
 dr3Ra = np.array([], dtype=np.float64)
 dr3Dec = np.array([], dtype=np.float64)
@@ -402,11 +401,10 @@ sourceRa = np.array([], dtype=np.float64)
 sourceDec = np.array([], dtype=np.float64)
 sourceMag = np.array([], dtype=np.float64)
 # Create source table
-sourceTable = QTable([fileName, sourceId, dr3Designation, dr3Ra, dr3Dec, dr3Parallax, dr3ParallaxError, dr3PmRa, dr3PmDec, dr3gMag, dr3bpMag, dr3rpMag, dr3RadVel, dr3RadVelErr, dr3Temp, imageId, sourceRa, sourceDec, sourceMag], names=('filename', 'source_id', 'designation', 'ra', 'dec', 'parallax', 'parallax_error', 'pmra', 'pmdec','phot_g_mean_mag', 'phot_bp_mean_mag', 'phot_rp_mean_mag', 'radial_velocity', 'radial_velocity_error', 'teff_gspphot', 'image_id', 'source_ra', 'source_dec', 'source_mag'), meta={'name': 'source table'})
+sourceTable = QTable([fileName, dr3Designation, dr3Ra, dr3Dec, dr3Parallax, dr3ParallaxError, dr3PmRa, dr3PmDec, dr3gMag, dr3bpMag, dr3rpMag, dr3RadVel, dr3RadVelErr, dr3Temp, imageId, sourceRa, sourceDec, sourceMag], names=('filename', 'designation', 'ra', 'dec', 'parallax', 'parallax_error', 'pmra', 'pmdec','phot_g_mean_mag', 'phot_bp_mean_mag', 'phot_rp_mean_mag', 'radial_velocity', 'radial_velocity_error', 'teff_gspphot', 'image_id', 'source_ra', 'source_dec', 'source_mag'), meta={'name': 'source table'})
 
 # Define Qtable to record Gaia data for each image about the doubles
 reportFileName = np.array([], dtype=str)
-reportSourceIdA = np.array([], dtype=np.int64)
 reportDr3DesignationA = np.array([], dtype=str)
 reportDr3RaA = np.array([], dtype=np.float64)
 reportDr3DecA = np.array([], dtype=np.float64)
@@ -424,7 +422,6 @@ reportImageIdA = np.array([], dtype=np.int32)
 reportRaMeasuredA = np.array([], dtype=np.float64)
 reportDecMeasuredA = np.array([], dtype=np.float64)
 reportMagMeasuredA = np.array([], dtype=np.float64)
-reportSourceIdB = np.array([], dtype=np.int64)
 reportDr3DesignationB = np.array([], dtype=str)
 reportDr3RaB = np.array([], dtype=np.float64)
 reportDr3DecB = np.array([], dtype=np.float64)
@@ -447,7 +444,7 @@ reportThetaMeasured = np.array([], dtype=np.float64)
 reportRhoDr3= np.array([], dtype=np.float64)
 reportRhoMeasured = np.array([], dtype=np.float64)
 reportObjectId = np.array([], dtype=str)
-reportTable = QTable([reportFileName, reportSourceIdA, reportDr3DesignationA, reportDr3RaA, reportDr3DecA, reportDr3ParallaxA, reportDr3ParallaxErrorA, reportDr3PmRaA, reportDr3PmDecA, reportDr3gMagA, reportDr3bpMagA, reportDr3rpMagA, reportDr3RadVelA, reportDr3RadVelErrA, reportDr3TempA, reportRaMeasuredA, reportDecMeasuredA, reportMagMeasuredA, reportSourceIdB, reportDr3DesignationB, reportDr3RaB, reportDr3DecB, reportDr3ParallaxB, reportDr3ParallaxErrorB, reportDr3PmRaB, reportDr3PmDecB, reportDr3gMagB, reportDr3bpMagB, reportDr3rpMagB, reportDr3RadVelB, reportDr3RadVelErrB, reportDr3TempB, reportRaMeasuredB, reportDecMeasuredB, reportMagMeasuredB, reportThetaDr3, reportThetaMeasured, reportRhoDr3, reportRhoMeasured, reportObjectId], names=('filename', 'source_id_a', 'designation_a', 'ra_a', 'dec_a', 'parallax_a', 'parallax_error_a', 'pmra_a', 'pmdec_a', 'phot_g_mean_mag_a', 'phot_bp_mean_mag_a', 'phot_rp_mean_mag_a', 'radial_velocity_a', 'radial_velocity_error_a', 'teff_gspphot_a', 'rameasured_a', 'decmeasured_a', 'magmeasured_a', 'source_id_b', 'designation_b', 'ra_b', 'dec_b', 'parallax_b', 'parallax_error_b', 'pmra_b', 'pmdec_b', 'phot_g_mean_mag_b', 'phot_bp_mean_mag_b', 'phot_rp_mean_mag_b', 'radial_velocity_b', 'radial_velocity_error_b', 'teff_gspphot_b', 'rameasured_b', 'decmeasured_b', 'magmeasured_b', 'theta_dr3', 'theta_measured', 'rho_dr3', 'rho_measured', 'object_id'), meta={'name': 'report table'})
+reportTable = QTable([reportFileName, reportDr3DesignationA, reportDr3RaA, reportDr3DecA, reportDr3ParallaxA, reportDr3ParallaxErrorA, reportDr3PmRaA, reportDr3PmDecA, reportDr3gMagA, reportDr3bpMagA, reportDr3rpMagA, reportDr3RadVelA, reportDr3RadVelErrA, reportDr3TempA, reportRaMeasuredA, reportDecMeasuredA, reportMagMeasuredA, reportDr3DesignationB, reportDr3RaB, reportDr3DecB, reportDr3ParallaxB, reportDr3ParallaxErrorB, reportDr3PmRaB, reportDr3PmDecB, reportDr3gMagB, reportDr3bpMagB, reportDr3rpMagB, reportDr3RadVelB, reportDr3RadVelErrB, reportDr3TempB, reportRaMeasuredB, reportDecMeasuredB, reportMagMeasuredB, reportThetaDr3, reportThetaMeasured, reportRhoDr3, reportRhoMeasured, reportObjectId], names=('filename', 'designation_a', 'ra_a', 'dec_a', 'parallax_a', 'parallax_error_a', 'pmra_a', 'pmdec_a', 'phot_g_mean_mag_a', 'phot_bp_mean_mag_a', 'phot_rp_mean_mag_a', 'radial_velocity_a', 'radial_velocity_error_a', 'teff_gspphot_a', 'rameasured_a', 'decmeasured_a', 'magmeasured_a', 'designation_b', 'ra_b', 'dec_b', 'parallax_b', 'parallax_error_b', 'pmra_b', 'pmdec_b', 'phot_g_mean_mag_b', 'phot_bp_mean_mag_b', 'phot_rp_mean_mag_b', 'radial_velocity_b', 'radial_velocity_error_b', 'teff_gspphot_b', 'rameasured_b', 'decmeasured_b', 'magmeasured_b', 'theta_dr3', 'theta_measured', 'rho_dr3', 'rho_measured', 'object_id'), meta={'name': 'report table'})
 
 # Set observation date and time
 fitsFileDate = ''
@@ -516,7 +513,7 @@ for fitsFile in files:
         catalogstar = SkyCoord(ra=gaiaStars[idx]['ra']*u.degree, dec=gaiaStars[idx]['dec']*u.degree)
         sep = c.separation(catalogstar)
         if sep < Angle('00d00m02s'):
-            sourceTable.add_row([fitsFile, gaiaStars[idx]['source_id'], gaiaStars[idx]['designation'], convertStringToNan(gaiaStars[idx]['ra']), convertStringToNan(gaiaStars[idx]['dec']), convertStringToNan(gaiaStars[idx]['parallax']), convertStringToNan(gaiaStars[idx]['parallax_error']), convertStringToNan(gaiaStars[idx]['pmra']), convertStringToNan(gaiaStars[idx]['pmdec']), convertStringToNan(gaiaStars[idx]['phot_g_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_bp_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_rp_mean_mag']), convertStringToNan(gaiaStars[idx]['radial_velocity']), convertStringToNan(gaiaStars[idx]['radial_velocity_error']), convertStringToNan(gaiaStars[idx]['teff_gspphot']), star['id'], ra2, dec2, star['mag']])
+            sourceTable.add_row([fitsFile, gaiaStars[idx]['designation'], convertStringToNan(gaiaStars[idx]['ra']), convertStringToNan(gaiaStars[idx]['dec']), convertStringToNan(gaiaStars[idx]['parallax']), convertStringToNan(gaiaStars[idx]['parallax_error']), convertStringToNan(gaiaStars[idx]['pmra']), convertStringToNan(gaiaStars[idx]['pmdec']), convertStringToNan(gaiaStars[idx]['phot_g_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_bp_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_rp_mean_mag']), convertStringToNan(gaiaStars[idx]['radial_velocity']), convertStringToNan(gaiaStars[idx]['radial_velocity_error']), convertStringToNan(gaiaStars[idx]['teff_gspphot']), star['id'], ra2, dec2, star['mag']])
 
 #gaiaStarsTableFileName = (str('gaiaStarsTab.csv'))
 
@@ -532,54 +529,54 @@ for group in sourceTable_by_file.groups:
     StarA = []
     StarB = []
     for star in group: ## modify according to arrays instead of starlist
-        StarA = (star['filename'], star['source_id'], star['designation'], star['ra'], star['dec'], star['parallax'], star['parallax_error'], star['pmra'], star['pmdec'],star['phot_g_mean_mag'], star['phot_bp_mean_mag'], star['phot_rp_mean_mag'], star['radial_velocity'], star['radial_velocity_error'], star['teff_gspphot'], star['image_id'], star['source_ra'], star['source_dec'], star['source_mag'])
+        StarA = (star['filename'], star['designation'], star['ra'], star['dec'], star['parallax'], star['parallax_error'], star['pmra'], star['pmdec'],star['phot_g_mean_mag'], star['phot_bp_mean_mag'], star['phot_rp_mean_mag'], star['radial_velocity'], star['radial_velocity_error'], star['teff_gspphot'], star['image_id'], star['source_ra'], star['source_dec'], star['source_mag'])
         for star in group:
-            StarB = (star['filename'], star['source_id'], star['designation'], star['ra'], star['dec'], star['parallax'], star['parallax_error'], star['pmra'], star['pmdec'],star['phot_g_mean_mag'], star['phot_bp_mean_mag'], star['phot_rp_mean_mag'], star['radial_velocity'], star['radial_velocity_error'], star['teff_gspphot'], star['image_id'], star['source_ra'], star['source_dec'], star['source_mag'])
+            StarB = (star['filename'], star['designation'], star['ra'], star['dec'], star['parallax'], star['parallax_error'], star['pmra'], star['pmdec'],star['phot_g_mean_mag'], star['phot_bp_mean_mag'], star['phot_rp_mean_mag'], star['radial_velocity'], star['radial_velocity_error'], star['teff_gspphot'], star['image_id'], star['source_ra'], star['source_dec'], star['source_mag'])
             if StarA != StarB and float(StarA[9]) < float(StarB[9]) and float(StarA[5]) != 0 and float(StarB[5]) != 0:
                 #Set input data
-                starRa1 = float(StarA[3])
-                starDec1 = float(StarA[4])
-                starRa2 = float(StarB[3])
-                starDec2 = float(StarB[4])
-                starCoord1 = SkyCoord(StarA[3], StarA[4], unit="deg")
-                starCoord2 = SkyCoord(StarB[3], StarB[4], unit="deg")
-                starParallax1 = float(StarA[5])
-                starParallaxError1 = float(StarA[6])
+                starRa1 = float(StarA[2])
+                starDec1 = float(StarA[3])
+                starRa2 = float(StarB[2])
+                starDec2 = float(StarB[3])
+                starCoord1 = SkyCoord(StarA[2], StarA[3], unit="deg")
+                starCoord2 = SkyCoord(StarB[2], StarB[3], unit="deg")
+                starParallax1 = float(StarA[4])
+                starParallaxError1 = float(StarA[5])
                             
                 # Calculate the widest possible separation for StarA
                 possSep1 = possible_distance / calcDistanceMax(starParallax1, starParallaxError1)
                 rhoStar = starCoord1.separation(starCoord2).arcsecond
                 if possSep1 > rhoStar:
                     starId1 = StarA[1]
-                    starName1 = StarA[2]
+                    starName1 = StarA[1]
                     starId2 = StarB[1]
-                    starName2 = StarB[2]
-                    starParallax2 = float(StarB[5])
-                    starParallaxError2 = float(StarB[6])
-                    starPmRa1 = float(StarA[7])
-                    starPmDec1 = float(StarA[8])
-                    starPmRa2 = float(StarB[7])
-                    starPmDec2 = float(StarB[8])
-                    starGMag1 = float(StarA[9])
-                    starGMag2 = float(StarB[9])
-                    starBpMag1 = float(StarA[10])
-                    starBpMag2 = float(StarB[10])
-                    starRpMag1 = float(StarA[11])
-                    starRpMag2 = float(StarB[11])
-                    starRadVel1 = float(StarA[12])
-                    starRadVelErr1 = float(StarA[13])
-                    starRadVel2 = float(StarB[12])
-                    starRadVelErr2 = float(StarB[13])
-                    starTemp1 = float(StarA[14])
-                    starTemp2 = float(StarB[14])
-                    starImageIdA = float(StarB[15])
-                    starImageIdB = float(StarB[15])
-                    starActualRa1 = float(StarA[16])
-                    starActualDec1 = float(StarA[17])
-                    starActualMag1 = float(StarA[18])
-                    starActualRa2 = float(StarB[16])
-                    starActualDec2 = float(StarB[17])
-                    starActualMag2 = float(StarB[18])
+                    starName2 = StarB[1]
+                    starParallax2 = float(StarB[4])
+                    starParallaxError2 = float(StarB[5])
+                    starPmRa1 = float(StarA[6])
+                    starPmDec1 = float(StarA[7])
+                    starPmRa2 = float(StarB[6])
+                    starPmDec2 = float(StarB[7])
+                    starGMag1 = float(StarA[8])
+                    starGMag2 = float(StarB[8])
+                    starBpMag1 = float(StarA[9])
+                    starBpMag2 = float(StarB[9])
+                    starRpMag1 = float(StarA[10])
+                    starRpMag2 = float(StarB[10])
+                    starRadVel1 = float(StarA[11])
+                    starRadVelErr1 = float(StarA[12])
+                    starRadVel2 = float(StarB[11])
+                    starRadVelErr2 = float(StarB[12])
+                    starTemp1 = float(StarA[13])
+                    starTemp2 = float(StarB[13])
+                    starImageIdA = float(StarB[14])
+                    starImageIdB = float(StarB[14])
+                    starActualRa1 = float(StarA[15])
+                    starActualDec1 = float(StarA[16])
+                    starActualMag1 = float(StarA[17])
+                    starActualRa2 = float(StarB[15])
+                    starActualDec2 = float(StarB[16])
+                    starActualMag2 = float(StarB[17])
                     starActualCoord1 = SkyCoord(starActualRa1, starActualDec1, unit="deg")
                     starActualCoord2 = SkyCoord(starActualRa2, starActualDec2, unit="deg")
                     starObjectId = (str(starId1) + '_' + str(starId2))
@@ -623,7 +620,7 @@ for group in sourceTable_by_file.groups:
 
                     #Print data, if stars are close and share a common distance range
                     if distanceCommon == 'overlapping':
-                        reportTable.add_row([star[0], starId1, starName1, starRa1, starDec1, starParallax1, starParallaxError1, starPmRa1, starPmDec1, starGMag1, starBpMag1, starRpMag1, starRadVel1, starRadVelErr1, starTemp1, starActualRa1, starActualDec1, starActualMag1, starId2, starName2, starRa2, starDec2, starParallax2, starParallaxError2, starPmRa2, starPmDec2, starGMag2, starBpMag2, starRpMag2, starRadVel2, starRadVelErr2, starTemp2, starActualRa2, starActualDec2, starActualMag2, thetaStar, thetaActual, rhoStar, rhoActual, starObjectId])
+                        reportTable.add_row([star[0], starName1, starRa1, starDec1, starParallax1, starParallaxError1, starPmRa1, starPmDec1, starGMag1, starBpMag1, starRpMag1, starRadVel1, starRadVelErr1, starTemp1, starActualRa1, starActualDec1, starActualMag1, starName2, starRa2, starDec2, starParallax2, starParallaxError2, starPmRa2, starPmDec2, starGMag2, starBpMag2, starRpMag2, starRadVel2, starRadVelErr2, starTemp2, starActualRa2, starActualDec2, starActualMag2, thetaStar, thetaActual, rhoStar, rhoActual, starObjectId])
 
 # print('### Report Table ###')
 # print(reportTable)
@@ -648,14 +645,14 @@ count = 1
 for ds in reportTable_by_object.groups:
     print('\n### Group index:', count, '###')
     count = count + 1
-    rhoPairDr3 = rhoCalc(ds[0][3], ds[0][4], ds[0][20], ds[0][21])
+    rhoPairDr3 = rhoCalc(ds[0][2], ds[0][3], ds[0][18], ds[0][19])
     pairFileName = ds[0][0]
-    pairRaA = ds[0][3]
-    pairDecA = ds[0][4]
-    pairRaB = ds[0][20]
-    pairDecB = ds[0][21]
-    pairDistanceMinA = calcDistanceMin(ds[0][5], ds[0][6])
-    pairDistanceMinB = calcDistanceMin(ds[0][22], ds[0][23])
+    pairRaA = ds[0][2]
+    pairDecA = ds[0][3]
+    pairRaB = ds[0][18]
+    pairDecB = ds[0][19]
+    pairDistanceMinA = calcDistanceMin(ds[0][4], ds[0][5])
+    pairDistanceMinB = calcDistanceMin(ds[0][20], ds[0][21])
     pairMeanTheta = ds['theta_measured'].groups.aggregate(np.mean)
     pairMeanThetaErr = ds['theta_measured'].groups.aggregate(np.std)
     pairMeanRho = ds['rho_measured'].groups.aggregate(np.mean)
@@ -664,39 +661,39 @@ for ds in reportTable_by_object.groups:
     pairMagMeasuredAErr = ds['magmeasured_a'].groups.aggregate(np.std)
     pairMagMeasuredB = ds['magmeasured_b'].groups.aggregate(np.mean)
     pairMagMeasuredBErr = ds['magmeasured_b'].groups.aggregate(np.std)
-    pairDesignationA = ds[0][2]
-    pairDesignationB = ds[0][19]
-    pairGMagnitudeA = ds[0][9]
-    pairGMagnitudeB = ds[0][26]
+    pairDesignationA = ds[0][1]
+    pairDesignationB = ds[0][17]
+    pairGMagnitudeA = ds[0][8]
+    pairGMagnitudeB = ds[0][24]
     pairMagDiff = math.fabs(pairMagMeasuredA - pairMagMeasuredB)
     pairMagDiffDr3 = math.fabs(pairGMagnitudeA - pairGMagnitudeB)
     pairMagDiffErr = math.fabs(((ds['magmeasured_a']) - (ds['magmeasured_b'])).groups.aggregate(np.std))
-    pairRadVelRatioA = math.fabs(ds[0][13] / ds[0][12]) * 100
-    pairRadVelRatioB = math.fabs(ds[0][30] / ds[0][29]) * 100
-    pairRadVelA, pairRadVelAErr, pairRadVelB, pairRadVelBErr = ds[0][12], ds[0][13], ds[0][29], ds[0][30]
-    pairParallaxFactor = (calcParallaxFactor(ds[0][5], ds[0][22])) * 100
-    pairPmFactor = (calcPmFactor(ds[0][7], ds[0][8], ds[0][24], ds[0][25])) * 100
+    pairRadVelRatioA = math.fabs(ds[0][12] / ds[0][11]) * 100
+    pairRadVelRatioB = math.fabs(ds[0][28] / ds[0][27]) * 100
+    pairRadVelA, pairRadVelAErr, pairRadVelB, pairRadVelBErr = ds[0][11], ds[0][12], ds[0][28], ds[0][29]
+    pairParallaxFactor = (calcParallaxFactor(ds[0][4], ds[0][20])) * 100
+    pairPmFactor = (calcPmFactor(ds[0][6], ds[0][7], ds[0][22], ds[0][23])) * 100
     pairPmCommon = calcPmCategory(pairPmFactor)
-    pairAbsMag1 = calcAbsMag(pairGMagnitudeA, ds[0][5]) # Calculate Absolute magnitude
-    pairAbsMag2 = calcAbsMag(pairGMagnitudeB, ds[0][22]) # Calculate Absolute magnitude
+    pairAbsMag1 = calcAbsMag(pairGMagnitudeA, ds[0][4]) # Calculate Absolute magnitude
+    pairAbsMag2 = calcAbsMag(pairGMagnitudeB, ds[0][20]) # Calculate Absolute magnitude
     pairLum1 = calcLuminosity(pairAbsMag1)
     pairLum2 = calcLuminosity(pairAbsMag2)
     pairAltLum1 = calcLuminosityAlternate(pairAbsMag1)
     pairAltLum2 = calcLuminosityAlternate(pairAbsMag2)
     pairMass1 = calcMass(pairAltLum1)
     pairMass2 = calcMass(pairAltLum2)
-    pairBVIndexA = ds[0][10] - ds[0][9]
-    pairBVIndexB = ds[0][27] - ds[0][26]
+    pairBVIndexA = ds[0][10] - ds[0][8]
+    pairBVIndexB = ds[0][26] - ds[0][24]
     pairSepPar = sepCalc(pairDistanceMinA, pairDistanceMinB, rhoPairDr3) # Separation of the pairs in parsecs
     pairEscapeVelocity = calcEscapevelocity(pairMass1, pairMass2, pairSepPar, gravConst)
-    pairRelativeVelocity = calcRelativeVelocity(ds[0][7], ds[0][8], ds[0][24], ds[0][25], ds[0][12], ds[0][29], pairDistanceMinA, pairDistanceMinB)
+    pairRelativeVelocity = calcRelativeVelocity(ds[0][6], ds[0][7], ds[0][22], ds[0][23], ds[0][11], ds[0][27], pairDistanceMinA, pairDistanceMinB)
     pairHarshawFactor = calcHarshaw(pairParallaxFactor, pairPmFactor)
     pairHarshawPhysicality = calcHarshawPhysicality(pairHarshawFactor)
     pairBinarity = calcBinarity(pairRelativeVelocity, pairEscapeVelocity)
     dateOfObservation = getUTC(fitsFileDate)
 
-    pairACurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaA, pairDecA, ds[0][7], ds[0][8])
-    pairBCurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaB, pairDecB, ds[0][24], ds[0][25])
+    pairACurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaA, pairDecA, ds[0][6], ds[0][7])
+    pairBCurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaB, pairDecB, ds[0][22], ds[0][23])
     pairAMeasuredCoord = SkyCoord(ra=ds['rameasured_a'].groups.aggregate(np.mean) * u.deg, dec=ds['decmeasured_a'].groups.aggregate(np.mean) * u.deg)
     pairBMeasuredCoord = SkyCoord(ra=ds['rameasured_b'].groups.aggregate(np.mean) * u.deg, dec=ds['decmeasured_b'].groups.aggregate(np.mean) * u.deg)
     pairACoordErr = pairACurrentCoord.separation(pairAMeasuredCoord)
@@ -709,7 +706,7 @@ for ds in reportTable_by_object.groups:
     pairNumMagMeasureadA = len(ds['magmeasured_a'])
     pairNumMagMeasureadB = len(ds['magmeasured_b'])
     
-    reportName = (workingDirectory + '/' + ds[0][39] + '.txt')
+    reportName = (workingDirectory + '/' + ds[0][37] + '.txt')
     reportFile = open(reportName, "a")
 
     hrdPlot(pairDesignationA, pairDesignationB, pairAbsMag1, pairAbsMag2, pairBVIndexA, pairBVIndexB)
