@@ -490,7 +490,7 @@ for fitsFile in files:
     print('### Segments are:',segments)
 
     # Read all segments into an array
-    gaiaStars = np.empty((0, 152))
+    gaiaStars = np.empty((0, 20))
 
     # Add all segments to the numpy array
     for seg in segments:

@@ -17,7 +17,7 @@ for star in starList:
     if star['ra'] != 'null' and star['dec'] != 'null' and star['parallax'] != 'null' and star['parallax_error'] != 'null' and star['phot_g_mean_mag'] != 'null':
         floatParallax = float(star['parallax'])
         floatGmag = float(star['phot_g_mean_mag'])
-        if floatParallax >= 0.5 and floatGmag <= 15:
+        if floatParallax >= 0.5 and floatGmag <= 18:
             printList.append(star)
         #print(line['parallax'], line['parallax_error'])
 
