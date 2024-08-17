@@ -26,6 +26,8 @@ Excel obs orbit 3,1109 optikai így is, úgy is, de az eltérés nagy, lehet a k
 # check color fits file, then slice and measure independently: https://astronomy.stackexchange.com/questions/32222/converting-an-rgb-image-to-fits-astropy
 # Check, which double stars should be on the image?
 # it there should be a double star, but not found, search for similar separation + similar mag difference doubles
+# design the measurement and calculation functions independently, process the images and write measurements, if there is no response from gaia in 10s or the star not found
+# add additional check, if the gaia query provided any results
 
 import os
 import sys
@@ -494,6 +496,7 @@ def imagePlot(filename, pairname, raa, deca, rab, decb):
     
     # data[0]
     image_data = fits.open(workingDirectory + '/' + filename)
+    #image_data = fits.open(filename)
     print('IMAGE DATA:', workingDirectory, '/', filename)
     header = image_data[0].header
     wcs_helix = WCS(image_data[0].header, naxis=2)
