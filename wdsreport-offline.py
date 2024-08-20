@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#!/usr/bin/python3
 # WDS Report tool to measure double stars on astronomical images based on Gaia DR3 data
 # Version: 1.0
 # Usage: wdsreport <image_folder>
@@ -28,6 +28,7 @@ Excel obs orbit 3,1109 optikai így is, úgy is, de az eltérés nagy, lehet a k
 # it there should be a double star, but not found, search for similar separation + similar mag difference doubles
 # design the measurement and calculation functions independently, process the images and write measurements, if there is no response from gaia in 10s or the star not found
 # add additional check, if the gaia query provided any results
+# Upodate gaia search, to get a minimal distance in arcsecs
 
 import os
 import sys
@@ -320,7 +321,9 @@ def calcMass(lum):
 
 # Calculate the radius of the star
 # Excel formula =SQRT(Luminosity/(T eff/5778))
-def calcRadius(luminosity, teffStar):
+def calcRadius(lum, teff):
+    luminosity = float(convertStringToNan(lum))
+    teffStar = float(convertStringToNan(teff))
     if bool(luminosity) and bool(teffStar):
         teffSun = 5778
         radius = math.sqrt(luminosity / ((teffStar / teffSun) ** 4))
@@ -363,12 +366,14 @@ def calcTangentialSpeedComponent(dist, pm):
 # Excel formula to calculate the difference to the Radial speeds in km/s =ABS(rad_vel_a-rad_vel_b)
 # Excel formula to calculate the relative velocity =SQRT(L8^2+L7^2)
 def calcRelativeVelocity(pmraa, pmdeca, pmrab, pmdecb, radvela, radvelb, dista, distb):
+    rad_vel_a = float(convertStringToNan(radvela))
+    rad_vel_b = float(convertStringToNan(radvelb))
     tanraa = calcTangentialSpeedComponent(dista, pmraa)
     tandeca = calcTangentialSpeedComponent(dista, pmdeca)
     tanrab = calcTangentialSpeedComponent(distb, pmrab)
     tandecb = calcTangentialSpeedComponent(distb, pmdecb)
     tanspeeddiff = math.sqrt((tanraa - tanrab) ** 2 + (tandeca - tandecb) ** 2)
-    radspeeddif = math.fabs(radvela - radvelb)
+    radspeeddif = math.fabs(rad_vel_a - rad_vel_b)
     sumspeeddiff = math.sqrt(tanspeeddiff ** 2 + radspeeddif ** 2)
     return sumspeeddiff
 
@@ -577,8 +582,8 @@ def get_gaia_dr3_data_offline(doublestars):
             gaiaStars = segmentpart
 
     gaia_catalog = SkyCoord(ra=gaiaStars['ra'], dec=gaiaStars['dec'], unit='degree, degree', frame="icrs")
-    idx_a, d2d_a, d3d_a = match_coordinates_sky(pairACoord, gaia_catalog)
-    idx_b, d2d_b, d3d_b = match_coordinates_sky(pairBCoord, gaia_catalog)
+    idx_a, d2d_a, d3d_a = match_coordinates_sky(pairACoord, gaia_catalog) #, 3*u.arcseconds)
+    idx_b, d2d_b, d3d_b = match_coordinates_sky(pairBCoord, gaia_catalog) #, , 3*u.arcseconds
 
     return gaiaStars[idx_a], gaiaStars[idx_b]
 
@@ -789,8 +794,8 @@ for fitsFile in files:
 
     
     photo_center, photo_radius = calculate_photo_center(mywcs, file_header)
-    doubles_on_photo = get_objects_from_catalog(wds_catalog, photo_center, photo_radius)
-    print(wdsTable[doubles_on_photo])
+    # doubles_on_photo = get_objects_from_catalog(wds_catalog, photo_center, photo_radius)
+    # print(wdsTable[doubles_on_photo])
 
     sources_catalog = SkyCoord(ra=sources['ra_deg']*u.degree, dec=sources['dec_deg']*u.degree, frame='fk5')
     idxw, idxs, wsd2d, wsd3d = search_around_sky(wds_catalog, sources_catalog, search_cone*u.deg)
@@ -837,7 +842,6 @@ for ds in upd_sources_ds_by_object.groups:
 
     # Search component in the offline Gaia DR3 database
     print('DS: ', ds)
-    print('DS: ', ds.info)
     gaiaAStar, gaiaBStar = get_gaia_dr3_data_offline(ds)
 
     print('GiaiaStar: ', gaiaAStar['designation'], gaiaBStar['designation'])
@@ -927,8 +931,8 @@ for ds in upd_sources_ds_by_object.groups:
         pairLum2 = calcLuminosity(pairAbsMag2)
         pairAltLum1 = calcLuminosityAlternate(pairAbsMag1)
         pairAltLum2 = calcLuminosityAlternate(pairAbsMag2)
-        pairRad1 = calcRadius(pairLum1, float(gaiaAStar['teff_gspphot']))
-        pairRad2 = calcRadius(pairLum2, float(gaiaBStar['teff_gspphot']))
+        pairRad1 = calcRadius(pairLum1, gaiaAStar['teff_gspphot'])
+        pairRad2 = calcRadius(pairLum2, gaiaBStar['teff_gspphot'])
         # pairDR3Theta = thetaCalc(deltaRa(gaiaAStar['ra'], gaiaBStar['ra'], gaiaBStar['dec']), deltaDec(gaiaBStar['dec'], gaiaAStar['dec'])) + addThetaValue
         pairDR3Theta = starCoord1.position_angle(starCoord2).degree
         # pairDR3Rho = rhoCalc(gaiaAStar['ra'], gaiaAStar['dec'], gaiaBStar['ra'], gaiaBStar['dec'])
@@ -945,7 +949,7 @@ for ds in upd_sources_ds_by_object.groups:
         print('pairDistance: ', pairDistance[1])
 
         pairEscapeVelocity = calcEscapevelocity(pairMass1, pairMass2, pairSepPar, gravConst)
-        pairRelativeVelocity = calcRelativeVelocity(float(gaiaAStar['pmra']), float(gaiaAStar['pmdec']), float(gaiaBStar['pmra']), float(gaiaBStar['pmdec']), float(gaiaAStar['radial_velocity']), float(gaiaBStar['radial_velocity']), pairDistanceMinA, pairDistanceMinB)
+        pairRelativeVelocity = calcRelativeVelocity(float(gaiaAStar['pmra']), float(gaiaAStar['pmdec']), float(gaiaBStar['pmra']), float(gaiaBStar['pmdec']), gaiaAStar['radial_velocity'], gaiaBStar['radial_velocity'], pairDistanceMinA, pairDistanceMinB)
         pairHarshawFactor = calcHarshaw((pairParallaxFactor) / 100, (pairPmFactor))
         pairHarshawPhysicality = calcHarshawPhysicality(pairHarshawFactor * 100)
         pairBinarity = calcBinarity(pairRelativeVelocity, pairEscapeVelocity)
@@ -972,8 +976,8 @@ for ds in upd_sources_ds_by_object.groups:
         pairRadVelErrA = convertStringToNan(gaiaAStar['radial_velocity_error'])
         pairRadVelB = convertStringToNan(gaiaBStar['radial_velocity'])
         pairRadVelErrB = convertStringToNan(gaiaBStar['radial_velocity_error'])
-        pairRadVelRatioA = convertStringToNan(math.fabs(float(gaiaAStar['radial_velocity_error']) / float(gaiaAStar['radial_velocity'])) * 100)
-        pairRadVelRatioB = convertStringToNan(math.fabs(float(gaiaBStar['radial_velocity_error']) / float(gaiaBStar['radial_velocity'])) * 100)
+        pairRadVelRatioA = math.fabs(float(convertStringToNan(gaiaAStar['radial_velocity_error'])) / float(convertStringToNan(gaiaAStar['radial_velocity']))) * 100
+        pairRadVelRatioB = math.fabs(float(convertStringToNan(gaiaBStar['radial_velocity_error'])) / float(convertStringToNan(gaiaBStar['radial_velocity']))) * 100
         pairDesA = str(gaiaAStar['designation'])
         pairDesB = str(gaiaBStar['designation'])
         
