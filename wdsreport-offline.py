@@ -503,8 +503,8 @@ def imagePlot(filename, pairname, raa, deca, rab, decb):
     '''
     
     # data[0]
-    image_data = fits.open(workingDirectory + '/' + filename)
-    #image_data = fits.open(filename)
+    #image_data = fits.open(workingDirectory + '/' + filename)
+    image_data = fits.open(filename)
     print('IMAGE DATA:', workingDirectory, '/', filename)
     header = image_data[0].header
     wcs_helix = WCS(image_data[0].header, naxis=2)
