@@ -1002,7 +1002,7 @@ for ds in upd_sources_ds_by_object.groups:
             # NEW function to calculate the historical orbit values based on the calculated PA and SEP from Gaia DR3 on epoch 2016
             pair_orbit = calc_historic_orbit(pairMass1, pairMass2, pairSepPar, pairDistance[1], pairACurrentCoord.separation(pairBCurrentCoord).arcsecond, SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond, pairMeanRho, SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree, pairMeanTheta, gaia_dr3_epoch, dateOfObservation)
         else:
-            pair_orbit = ['Cannot be determined, missing data.', 'Cannot be determined, missing data.', 'Cannot be determined, missing data.']
+            pair_orbit = ['Cannot be determined, missing data.', 'Cannot be determined, missing data.', 'Cannot be determined, missing data.', 'Cannot be determined, missing data.', 'Cannot be determined, missing data.', 'Cannot be determined, missing data.', 'Cannot be determined, missing data.']
         
         preciseCoord = str(getPreciseCoord(pairRaA, pairDecA, fitsFileDate))
         reportName = (workingDirectory + '/' + pairObjectId + '.txt').replace(' ', '')
@@ -1139,14 +1139,14 @@ for ds in upd_sources_ds_by_object.groups:
         reportFile.write('\nPair binarity: ' + str(pairBinarity))
         
         # new function - orbit calculation
-        '''reportFile.write('\n\n### Pair historical orbit calculations ###')
+        reportFile.write('\n\n### Pair historical orbit calculations ###')
         reportFile.write('\nHistoric criterion: ' + str(pair_orbit[0]))
         reportFile.write('\nDelta theta: ' + str(pair_orbit[4]))
         reportFile.write('\nDelta rho: ' + str(pair_orbit[5]))
         reportFile.write('\nDelta time: ' + str(pair_orbit[6]))
         reportFile.write('\nMax orbit velolicy: ' + str(pair_orbit[1]))
         reportFile.write('\nObserved velocity: ' + str(pair_orbit[2]))
-        reportFile.write('\nInput data variables: ' + str(pair_orbit[3]))'''
+        reportFile.write('\nInput data variables: ' + str(pair_orbit[3]))
         
         reportFile.write('\n\n### WDS form:\n')
         wdsform = str(ds[0]['2000 Coord']) + ',' + dateOfObservation + ',' +  str(roundNumber(pairMeanTheta)) + ',' +  str(roundNumber(pairMeanThetaErr)) + ',' +  str(roundNumber(pairMeanRho)) + ',' +  str(roundNumber(pairMeanRhoErr)) + ',' +  'nan' + ',' +  'nan' + ',' +  str(roundNumber(pairMagDiff)) + ',' +  str(roundNumber(pairMagDiffErr)) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TLB_2023' + ',' +  'C' + ',' + '7'+ ',' + str(getPreciseCoord(pairRaA, pairDecA, fitsFileDate))
