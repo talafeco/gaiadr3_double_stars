@@ -27,7 +27,6 @@ Excel obs orbit 3,1109 optikai így is, úgy is, de az eltérés nagy, lehet a k
 # Check, which double stars should be on the image?
 # it there should be a double star, but not found, search for similar separation + similar mag difference doubles
 # design the measurement and calculation functions independently, process the images and write measurements, if there is no response from gaia in 10s or the star not found
-# add additional check, if the gaia query provided any results
 # Upodate gaia search, to get a minimal distance in arcsecs
 
 import os
