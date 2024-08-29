@@ -233,22 +233,6 @@ def calculate_photo_center(wcs, header):
       '\nRadius of photo: ', radius)
     return center, radius
 
-'''def define_image_plane(wcs, header):
-    photo_center = SkyCoord(header['CRVAL1'] * u.degree, header['CRVAL2'] * u.degree)
-    photo_left_upper = SkyCoord.from_pixel(0, 0, wcs, origin=0, mode='all')
-    photo_left_lower = SkyCoord.from_pixel(header['NAXIS2'], 0, wcs, origin=0, mode='all')
-    photo_right_upper = SkyCoord.from_pixel(0, header['NAXIS1'], wcs, origin=0, mode='all')
-    photo_right_lower = SkyCoord.from_pixel(header['NAXIS2'], header['NAXIS1'], wcs, origin=0, mode='all')
-    half_width = photo_left_upper.separation(photo_right_upper) / 2
-    half_height = photo_left_upper.separation(photo_left_lower) / 2
-    corners = SkyCoord(
-        ra=[photo_center.ra - half_width, photo_center.ra + half_width,
-            photo_center.ra + half_width, photo_center.ra - half_width],
-        dec=[photo_center.dec - half_height, photo_center.dec - half_height,
-            photo_center.dec + half_height, photo_center.dec + half_height]
-        )
-
-    return corners'''
 
 def define_image_plane(wcs, header):
     photo_center = SkyCoord(header['CRVAL1'] * u.degree, header['CRVAL2'] * u.degree)
