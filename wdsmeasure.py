@@ -35,6 +35,7 @@ from matplotlib import pyplot as plt
 from astropy.wcs import utils
 from astropy.time import Time, TimeDelta
 warnings.filterwarnings("ignore")
+from regions import RegularPolygonPixelRegion, RectangleSkyRegion, RectanglePixelRegion
  
 # Configuration for the SeeStar camera
 
@@ -155,13 +156,6 @@ def roundNumber(num):
         finalNumber = num
     return finalNumber
 
-# Function to calculate the Tangential speed components from proper motin in km/s
-# Excel formula to calculate the Proper motion in km/s =pm_ra(dec)/1000*distance from earth*4.74(au per year to km/s)
-def calcTangentialSpeedComponent(dist, pm):
-    tanspeed = pm/1000*dist*4.74372
-    return tanspeed
-
-
 # Function to calculate the Standard error in RA/DEC measurements
 def calcStandardError(arr):
     stderr = np.std(arr)
@@ -239,6 +233,54 @@ def calculate_photo_center(wcs, header):
       '\nRadius of photo: ', radius)
     return center, radius
 
+'''def define_image_plane(wcs, header):
+    photo_center = SkyCoord(header['CRVAL1'] * u.degree, header['CRVAL2'] * u.degree)
+    photo_left_upper = SkyCoord.from_pixel(0, 0, wcs, origin=0, mode='all')
+    photo_left_lower = SkyCoord.from_pixel(header['NAXIS2'], 0, wcs, origin=0, mode='all')
+    photo_right_upper = SkyCoord.from_pixel(0, header['NAXIS1'], wcs, origin=0, mode='all')
+    photo_right_lower = SkyCoord.from_pixel(header['NAXIS2'], header['NAXIS1'], wcs, origin=0, mode='all')
+    half_width = photo_left_upper.separation(photo_right_upper) / 2
+    half_height = photo_left_upper.separation(photo_left_lower) / 2
+    corners = SkyCoord(
+        ra=[photo_center.ra - half_width, photo_center.ra + half_width,
+            photo_center.ra + half_width, photo_center.ra - half_width],
+        dec=[photo_center.dec - half_height, photo_center.dec - half_height,
+            photo_center.dec + half_height, photo_center.dec + half_height]
+        )
+
+    return corners'''
+
+def define_image_plane(wcs, header):
+    photo_center = SkyCoord(header['CRVAL1'] * u.degree, header['CRVAL2'] * u.degree)
+    photo_left_upper = SkyCoord.from_pixel(0, 0, wcs, origin=0, mode='all')
+    photo_left_lower = SkyCoord.from_pixel(header['NAXIS2'], 0, wcs, origin=0, mode='all')
+    photo_right_upper = SkyCoord.from_pixel(0, header['NAXIS1'], wcs, origin=0, mode='all')
+    photo_right_lower = SkyCoord.from_pixel(header['NAXIS2'], header['NAXIS1'], wcs, origin=0, mode='all')
+    half_width = photo_left_upper.separation(photo_right_upper) / 2
+    half_height = photo_left_upper.separation(photo_left_lower) / 2
+    corners = SkyCoord(
+        ra=[photo_center.ra - half_width, photo_center.ra + half_width,
+            photo_center.ra + half_width, photo_center.ra - half_width],
+        dec=[photo_center.dec - half_height, photo_center.dec - half_height,
+            photo_center.dec + half_height, photo_center.dec + half_height]
+        )
+    
+    return corners
+
+
+def catalog_search_in_image_radius(wcs, header, center, radius, wds_catalog_list):
+    #image_region = define_image_region(wcs, header)
+    d2d = center.separation(wds_catalog_list)
+    catalogmsk = d2d < radius
+    idxcatalog = np.where(catalogmsk)[0]
+    image_plane = define_image_plane(wcs, header)
+
+    in_fov = []
+    for obj in wds_catalog_list[idxcatalog]:
+        if (np.min(image_plane.ra) <= obj.ra <= np.max(image_plane.ra)) and (np.min(image_plane.dec) <= obj.dec <= np.max(image_plane.dec)):
+            in_fov.append(wds_catalog_list)
+    
+    return wdsTable[idxcatalog]
 
 ###################################################################################################################################
 
@@ -360,6 +402,8 @@ for fitsFile in files:
     photo_center, photo_radius = calculate_photo_center(mywcs, file_header)
     # doubles_on_photo = get_objects_from_catalog(wds_catalog, photo_center, photo_radius)
     # print(wdsTable[doubles_on_photo])
+
+    print(catalog_search_in_image_radius(mywcs, file_header, photo_center, photo_radius, wds_catalog))
 
     sources_catalog = SkyCoord(ra=sources['ra_deg']*u.degree, dec=sources['dec_deg']*u.degree, frame='fk5')
     idxw, idxs, wsd2d, wsd3d = search_around_sky(wds_catalog, sources_catalog, search_cone*u.deg)
