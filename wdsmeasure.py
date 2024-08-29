@@ -454,7 +454,7 @@ for ds in upd_sources_ds_by_object.groups:
     reportFile.write('\nDate of observation (human readable): ' + str(Time(ds['image_date'].data).mean()))
     reportFile.write('\nDate of observation: ' + dateOfObservation)
     reportFile.write('\nPrecise coordinates (J2000): ' + preciseCoord)
-    reportFile.write('\nPosition angle:')
+    reportFile.write('\n\nPosition angle:')
     reportFile.write('\nTheta measurements' + str(ds['theta_measured'].degree))
     reportFile.write('\nMean: ' + str(roundNumber(pairMeanTheta)))
     reportFile.write('\nError: ' + str(roundNumber(pairMeanThetaErr)))
