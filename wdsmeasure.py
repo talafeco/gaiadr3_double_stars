@@ -16,6 +16,8 @@
 # design the measurement and calculation functions independently, process the images and write measurements, if there is no response from gaia in 10s or the star not found
 # Upodate gaia search, to get a minimal distance in arcsecs
 
+# 40-50 ivmásodperccel beljebb mérjen
+
 import os
 import sys
 import numpy as np
