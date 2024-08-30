@@ -17,7 +17,9 @@
 # Upodate gaia search, to get a minimal distance in arcsecs
 
 # 40-50 ivmásodperccel beljebb mérjen
-# Listázza ki fileba a képen szereplő kettősöket
+# Listázza ki fileba a képen szereplő kettősöket - ok
+# Limitálni a magnitúdókat, amiket feldob
+# plotolni a wds-ben szereplő párokat a képre
 
 import os
 import sys
@@ -390,7 +392,9 @@ for fitsFile in files:
     # doubles_on_photo = get_objects_from_catalog(wds_catalog, photo_center, photo_radius)
     # print(wdsTable[doubles_on_photo])
 
-    print(catalog_search_in_image(mywcs, file_header, photo_center, photo_radius, wds_catalog))
+    doubles_on_image = catalog_search_in_image(mywcs, file_header, photo_center, photo_radius, wds_catalog)
+    print(doubles_on_image)
+    doubles_on_image.write(workingDirectory + '/' + fitsFile[:-4] + '_double_stars.csv', format='ascii', overwrite=True, delimiter=',')
 
     sources_catalog = SkyCoord(ra=sources['ra_deg']*u.degree, dec=sources['dec_deg']*u.degree, frame='fk5')
     idxw, idxs, wsd2d, wsd3d = search_around_sky(wds_catalog, sources_catalog, search_cone*u.deg)
