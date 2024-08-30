@@ -17,6 +17,7 @@
 # Upodate gaia search, to get a minimal distance in arcsecs
 
 # 40-50 ivmásodperccel beljebb mérjen
+# Listázza ki fileba a képen szereplő kettősöket
 
 import os
 import sys
