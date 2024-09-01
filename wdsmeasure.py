@@ -16,7 +16,7 @@
 # design the measurement and calculation functions independently, process the images and write measurements, if there is no response from gaia in 10s or the star not found
 # Upodate gaia search, to get a minimal distance in arcsecs
 
-# 40-50 ivmásodperccel beljebb mérjen
+# 40-50 ivmásodperccel beljebb mérjen - ok
 # Listázza ki fileba a képen szereplő kettősöket - ok
 # Limitálni a magnitúdókat, amiket feldob
 # plotolni a wds-ben szereplő párokat a képre
@@ -69,6 +69,14 @@ dummyObservationDate = "2022-01-01T12:00:00"
 # Gravitational constant is convenient if measure distances in parsecs (pc), velocities in kilometres per second (km/s) and masses in solar units M
 image_limit = 2000
 
+# Define frame percent
+frame_percentage = 5
+
+# Define the limiting magnitue of the components
+limiting_magnitude_primary = 13
+limiting_magnitude_secondary = 13
+
+
 # Insert the downloaded wds file path here
 wds_file = "/usr/share/dr3map/wds/wdsweb_summ2.txt"
 
@@ -115,6 +123,8 @@ workingDirectory = sys.argv[1]
 #########################
 ### Declare functions ###
 #########################
+
+
 
 
 # Function to check, if a number is 'nan'
@@ -168,7 +178,7 @@ def calcStandardError(arr):
 
     
 # Function to search coordinates in the WDS catalog file
-def search_in_wds(ra_source, dec_source):
+'''def search_in_wds(ra_source, dec_source):
     coordinates = SkyCoord(ra=ra_source, dec=dec_source)
     idx, d2d, d3d = coordinates.match_to_catalog_sky(wds_catalog)
     star_coord = SkyCoord(ra=ra_source, dec=dec_source)
@@ -176,7 +186,7 @@ def search_in_wds(ra_source, dec_source):
     #sep = coordinates.separation(d2d)*u.degree
     print(wdsTable[idx]['2000 Coord'])
     print(wdsTable[np.where(wds_catalog['2000 Coord'] == wdsTable[idx]['2000 Coord'])])
-
+'''
 def create_unique_id(wds_id, discov):
     id_array = [i + j for i, j in zip(wds_id, discov)]
     return id_array
@@ -186,6 +196,11 @@ def delete_invalid_lines_wds(catalog):
     catalog.remove_rows(rows_to_delete_ra)
     rows_to_delete_dec = np.where(catalog['Coord (DEC) dms'] == '.')
     catalog.remove_rows(rows_to_delete_dec)
+    rows_to_delete_mag_a = np.where(catalog['Mag_A'] == '.')
+    catalog.remove_rows(rows_to_delete_mag_a)
+    rows_to_delete_mag_b = np.where(catalog['Mag_B'] == '.')
+    catalog.remove_rows(rows_to_delete_mag_b)
+
     return catalog
 
 def calculate_wds_ra_hourangle(wds_ra_array):
@@ -238,13 +253,64 @@ def calculate_photo_center(wcs, header):
       '\nRadius of photo: ', radius)
     return center, radius
 
+def plot_image_with_frame(image_array, frame_edges, output_filename): #
+    print('frame edges: ', frame_edges)
+    # Create a figure and axis to plot the image
+    fig, ax = plt.subplots()
+    
+    # Display the image
+    ax.imshow(image_array, cmap='gray', vmax=image_limit, vmin=0)
+    
+    # Get the frame edges from the dictionary
+    left = frame_edges[0][0]
+    right = frame_edges[0][1]
+    top = frame_edges[1][0]
+    bottom = frame_edges[1][1]
+    
+    # Plot the frame as a rectangle
+    rect = plt.Rectangle((left, top), right-left, bottom-top, edgecolor='red', facecolor='none', linewidth=2)
+    ax.add_patch(rect)
+
+    # Plot small circles at specified coordinates
+    '''for coord in circle_coords:
+        circle = plt.Circle(coord, radius=5, color='blue', fill=True)
+        ax.add_patch(circle)'''
+    
+    # Adjust the axis limits to match the image size
+    ax.set_xlim(0, image_array.shape[1])
+    ax.set_ylim(image_array.shape[0], 0)
+    
+    # Add axis labels
+    ax.set_xlabel('X Coordinate (pixels)')
+    ax.set_ylabel('Y Coordinate (pixels)')
+    
+    # Show x and y scales with ticks
+    ax.set_xticks(np.arange(0, image_array.shape[1], step=image_array.shape[1] // 10))
+    ax.set_yticks(np.arange(0, image_array.shape[0], step=image_array.shape[0] // 10))
+        
+    # Save the result as a JPG file
+    plt.savefig(output_filename, format='jpg', bbox_inches='tight', pad_inches=0)
+    
+    # Close the plot to free up memory
+    plt.close()
 
 def define_image_plane(wcs, header):
+    # Define inner rectangle coordinates
+    # Define the inner rectangle percent in image pixels measured from the edge of the image
+
+    frame_sink = (frame_percentage / 100) * header['NAXIS2']
+
+    photo_x_coords = [frame_sink, header['NAXIS1'] - frame_sink]
+    photo_y_coords = [frame_sink, header['NAXIS2'] - frame_sink]
+
+
     photo_center = SkyCoord(header['CRVAL1'] * u.degree, header['CRVAL2'] * u.degree)
-    photo_left_upper = SkyCoord.from_pixel(0, 0, wcs, origin=0, mode='all')
-    photo_left_lower = SkyCoord.from_pixel(header['NAXIS2'], 0, wcs, origin=0, mode='all')
-    photo_right_upper = SkyCoord.from_pixel(0, header['NAXIS1'], wcs, origin=0, mode='all')
-    photo_right_lower = SkyCoord.from_pixel(header['NAXIS2'], header['NAXIS1'], wcs, origin=0, mode='all')
+    photo_left_upper = SkyCoord.from_pixel(photo_y_coords[0], photo_x_coords[0], wcs, origin=0, mode='all')
+    photo_left_lower = SkyCoord.from_pixel(photo_y_coords[1], photo_x_coords[0], wcs, origin=0, mode='all')
+    photo_right_upper = SkyCoord.from_pixel(photo_y_coords[0], photo_x_coords[1], wcs, origin=0, mode='all')
+    photo_right_lower = SkyCoord.from_pixel(photo_y_coords[1], photo_x_coords[1], wcs, origin=0, mode='all')
+    # print('photo_coords in pixel: ', photo_x_coords, photo_y_coords)
+    # print('photo_coords in degree: ', SkyCoord.to_pixel(photo_left_upper, wcs, origin=0, mode='all'), SkyCoord.to_pixel(photo_left_lower, wcs, origin=0, mode='all'), SkyCoord.to_pixel(photo_right_upper, wcs, origin=0, mode='all'))
     half_width = photo_left_upper.separation(photo_right_upper) / 2
     half_height = photo_left_upper.separation(photo_left_lower) / 2
     corners = SkyCoord(
@@ -253,8 +319,9 @@ def define_image_plane(wcs, header):
         dec=[photo_center.dec - half_height, photo_center.dec - half_height,
             photo_center.dec + half_height, photo_center.dec + half_height]
         )
-    
-    return corners
+    frame = [photo_x_coords, photo_y_coords]
+
+    return corners, frame
 
 
 def catalog_search_in_image(wcs, header, center, radius, wds_catalog_list):
@@ -262,13 +329,13 @@ def catalog_search_in_image(wcs, header, center, radius, wds_catalog_list):
     d2d = center.separation(wds_catalog_list)
     catalogmsk = d2d < radius
     idxcatalog = np.where(catalogmsk)[0]
-    image_plane = define_image_plane(wcs, header)
+    image_plane = define_image_plane(wcs, header)[0]
 
     in_fov = []
     for obj in wds_catalog_list[idxcatalog]:
         if (np.min(image_plane.ra) <= obj.ra <= np.max(image_plane.ra)) and (np.min(image_plane.dec) <= obj.dec <= np.max(image_plane.dec)):
             in_fov.append(wds_catalog_list)
-    
+
     return wdsTable[idxcatalog]
 
 ###################################################################################################################################
@@ -393,7 +460,9 @@ for fitsFile in files:
     # print(wdsTable[doubles_on_photo])
 
     doubles_on_image = catalog_search_in_image(mywcs, file_header, photo_center, photo_radius, wds_catalog)
-    print(doubles_on_image)
+    image_plane = define_image_plane(mywcs, file_header)
+    plot_image_with_frame(data, image_plane[1], fitsFile[:-4] + '_plot.jpg')
+    # print(doubles_on_image)
     doubles_on_image.write(workingDirectory + '/' + fitsFile[:-4] + '_double_stars.csv', format='ascii', overwrite=True, delimiter=',')
 
     sources_catalog = SkyCoord(ra=sources['ra_deg']*u.degree, dec=sources['dec_deg']*u.degree, frame='fk5')
@@ -413,6 +482,9 @@ for fitsFile in files:
     sources_ds = vstack([sources_ds, composit_catalog2])
 
 upd_sources_ds = sources_ds[sources_ds['rho_measured'] != 0]
+
+print('upd_sources_ds info: ', upd_sources_ds.info)
+
 upd_sources_ds_by_object = upd_sources_ds.group_by(['2000 Coord', 'Discov', 'Comp'])
 
 print('### Updated sources DS table grouped by WDS Identifier, Discoverer and Components ###')
@@ -435,7 +507,7 @@ for ds in upd_sources_ds_by_object.groups:
     starActualDec2 = float(ds['dec_deg_2'].mean())
          
     # Calculate attributes
-    pairParallaxFactor, pairPmFactor, pairPmFactor, pairPmCommon, pairAbsMag1, pairAbsMag2, pairLum1, pairLum2, pairRad1, pairRad2, pairDR3Theta, pairDR3Rho, pairMass1, pairMass2, pairBVIndexA, pairBVIndexB, pairSepPar, pairEscapeVelocity, pairRelativeVelocity, pairHarshawFactor, pairHarshawPhysicality, pairBinarity = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 
+    #pairParallaxFactor, pairPmFactor, pairPmFactor, pairPmCommon, pairAbsMag1, pairAbsMag2, pairLum1, pairLum2, pairRad1, pairRad2, pairDR3Theta, pairDR3Rho, pairMass1, pairMass2, pairBVIndexA, pairBVIndexB, pairSepPar, pairEscapeVelocity, pairRelativeVelocity, pairHarshawFactor, pairHarshawPhysicality, pairBinarity = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 
 
     pairMeanTheta = float(ds['theta_measured'].degree.mean())
     pairMeanThetaErr = float(ds['theta_measured'].degree.std())
