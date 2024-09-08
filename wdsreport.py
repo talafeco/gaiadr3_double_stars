@@ -65,17 +65,15 @@ dao_threshold = 5.0'''
 
 # Configuration for the CANON camera
 
-dao_sigma = 3.0
+'''dao_sigma = 3.0
 dao_fwhm = 8.0
-dao_threshold = 9.0
-
+dao_threshold = 9.0'''
 
 # Configuration for the ATIK camera
-'''
-dao_sigma = 2.0
+
+dao_sigma = 3.0
 dao_fwhm = 8.0
 dao_threshold = 12.0
-'''
 
 # Configurations for calculations
 possible_distance = 30000.0 # AU
@@ -498,8 +496,8 @@ def imagePlot(filename, pairname, raa, deca, rab, decb):
     '''
     
     # data[0]
-    image_data = fits.open(workingDirectory + '/' + filename)
-    #image_data = fits.open(filename)
+    #image_data = fits.open(workingDirectory + '/' + filename)
+    image_data = fits.open(filename)
     print('IMAGE DATA:', workingDirectory, '/', filename)
     header = image_data[0].header
     wcs_helix = WCS(image_data[0].header, naxis=2)
