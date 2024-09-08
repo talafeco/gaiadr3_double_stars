@@ -1,3 +1,5 @@
+# This file contains functions needed for the neccessary calcualtions of double star image processing.
+
 import os
 import sys
 import numpy as np
@@ -42,11 +44,14 @@ sun_luminosity = 3.0128 * (10 ** 28)
 sun_absolute_luminosity = 3.828 * (10 ** 26)
 
 # Constant variables
-hipparcos_file = Table.read(f"/usr/share/dr3map/hipparcos/I_239_selection.csv", format='ascii')
+hipparcos_file = Table.read(f"C:/Users/gerge/Documents/Catalogs/Hipparcos/I_239_selection.csv", format='ascii')
 
 # Insert the downloaded wds file path here
-wds_file = "/usr/share/dr3map/wds/wdsweb_summ2.txt"
+wds_file = "C:/Users/gerge/Documents/Catalogs/WDS/wdsweb_summ2.txt"
 
+# function to test the package
+def print_hello_world():
+    print('Hello World!')
 
 # Function to calculate Star positions based on Gaia DR3 coordinates and proper motion
 def calcCurrentDR3Coord(date, star_ra, star_dec, star_pr_ra, star_pr_dec):
@@ -484,3 +489,122 @@ def get_objects_from_catalog(catalog, photo_center, photo_radius):
     d2d = photo_center.separation(catalog)
     catalog_mask = d2d < photo_radius
     return catalog_mask
+
+def plot_image_with_frame(image_array, frame_edges, output_filename): #
+    print('frame edges: ', frame_edges)
+    # Create a figure and axis to plot the image
+    fig, ax = plt.subplots()
+    
+    # Display the image
+    ax.imshow(image_array, cmap='gray', vmax=image_limit, vmin=0)
+    
+    # Get the frame edges from the dictionary
+    left = frame_edges[0][0]
+    right = frame_edges[0][1]
+    top = frame_edges[1][0]
+    bottom = frame_edges[1][1]
+    
+    # Plot the frame as a rectangle
+    rect = plt.Rectangle((left, top), right-left, bottom-top, edgecolor='red', facecolor='none', linewidth=2)
+    ax.add_patch(rect)
+
+    # Plot small circles at specified coordinates
+    '''for coord in circle_coords:
+        circle = plt.Circle(coord, radius=5, color='blue', fill=True)
+        ax.add_patch(circle)'''
+    
+    # Adjust the axis limits to match the image size
+    ax.set_xlim(0, image_array.shape[1])
+    ax.set_ylim(image_array.shape[0], 0)
+    
+    # Add axis labels
+    ax.set_xlabel('X Coordinate (pixels)')
+    ax.set_ylabel('Y Coordinate (pixels)')
+    
+    # Show x and y scales with ticks
+    ax.set_xticks(np.arange(0, image_array.shape[1], step=image_array.shape[1] // 10))
+    ax.set_yticks(np.arange(0, image_array.shape[0], step=image_array.shape[0] // 10))
+        
+    # Save the result as a JPG file
+    plt.savefig(str(workingDirectory + '/' + output_filename), format='jpg', bbox_inches='tight', pad_inches=0)
+    
+    # Close the plot to free up memory
+    plt.close()
+
+def define_image_plane(wcs, header):
+    # Define inner rectangle coordinates
+    # Define the inner rectangle percent in image pixels measured from the edge of the image
+
+    frame_sink = (frame_percentage / 100) * header['NAXIS2']
+
+    photo_x_coords = [frame_sink, header['NAXIS1'] - frame_sink]
+    photo_y_coords = [frame_sink, header['NAXIS2'] - frame_sink]
+
+
+    photo_center = SkyCoord(header['CRVAL1'] * u.degree, header['CRVAL2'] * u.degree)
+    photo_left_upper = SkyCoord.from_pixel(photo_y_coords[0], photo_x_coords[0], wcs, origin=0, mode='all')
+    photo_left_lower = SkyCoord.from_pixel(photo_y_coords[1], photo_x_coords[0], wcs, origin=0, mode='all')
+    photo_right_upper = SkyCoord.from_pixel(photo_y_coords[0], photo_x_coords[1], wcs, origin=0, mode='all')
+    photo_right_lower = SkyCoord.from_pixel(photo_y_coords[1], photo_x_coords[1], wcs, origin=0, mode='all')
+    # print('photo_coords in pixel: ', photo_x_coords, photo_y_coords)
+    # print('photo_coords in degree: ', SkyCoord.to_pixel(photo_left_upper, wcs, origin=0, mode='all'), SkyCoord.to_pixel(photo_left_lower, wcs, origin=0, mode='all'), SkyCoord.to_pixel(photo_right_upper, wcs, origin=0, mode='all'))
+    half_width = photo_left_upper.separation(photo_right_upper) / 2
+    half_height = photo_left_upper.separation(photo_left_lower) / 2
+    corners = SkyCoord(
+        ra=[photo_center.ra - half_width, photo_center.ra + half_width,
+            photo_center.ra + half_width, photo_center.ra - half_width],
+        dec=[photo_center.dec - half_height, photo_center.dec - half_height,
+            photo_center.dec + half_height, photo_center.dec + half_height]
+        )
+    frame = [photo_x_coords, photo_y_coords]
+
+    return corners, frame
+
+
+def catalog_search_in_image(wcs, header, center, radius, wds_catalog_list):
+    #image_region = define_image_region(wcs, header)
+    d2d = center.separation(wds_catalog_list)
+    catalogmsk = d2d < radius
+    idxcatalog = np.where(catalogmsk)[0]
+    image_plane = define_image_plane(wcs, header)[0]
+
+    in_fov = []
+    for obj in wds_catalog_list[idxcatalog]:
+        if (np.min(image_plane.ra) <= obj.ra <= np.max(image_plane.ra)) and (np.min(image_plane.dec) <= obj.dec <= np.max(image_plane.dec)):
+            in_fov.append(wds_catalog_list)
+
+    return wdsTable[idxcatalog]
+
+def exit_if_no_doubles_found(doubles_table):
+    if len(doubles_table) == 0:
+        print("Double stars not found on images. Exiting the program.")
+        sys.exit()
+
+## Add general functions of ds measurements
+
+# Set observation date and time
+def set_observation_date(file_header):
+    fitsFileDate = ''
+    key_to_lookup_a = 'DATE-OBS'
+    key_to_lookup_b = 'DATE'
+    if key_to_lookup_a in file_header:
+        fitsFileDate = file_header['DATE-OBS']
+    elif key_to_lookup_b in file_header:
+        fitsFileDate = file_header['DATE']
+    else:
+        fitsFileDate = np.nan
+    
+    return fitsFileDate
+
+def get_sources_from_image(image_data, image_wcs, dao_sigma, dao_fwhm, dao_threshold, fits_file_name, fits_file_date):
+    mean, median, std = sigma_clipped_stats(image_data, sigma = dao_sigma)  
+
+    daofind = DAOStarFinder(fwhm=dao_fwhm, threshold=dao_threshold*std)  
+    sources = daofind(image_data - median)
+    ra2, dec2 = image_wcs.all_pix2world(sources['xcentroid'], sources['ycentroid'], 1)
+    sources.add_column(ra2, name='ra_deg') 
+    sources.add_column(dec2, name='dec_deg')
+    sources.add_column(fits_file_date, name='image_date')
+    sources.add_column(fits_file_name, name='file')
+
+    return sources

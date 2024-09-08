@@ -41,6 +41,7 @@ from astropy.wcs import utils
 from astropy.time import Time, TimeDelta
 warnings.filterwarnings("ignore")
 from regions import RegularPolygonPixelRegion, RectangleSkyRegion, RectanglePixelRegion
+from dsmodules import dscalculation
  
 # Configuration for the SeeStar camera
 
@@ -177,17 +178,6 @@ def calcStandardError(arr):
     stderr = np.std(arr)
     return stderr
 
-    
-# Function to search coordinates in the WDS catalog file
-'''def search_in_wds(ra_source, dec_source):
-    coordinates = SkyCoord(ra=ra_source, dec=dec_source)
-    idx, d2d, d3d = coordinates.match_to_catalog_sky(wds_catalog)
-    star_coord = SkyCoord(ra=ra_source, dec=dec_source)
-    print('Coordinates: ' + str(ra_source) + '(Ra), ' + str(dec_source) + '(Dec), Separation: ' + str(d2d))
-    #sep = coordinates.separation(d2d)*u.degree
-    print(wdsTable[idx]['2000 Coord'])
-    print(wdsTable[np.where(wds_catalog['2000 Coord'] == wdsTable[idx]['2000 Coord'])])
-'''
 def create_unique_id(wds_id, discov):
     id_array = [i + j for i, j in zip(wds_id, discov)]
     return id_array
@@ -339,6 +329,11 @@ def catalog_search_in_image(wcs, header, center, radius, wds_catalog_list):
 
     return wdsTable[idxcatalog]
 
+def exit_if_no_doubles_found(doubles_table):
+    if len(doubles_table) == 0:
+        print("Double stars not found on images. Exiting the program.")
+        sys.exit()
+
 ###################################################################################################################################
 
 print('\n### Reading WDS database ###')
@@ -432,6 +427,7 @@ for fitsFile in files:
     file_header = hdu[0].header
     
 	# Set observation date and time
+    # fitsFileDate = dscalculation.set_observation_date(file_header)
     fitsFileDate = ''
     key_to_lookup_a = 'DATE-OBS'
     key_to_lookup_b = 'DATE'
@@ -441,10 +437,14 @@ for fitsFile in files:
         fitsFileDate = file_header['DATE']
     else:
         fitsFileDate = np.nan
-
+    
     # Estimate the background and background noise
     # data[0]
     data = hdu[0].data
+
+    # Get sources from the image
+    #sources = dscalculation.get_sources_from_image(data, mywcs, dao_sigma, dao_fwhm, dao_threshold, fitsFileName, fitsFileDate)
+
     mean, median, std = sigma_clipped_stats(data, sigma = dao_sigma)  
 
     daofind = DAOStarFinder(fwhm=dao_fwhm, threshold=dao_threshold*std)  
@@ -454,6 +454,7 @@ for fitsFile in files:
     sources.add_column(dec2, name='dec_deg')
     sources.add_column(fitsFileDate, name='image_date')
     sources.add_column(fitsFileName, name='file')
+  
 
     
     photo_center, photo_radius = calculate_photo_center(mywcs, file_header)
@@ -462,7 +463,7 @@ for fitsFile in files:
 
     doubles_on_image = catalog_search_in_image(mywcs, file_header, photo_center, photo_radius, wds_catalog)
     image_plane = define_image_plane(mywcs, file_header)
-    plot_image_with_frame(data, image_plane[1], fitsFile[:-5] + '_plot.jpg')
+    plot_image_with_frame(data, image_plane[1], fitsFile[:-4] + '_plot.jpg')
     # print(doubles_on_image)
     doubles_on_image.write(workingDirectory + '/' + fitsFile[:-4] + '_double_stars.csv', format='ascii', overwrite=True, delimiter=',')
 
@@ -491,6 +492,8 @@ upd_sources_ds_by_object = upd_sources_ds.group_by(['2000 Coord', 'Discov', 'Com
 print('### Updated sources DS table grouped by WDS Identifier, Discoverer and Components ###')
 
 upd_sources_ds_by_object.write(workingDirectory + '/double_stars.csv', format='ascii', overwrite=True, delimiter=',')
+
+exit_if_no_doubles_found(upd_sources_ds_by_object)
 
 objectMean = upd_sources_ds_by_object.groups.aggregate(np.mean)
 
