@@ -78,7 +78,8 @@ limiting_magnitude_secondary = 13
 
 
 # Insert the downloaded wds file path here
-wds_file = "/usr/share/dr3map/wds/wdsweb_summ2.txt"
+# wds_file = "/usr/share/dr3map/wds/wdsweb_summ2.txt"
+wds_file = "C:/Users/gerge/Documents/Catalogs/WDS/wdsweb_summ2.txt"
 
 # Create WDS table
 wds_converters = {  '2000 Coord': np.str_,
@@ -289,7 +290,7 @@ def plot_image_with_frame(image_array, frame_edges, output_filename): #
     ax.set_yticks(np.arange(0, image_array.shape[0], step=image_array.shape[0] // 10))
         
     # Save the result as a JPG file
-    plt.savefig(output_filename, format='jpg', bbox_inches='tight', pad_inches=0)
+    plt.savefig(str(workingDirectory + '/' + output_filename), format='jpg', bbox_inches='tight', pad_inches=0)
     
     # Close the plot to free up memory
     plt.close()
@@ -461,7 +462,7 @@ for fitsFile in files:
 
     doubles_on_image = catalog_search_in_image(mywcs, file_header, photo_center, photo_radius, wds_catalog)
     image_plane = define_image_plane(mywcs, file_header)
-    plot_image_with_frame(data, image_plane[1], fitsFile[:-4] + '_plot.jpg')
+    plot_image_with_frame(data, image_plane[1], fitsFile[:-5] + '_plot.jpg')
     # print(doubles_on_image)
     doubles_on_image.write(workingDirectory + '/' + fitsFile[:-4] + '_double_stars.csv', format='ascii', overwrite=True, delimiter=',')
 
