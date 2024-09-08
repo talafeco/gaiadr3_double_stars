@@ -38,8 +38,8 @@ warnings.filterwarnings("ignore")
 
 # List of constances
 #wdsFile = Table.read(f"/usr/share/dr3map/wds/dr3-wds.csv", format='ascii')
-hipparcos_file = Table.read(f"/usr/share/dr3map/hipparcos/I_239_selection.csv", format='ascii')
-segment_lib = "/usr/share/dr3map/gaiadr3_15mag_catalog/"
+hipparcos_file = Table.read(f"C:/Users/gerge/Documents/Catalogs/Hipparcos/I_239_selection.csv", format='ascii')
+# segment_lib = "/usr/share/dr3map/gaiadr3_15mag_catalog/"
 hipparcos_abs_mag = hipparcos_file['Abs_mag']
 hipparcos_bv_index = hipparcos_file['B-V']
 

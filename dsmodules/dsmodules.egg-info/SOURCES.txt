@@ -1,0 +1,5 @@
+setup.py
+dsmodules.egg-info/PKG-INFO
+dsmodules.egg-info/SOURCES.txt
+dsmodules.egg-info/dependency_links.txt
+dsmodules.egg-info/top_level.txt
