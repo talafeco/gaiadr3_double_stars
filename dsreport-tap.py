@@ -627,8 +627,8 @@ sourceTable.write(tableFileName, format='ascii', overwrite=True, delimiter=',')
 
 ### Search double stars on the image sequence
 sourceTable_by_file = sourceTable.group_by('filename')
-#print(sourceTable_by_file.info)
-#print(sourceTable_by_file)
+print(sourceTable_by_file.info)
+print(sourceTable_by_file)
 
 for group in sourceTable_by_file.groups:
     # Creating empty arrays for Star related calculations

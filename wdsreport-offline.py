@@ -36,6 +36,7 @@ import numpy.ma as ma
 import math
 import sys
 import datetime
+import configparser
 from time import gmtime, strftime
 from astropy.coordinates import SkyCoord, Angle, FK5
 from astropy.coordinates import match_coordinates_sky, search_around_sky, position_angle, angular_separation
@@ -56,7 +57,19 @@ from astropy.time import Time, TimeDelta
 warnings.filterwarnings("ignore")
 from astroquery.gaia import Gaia
 Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"  # Reselect Data Release 3, default
- 
+
+# Read configuration
+# Create a ConfigParser object
+config = configparser.ConfigParser()
+
+# Read the configuration file
+config.read('config.ini')
+
+# Configuration of the camera
+dao_sigma = float(config['source_detection']['dao_sigma'])
+dao_fwhm = float(config['source_detection']['dao_fwhm'])
+dao_threshold = float(config['source_detection']['dao_threshold'])
+
 # Configuration for the SeeStar camera
 
 '''dao_sigma = 3.0
@@ -65,9 +78,9 @@ dao_threshold = 5.0'''
 
 # Configuration for the CANON camera
 
-dao_sigma = 3.0
+'''dao_sigma = 3.0
 dao_fwhm = 8.0
-dao_threshold = 9.0
+dao_threshold = 9.0'''
 
 
 # Configuration for the ATIK camera
@@ -78,27 +91,27 @@ dao_threshold = 12.0
 '''
 
 # Configurations for calculations
-possible_distance = 30000.0 # AU
-search_cone = 0.001 # Decimal degree
-dummyObservationDate = "2022-01-01T12:00:00"
-gaia_dr3_epoch = 2016.0
+possible_distance = float(config['calculations']['possible_distance'])
+search_cone = float(config['calculations']['search_cone'])
+dummyObservationDate = config['calculations']['dummyObservationDate']
+gaia_dr3_epoch = float(config['calculations']['gaia_dr3_epoch'])
 
 # Gravitational constant is convenient if measure distances in parsecs (pc), velocities in kilometres per second (km/s) and masses in solar units M
-gravConst = 0.0043009 
-image_limit = 10000
+gravConst = float(config['calculations']['gravConst'] )
+image_limit = float(config['imageplot']['image_limit'])
 
 # Constant to calculate star luminosity and mass
 sun_luminosity = 3.0128 * (10 ** 28)
 sun_absolute_luminosity = 3.828 * (10 ** 26)
 
 # Constant variables
-hipparcos_file = Table.read(f"/usr/share/dr3map/hipparcos/I_239_selection.csv", format='ascii')
+hipparcos_file = Table.read(config['data']['hipparcos_file'], format='ascii')
 
 # Insert the downloaded wds file path here
-wds_file = "/usr/share/dr3map/wds/wdsweb_summ2.txt"
+wds_file = config['data']['wds_file']
 
 # Library of map segments
-segment_lib = "/usr/share/dr3map/gaiadr3_18mag_catalog/"
+segment_lib = config['data']['segment_lib']
 
 # WDS table to be used to identify double stars on the image
 # wdsTable = Table.read(sys.argv[1], delimiter=',', format='ascii')
