@@ -220,7 +220,7 @@ def calcMass(lum):
 def calcRadius(luminosity, teffStar):
     if bool(luminosity) and bool(teffStar):
         teffSun = 5778
-        radius = math.sqrt(luminosity / ((teffStar / teffSun) ** 4))
+        radius = math.sqrt(luminosity / ((float(teffStar) / teffSun) ** 4))
     else:
         radius = 'Cannot be calculated, T(eff) or Luminosity is missing'
     return radius
@@ -265,7 +265,7 @@ def calcRelativeVelocity(pmraa, pmdeca, pmrab, pmdecb, radvela, radvelb, dista, 
     tanrab = calcTangentialSpeedComponent(distb, pmrab)
     tandecb = calcTangentialSpeedComponent(distb, pmdecb)
     tanspeeddiff = math.sqrt((tanraa - tanrab) ** 2 + (tandeca - tandecb) ** 2)
-    radspeeddif = math.fabs(radvela - radvelb)
+    radspeeddif = math.fabs(float(radvela) - float(radvelb))
     sumspeeddiff = math.sqrt(tanspeeddiff ** 2 + radspeeddif ** 2)
     return sumspeeddiff
 
@@ -364,6 +364,7 @@ def hrdPlot(pairname, working_directory, mag_abs_a, mag_abs_b, bv_a, bv_b):
         plt.xlabel('B-V index')
         plt.ylabel('Absolute magnitude')
         plt.gca().set_aspect(0.1)
+        #savename = str(working_directory + '/' + pairname + '_hrd.jpg').replace(' ', '')
         savename = str(working_directory + '/' + pairname + '_hrd.jpg').replace(' ', '')
         plt.savefig(savename, bbox_inches='tight', dpi=300.0)
         plt.close()
@@ -374,8 +375,8 @@ def hrdPlot(pairname, working_directory, mag_abs_a, mag_abs_b, bv_a, bv_b):
 # Create Image plot of the double stars
 def imagePlot(filename, working_directory, pairname, raa, deca, rab, decb):
     # data[0]
-    image_data = fits.open(working_directory + '/' + filename)
-    #image_data = fits.open(filename)
+    #image_data = fits.open(working_directory + '/' + filename)
+    image_data = fits.open(filename)
     print('IMAGE DATA:', working_directory, '/', filename)
     header = image_data[0].header
     wcs_helix = WCS(image_data[0].header, naxis=2)
@@ -608,3 +609,40 @@ def get_sources_from_image(image_data, image_wcs, dao_sigma, dao_fwhm, dao_thres
     sources.add_column(fits_file_name, name='file')
 
     return sources
+
+def get_gaia_dr3_data_offline(doublestars, segment_lib):
+    pairACoord = SkyCoord(ra=doublestars['ra_deg_1'].mean(), dec=doublestars['dec_deg_1'].mean(), unit=(u.degree, u.degree), frame='icrs')
+    pairBCoord = SkyCoord(ra=doublestars['ra_deg_2'].mean(), dec=doublestars['dec_deg_2'].mean(), unit=(u.degree, u.degree), frame='icrs')
+    ds_catalog = SkyCoord(ra=doublestars['ra_deg_1'], dec=doublestars['dec_deg_1'], unit=(u.degree, u.degree), frame='icrs')
+    print(ds_catalog.ra.deg, ds_catalog.dec.deg)
+
+    segments = []
+    for star in ds_catalog:
+        #ra, dec = wcs.all_pix2world([[star ['xcentroid'], star ['ycentroid']]], 0)[0]
+        ra, dec = star.ra.deg, star.dec.deg
+        segmentRaCalc = int((float(ra) // 5) + 1)
+        segmentDecCalc = int((float(dec) // 5) + 1)
+        segmentName = f"{segmentRaCalc}-{segmentDecCalc}.csv"
+        if segmentName not in segments:
+            segments.append(segmentName)
+    print('### Segments are:',segments)
+
+    # Read all segments into an array
+    gaiaStars = np.empty((0, 20))
+
+    # Add all segments to the numpy array
+    for seg in segments:
+        if len(segments) > 1:
+            #segmentpart = Table.read(f"C:\Astro\catalogs\GaiaDR3\gaiadr3_15mag_catalog\{seg}", format='ascii')
+            segmentpart = Table.read(segment_lib + str(seg), format='ascii')
+            gaiaStars = vstack([gaiaStars, segmentpart])
+        else:
+            #segmentpart = Table.read(f"C:\Astro\catalogs\GaiaDR3\gaiadr3_15mag_catalog\{seg}", format='ascii')
+            segmentpart = Table.read(segment_lib + str(seg), format='ascii')
+            gaiaStars = segmentpart
+
+    gaia_catalog = SkyCoord(ra=gaiaStars['ra'], dec=gaiaStars['dec'], unit='degree, degree', frame="icrs")
+    idx_a, d2d_a, d3d_a = match_coordinates_sky(pairACoord, gaia_catalog) #, 3*u.arcseconds)
+    idx_b, d2d_b, d3d_b = match_coordinates_sky(pairBCoord, gaia_catalog) #, , 3*u.arcseconds
+
+    return gaiaStars[idx_a], gaiaStars[idx_b]
