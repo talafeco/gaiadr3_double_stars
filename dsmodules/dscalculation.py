@@ -712,40 +712,7 @@ def get_sources_from_image(sources_ds, wds_catalog, fits_data, fits_header, fits
 
 # Define double star class
 class gaia_calculated_attributes:
-    def __init__(self, pairObjectId, pairDistanceMinA, pairDistanceMinB, starRa1, starDec1, starRa2, starDec2, starCoord1, starCoord2, starParallax1, starParallaxError1, possSep1, rhoStar, starName1,starName2, starParallax2, starParallaxError2, starActualRa1, starActualDec1, starActualRa2, starActualDec2, starActualCoord1, starActualCoord2, rhoActual, starDistance1, starDistanceMax1, starDistanceMin1, starDistanceRange1, starDistance2, starDistanceMax2, starDistanceMin2, starDistanceRange2, distanceCommon, pairParallaxFactor, pairPmFactor, pairPmCommon, pairAbsMag1, pairAbsMag2, pairLum1, pairLum2, pairAltLum1, pairAltLum2, pairRad1, pairRad2, pairDR3Theta, pairDR3Rho, pairMass1, pairMass2, pairBVIndexA, pairBVIndexB, pairSepPar2, pairDistance, pairSepPar, pairEscapeVelocity, pairRelativeVelocity, pairHarshawFactor, pairHarshawPhysicality, pairBinarity, pairDesignationA, pairDesignationB, pairRaA, pairDecA, pairRaB, pairDecB, pairMagA, pairMagB, pairMeanTheta, pairMeanThetaErr, pairMeanRho, pairMeanRhoErr, pairMagnitudeA, pairMagnitudeB, pairGMagDiff, pairMagDiff, pairMagDiffErr, pairRadVelA, pairRadVelErrA, pairRadVelB, pairRadVelErrB, pairRadVelRatioA, pairRadVelRatioB, pairDesA, pairDesB, dateOfObservation, pairACurrentCoord, pairBCurrentCoord, pairAMeasuredCoord, pairBMeasuredCoord, pairACoordErr, pairBCoordErr, preciseCoord, pair_orbit, gaiaData):
-        self.pairObjectId = pairObjectId
-        self.pairDistanceMinA = pairDistanceMinA
-        self.pairDistanceMinB = pairDistanceMinB
-        self.starRa1 = starRa1
-        self.starDec1 = starDec1
-        self.starRa2 = starRa2
-        self.starDec2 = starDec2
-        self.starCoord1 = starCoord1
-        self.starCoord2 = starCoord2
-        self.starParallax1 = starParallax1
-        self.starParallaxError1 = starParallaxError1
-        self.possSep1 = possSep1
-        self.rhoStar = rhoStar
-        self.starName1 = starName1
-        self.starName2 = starName2
-        self.starParallax2 = starParallax2
-        self.starParallaxError2 = starParallaxError2
-        self.starActualRa1 = starActualRa1
-        self.starActualDec1 = starActualDec1
-        self.starActualRa2 = starActualRa2
-        self.starActualDec2 = starActualDec2
-        self.starActualCoord1 = starActualCoord1
-        self.starActualCoord2 = starActualCoord2
-        self.rhoActual = rhoActual
-        self.starDistance1 = starDistance1
-        self.starDistanceMax1 = starDistanceMax1
-        self.starDistanceMin1 = starDistanceMin1
-        self.starDistanceRange1 = starDistanceRange1
-        self.starDistance2 = starDistance2
-        self.starDistanceMax2 = starDistanceMax2
-        self.starDistanceMin2 = starDistanceMin2
-        self.starDistanceRange2 = starDistanceRange2
-        self.distanceCommon = distanceCommon
+    def __init__(self, pairParallaxFactor, pairPmFactor, pairPmCommon, pairAbsMag1, pairAbsMag2, pairLum1, pairLum2, pairAltLum1, pairAltLum2, pairRad1, pairRad2, pairDR3Theta, pairDR3Rho, pairMass1, pairMass2, pairBVIndexA, pairBVIndexB, pairSepPar2, pairDistance, pairSepPar, pairEscapeVelocity, pairRelativeVelocity, pairHarshawFactor, pairHarshawPhysicality, pairBinarity, pairDesignationA, pairDesignationB, pairRaA, pairDecA, pairRaB, pairDecB, pairMagA, pairMagB, pairGMagDiff, pairRadVelA, pairRadVelErrA, pairRadVelB, pairRadVelErrB, pairRadVelRatioA, pairRadVelRatioB, dateOfObservation, pairACurrentCoord, pairBCurrentCoord, pairAMeasuredCoord, pairBMeasuredCoord, pairACoordErr, pairBCoordErr, preciseCoord, pair_orbit, gaiaData):
         self.pairParallaxFactor = pairParallaxFactor
         self.pairPmFactor = pairPmFactor
         self.pairPmCommon = pairPmCommon
@@ -779,23 +746,13 @@ class gaia_calculated_attributes:
         self.pairDecB = pairDecB
         self.pairMagA = pairMagA
         self.pairMagB = pairMagB
-        self.pairMeanTheta = pairMeanTheta
-        self.pairMeanThetaErr = pairMeanThetaErr
-        self.pairMeanRho = pairMeanRho
-        self.pairMeanRhoErr = pairMeanRhoErr
-        self.pairMagnitudeA = pairMagnitudeA
-        self.pairMagnitudeB = pairMagnitudeB
         self.pairGMagDiff = pairGMagDiff
-        self.pairMagDiff = pairMagDiff
-        self.pairMagDiffErr = pairMagDiffErr
         self.pairRadVelA = pairRadVelA
-        self.pairRadVelErrA = pairRadVelErrA
+        self.pairRadVelErrA =pairRadVelErrA
         self.pairRadVelB = pairRadVelB
         self.pairRadVelErrB = pairRadVelErrB
         self.pairRadVelRatioA = pairRadVelRatioA
         self.pairRadVelRatioB = pairRadVelRatioB
-        self.pairDesA = pairDesA
-        self.pairDesB = pairDesB
         self.dateOfObservation = dateOfObservation
         self.pairACurrentCoord = pairACurrentCoord
         self.pairBCurrentCoord = pairBCurrentCoord
@@ -827,15 +784,10 @@ class wds_attributes:
         self.pairBMeasuredCoord = pairBMeasuredCoord
         self.preciseCoord = preciseCoord
 
-def gaia_calculations(gaia_star_a, gaia_star_b, double_star):
-    pairObjectId = double_star[0]['2000 Coord'] + double_star[0]['Discov'] + str(double_star[0]['Comp'])
+def calculate_disctance_overlap(gaia_star_a, gaia_star_b):
+    distanceCommon = ()
     pairDistanceMinA = calcDistanceMin(float(gaia_star_a['parallax']), float(gaia_star_a['parallax_error']))
     pairDistanceMinB = calcDistanceMin(float(gaia_star_b['parallax']), float(gaia_star_b['parallax_error']))
-    
-    # Calculate physical binarity
-
-    # Creating empty arrays for Star related calculations
-    #Set input data
     starRa1 = float(gaia_star_a['ra'])
     starDec1 = float(gaia_star_a['dec'])
     starRa2 = float(gaia_star_b['ra'])
@@ -847,23 +799,18 @@ def gaia_calculations(gaia_star_a, gaia_star_b, double_star):
                 
     # Calculate the widest possible separation for StarA
     possSep1 = possible_distance / calcDistanceMax(starParallax1, starParallaxError1)
-    # rhoStar = rhoCalc(starRa1, starDec1, starRa2, starDec2)
     rhoStar = starCoord1.separation(starCoord2).arcsecond
+    
     if possSep1 > rhoStar:
-        #starId1 = gaia_star_a['solution_id']
-        starName1 = gaia_star_a['designation']
-        #starId2 = gaia_star_b['solution_id']
-        starName2 = gaia_star_b['designation']
         starParallax2 = float(gaia_star_b['parallax'])
         starParallaxError2 = float(gaia_star_b['parallax_error'])
-        starActualRa1 = float(double_star['ra_deg_1'].mean())
-        starActualDec1 = float(double_star['dec_deg_1'].mean())
-        starActualRa2 = float(double_star['ra_deg_2'].mean())
-        starActualDec2 = float(double_star['dec_deg_2'].mean())
-        starActualCoord1 = SkyCoord(starActualRa1, starActualDec1, unit="deg")
-        starActualCoord2 = SkyCoord(starActualRa2, starActualDec2, unit="deg")
-
-        rhoActual = starActualCoord1.separation(starActualCoord2).arcsecond
+        #starActualRa1 = float(double_star['ra_deg_1'].mean())
+        #starActualDec1 = float(double_star['dec_deg_1'].mean())
+        #starActualRa2 = float(double_star['ra_deg_2'].mean())
+        #starActualDec2 = float(double_star['dec_deg_2'].mean())
+        #starActualCoord1 = SkyCoord(starActualRa1, starActualDec1, unit="deg")
+        #starActualCoord2 = SkyCoord(starActualRa2, starActualDec2, unit="deg")
+        #rhoActual = starActualCoord1.separation(starActualCoord2).arcsecond
         starDistance1 = calcDistance(starParallax1)
         starDistanceMax1 = calcDistanceMax(starParallax1, starParallaxError1)
         starDistanceMin1 = calcDistanceMin(starParallax1, starParallaxError1)
@@ -874,16 +821,33 @@ def gaia_calculations(gaia_star_a, gaia_star_b, double_star):
         starDistanceRange2 = starDistanceMax2 - starDistanceMin2
 
         # Check if stars shares a common distance range
-
-        distanceCommon = ()
         if starDistanceMin1 < starDistanceMin2 < starDistanceMax1 or starDistanceMin2 < starDistanceMin1 < starDistanceMax2:
             distanceCommon = 'overlapping'
         else:
             distanceCommon = 'no'
     
+    return distanceCommon
+
+def calculate_historical_orbit():
+    if (pairMass1 is not None and pairMass2 and pairSepPar is not None and pairDistance[1] is not None and pairACurrentCoord.separation(pairBCurrentCoord).arcsecond is not None and double_star[0]['Sep_f'] is not None and double_star[0]['PA_f'] is not None and double_star[0]['Date (first)'] is not None and dateOfObservation):
+        # OLD function to calculate the historical orbit values based on the first measurements found in WDS
+        # pair_orbit = calc_historic_orbit(pairMass1, pairMass2, pairSepPar, pairDistance[1], pairACurrentCoord.separation(pairBCurrentCoord).arcsecond, double_star[0]['Sep_f'], pairMeanRho, double_star[0]['PA_f'], pairMeanTheta, double_star[0]['Date (first)'], dateOfObservation)
+        
+        # NEW function to calculate the historical orbit values based on the calculated PA and SEP from Gaia DR3 on epoch 2016
+        pair_orbit = calc_historic_orbit(pairMass1, pairMass2, pairSepPar, pairDistance[1], pairACurrentCoord.separation(pairBCurrentCoord).arcsecond, SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond, pairMeanRho, SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree, pairMeanTheta, gaia_dr3_epoch, dateOfObservation)
+    else:
+        pair_orbit = ['Cannot be determined, missing data.', 'Cannot be determined, missing data.', 'Cannot be determined, missing data.', 'Cannot be determined, missing data.', 'Cannot be determined, missing data.', 'Cannot be determined, missing data.', 'Cannot be determined, missing data.']
+
+def gaia_calculations(gaia_star_a, gaia_star_b, double_star):
+    pairObjectId = double_star[0]['2000 Coord'] + double_star[0]['Discov'] + str(double_star[0]['Comp'])
+    pairDistanceMinA = calcDistanceMin(float(gaia_star_a['parallax']), float(gaia_star_a['parallax_error']))
+    pairDistanceMinB = calcDistanceMin(float(gaia_star_b['parallax']), float(gaia_star_b['parallax_error']))
+    
     # Calculate attributes
     pairParallaxFactor, pairPmFactor, pairPmFactor, pairPmCommon, pairAbsMag1, pairAbsMag2, pairLum1, pairLum2, pairRad1, pairRad2, pairDR3Theta, pairDR3Rho, pairMass1, pairMass2, pairBVIndexA, pairBVIndexB, pairSepPar, pairEscapeVelocity, pairRelativeVelocity, pairHarshawFactor, pairHarshawPhysicality, pairBinarity = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 
 
+    pairCoordA = SkyCoord(ra=gaia_star_a['ra'] * u.deg, dec=gaia_star_a['dec'] * u.deg)
+    pairCoordB = SkyCoord(ra=gaia_star_b['ra'] * u.deg, dec=gaia_star_b['dec'] * u.deg)
     pairParallaxFactor = (calcParallaxFactor(gaia_star_a['parallax'], gaia_star_b['parallax'])) * 100
     pairPmFactor = (calcPmFactor(gaia_star_a['pmra'], gaia_star_a['pmdec'], gaia_star_b['pmra'], gaia_star_b['pmdec']))
     pairPmCommon = calcPmCategory(pairPmFactor * 100)
@@ -896,14 +860,14 @@ def gaia_calculations(gaia_star_a, gaia_star_b, double_star):
     pairRad1 = calcRadius(pairLum1, gaia_star_a['teff_gspphot'])
     pairRad2 = calcRadius(pairLum2, gaia_star_b['teff_gspphot'])
     # pairDR3Theta = thetaCalc(deltaRa(gaia_star_a['ra'], gaia_star_b['ra'], gaia_star_b['dec']), deltaDec(gaia_star_b['dec'], gaia_star_a['dec'])) + addThetaValue
-    pairDR3Theta = starCoord1.position_angle(starCoord2).degree
+    pairDR3Theta = pairCoordA.position_angle(pairCoordB).degree
     # pairDR3Rho = rhoCalc(gaia_star_a['ra'], gaia_star_a['dec'], gaia_star_b['ra'], gaia_star_b['dec'])
-    pairDR3Rho = rhoStar
+    pairDR3Rho = pairCoordA.separation(pairCoordB).arcsecond
     pairMass1 = calcMass(pairLum1)
     pairMass2 = calcMass(pairLum2)
     pairBVIndexA = float(gaia_star_a['phot_bp_mean_mag']) - float(gaia_star_a['phot_rp_mean_mag'])
     pairBVIndexB = float(gaia_star_b['phot_bp_mean_mag']) - float(gaia_star_b['phot_rp_mean_mag'])
-    pairSepPar2 = sepCalc(pairDistanceMinA, pairDistanceMinB, rhoStar) # Separation of the pairs in parsecs
+    pairSepPar2 = sepCalc(pairDistanceMinA, pairDistanceMinB, pairDR3Rho) # Separation of the pairs in parsecs
     pairDistance = calc_average_distance(float(gaia_star_a['parallax']), float(gaia_star_a['parallax_error']), float(gaia_star_b['parallax']), float(gaia_star_b['parallax_error']), pairDR3Rho)
     pairSepPar = pairDistance[2] * auToParsec
     print('pairSepPar: ', pairSepPar)
@@ -917,31 +881,21 @@ def gaia_calculations(gaia_star_a, gaia_star_b, double_star):
     pairBinarity = calcBinarity(pairRelativeVelocity, pairEscapeVelocity)
     
     # Calculate values for each pair based on the groups
-    pairDesignationA = gaia_star_a['designation']
-    pairDesignationB = gaia_star_b['designation']
+    pairDesignationA = str(gaia_star_a['designation'])
+    pairDesignationB = str(gaia_star_b['designation'])
     pairRaA = gaia_star_a['ra']
     pairDecA = gaia_star_a['dec']
     pairRaB = gaia_star_b['ra']
     pairDecB = gaia_star_b['dec']
     pairMagA = gaia_star_a['phot_g_mean_mag']
     pairMagB = gaia_star_b['phot_g_mean_mag']
-    pairMeanTheta = float(double_star['theta_measured'].degree.mean())
-    pairMeanThetaErr = float(double_star['theta_measured'].degree.std())
-    pairMeanRho = float(double_star['rho_measured'].arcsec.mean())
-    pairMeanRhoErr = float(double_star['rho_measured'].arcsec.std())
-    pairMagnitudeA = double_star['mag_1']
-    pairMagnitudeB = double_star['mag_2']
     pairGMagDiff = float(gaia_star_b['phot_g_mean_mag']) - float(gaia_star_a['phot_g_mean_mag'])
-    pairMagDiff = float((double_star['mag_diff']).mean())
-    pairMagDiffErr = (double_star['mag_diff']).std()
     pairRadVelA = convertStringToNan(gaia_star_a['radial_velocity'])
     pairRadVelErrA = convertStringToNan(gaia_star_a['radial_velocity_error'])
     pairRadVelB = convertStringToNan(gaia_star_b['radial_velocity'])
     pairRadVelErrB = convertStringToNan(gaia_star_b['radial_velocity_error'])
     pairRadVelRatioA = math.fabs(float(convertStringToNan(gaia_star_a['radial_velocity_error'])) / float(convertStringToNan(gaia_star_a['radial_velocity']))) * 100
     pairRadVelRatioB = math.fabs(float(convertStringToNan(gaia_star_b['radial_velocity_error'])) / float(convertStringToNan(gaia_star_b['radial_velocity']))) * 100
-    pairDesA = str(gaia_star_a['designation'])
-    pairDesB = str(gaia_star_b['designation'])
     
     # dateOfObservation = getUTC(fitsFileDate)
     print('dateOfObservation: ', Time(double_star['image_date'].data))
@@ -957,21 +911,10 @@ def gaia_calculations(gaia_star_a, gaia_star_b, double_star):
     pairBCoordErr = pairBCurrentCoord.separation(pairBMeasuredCoord)
     # Caculate the common distance from Earth
     
-    if (pairMass1 is not None and pairMass2 and pairSepPar is not None and pairDistance[1] is not None and pairACurrentCoord.separation(pairBCurrentCoord).arcsecond is not None and double_star[0]['Sep_f'] is not None and pairMeanRho is not None and double_star[0]['PA_f'] is not None and pairMeanTheta is not None and double_star[0]['Date (first)'] is not None and dateOfObservation):
-        # OLD function to calculate the historical orbit values based on the first measurements found in WDS
-        # pair_orbit = calc_historic_orbit(pairMass1, pairMass2, pairSepPar, pairDistance[1], pairACurrentCoord.separation(pairBCurrentCoord).arcsecond, double_star[0]['Sep_f'], pairMeanRho, double_star[0]['PA_f'], pairMeanTheta, double_star[0]['Date (first)'], dateOfObservation)
-        
-        # NEW function to calculate the historical orbit values based on the calculated PA and SEP from Gaia DR3 on epoch 2016
-        pair_orbit = calc_historic_orbit(pairMass1, pairMass2, pairSepPar, pairDistance[1], pairACurrentCoord.separation(pairBCurrentCoord).arcsecond, SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond, pairMeanRho, SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree, pairMeanTheta, gaia_dr3_epoch, dateOfObservation)
-    else:
-        pair_orbit = ['Cannot be determined, missing data.', 'Cannot be determined, missing data.', 'Cannot be determined, missing data.', 'Cannot be determined, missing data.', 'Cannot be determined, missing data.', 'Cannot be determined, missing data.', 'Cannot be determined, missing data.']
-    
     preciseCoord = str(getPreciseCoord(pairRaA, pairDecA, Time(double_star['image_date'].data).mean()))
     gaiaData = str(double_star[0]['2000 Coord']) + ',' + str(double_star[0]['Discov']) + ',' + str(gaia_star_a['pmra']) + ',' + str(gaia_star_a['pmdec']) + ',' + str(gaia_star_b['pmra']) + ',' + str(gaia_star_b['pmdec']) + ',' + str(gaia_star_a['parallax']) + ',' + str(gaia_star_b['parallax']) + ',' + str(calcDistance(gaia_star_a['parallax'])) + ',' + str(calcDistance(gaia_star_b['parallax'])) + ',' + str(gaia_star_a['radial_velocity']) + ',' + str(gaia_star_b['radial_velocity']) + ',' + 'pairRad1' + ',' + 'pairRad2' + ',' + str(pairLum1) + ',' + str(pairLum2) + ',' + str(gaia_star_a['teff_gspphot']) + ',' + str(gaia_star_b['teff_gspphot']) + ',' + str(gaia_star_a['phot_g_mean_mag']) + ',' + str(gaia_star_b['phot_g_mean_mag']) + ',' + str(gaia_star_a['phot_bp_mean_mag']) + ',' + str(gaia_star_b['phot_bp_mean_mag']) + ',' + str(gaia_star_a['phot_rp_mean_mag']) + ',' + str(gaia_star_b['phot_rp_mean_mag']) + ',' + str(pairDR3Theta) + ',' + str(pairDR3Rho) + ',' + str(gaia_star_a['ra']) + ',' + str(gaia_star_a['dec']) + ',' + str(gaia_star_b['ra']) + ',' + str(gaia_star_b['dec']) + ',' + str(gaia_star_a['parallax_error']) + ',' + str(gaia_star_b['parallax_error'])
 
-    
-
-    double_star_calculation_results = gaia_calculated_attributes(pairObjectId, pairDistanceMinA, pairDistanceMinB, starRa1, starDec1, starRa2, starDec2, starCoord1, starCoord2, starParallax1, starParallaxError1, possSep1, rhoStar, starName1,starName2, starParallax2, starParallaxError2, starActualRa1, starActualDec1, starActualRa2, starActualDec2, starActualCoord1, starActualCoord2, rhoActual, starDistance1, starDistanceMax1, starDistanceMin1, starDistanceRange1, starDistance2, starDistanceMax2, starDistanceMin2, starDistanceRange2, distanceCommon, pairParallaxFactor, pairPmFactor, pairPmCommon, pairAbsMag1, pairAbsMag2, pairLum1, pairLum2, pairAltLum1, pairAltLum2, pairRad1, pairRad2, pairDR3Theta, pairDR3Rho, pairMass1, pairMass2, pairBVIndexA, pairBVIndexB, pairSepPar2, pairDistance, pairSepPar, pairEscapeVelocity, pairRelativeVelocity, pairHarshawFactor, pairHarshawPhysicality, pairBinarity, pairDesignationA, pairDesignationB, pairRaA, pairDecA, pairRaB, pairDecB, pairMagA, pairMagB, pairMeanTheta, pairMeanThetaErr, pairMeanRho, pairMeanRhoErr, pairMagnitudeA, pairMagnitudeB, pairGMagDiff, pairMagDiff, pairMagDiffErr, pairRadVelA, pairRadVelErrA, pairRadVelB, pairRadVelErrB, pairRadVelRatioA, pairRadVelRatioB, pairDesA, pairDesB, dateOfObservation, pairACurrentCoord, pairBCurrentCoord, pairAMeasuredCoord, pairBMeasuredCoord, pairACoordErr, pairBCoordErr, preciseCoord, pair_orbit, gaiaData)
+    double_star_calculation_results = gaia_calculated_attributes(pairParallaxFactor, pairPmFactor, pairPmCommon, pairAbsMag1, pairAbsMag2, pairLum1, pairLum2, pairAltLum1, pairAltLum2, pairRad1, pairRad2, pairDR3Theta, pairDR3Rho, pairMass1, pairMass2, pairBVIndexA, pairBVIndexB, pairSepPar2, pairDistance, pairSepPar, pairEscapeVelocity, pairRelativeVelocity, pairHarshawFactor, pairHarshawPhysicality, pairBinarity, pairDesignationA, pairDesignationB, pairRaA, pairDecA, pairRaB, pairDecB, pairMagA, pairMagB, pairGMagDiff, pairRadVelA, pairRadVelErrA, pairRadVelB, pairRadVelErrB, pairRadVelRatioA, pairRadVelRatioB, dateOfObservation, pairACurrentCoord, pairBCurrentCoord, pairAMeasuredCoord, pairBMeasuredCoord, pairACoordErr, pairBCoordErr, preciseCoord, pair_orbit, gaiaData)
 
     print('### Gaia Calculations object ###')
     pprint.pprint(vars(double_star_calculation_results))
