@@ -42,45 +42,36 @@ from astropy.time import Time, TimeDelta
 warnings.filterwarnings("ignore")
 from regions import RegularPolygonPixelRegion, RectangleSkyRegion, RectanglePixelRegion
 from dsmodules import dscalculation
- 
-# Configuration for the SeeStar camera
+import configparser
 
-'''dao_sigma = 3.0
-dao_fwhm = 14.0
-dao_threshold = 5.0'''
+# Read configuration
+# Create a ConfigParser object
+config = configparser.ConfigParser()
 
-# Configuration for the CANON camera
+# Read the configuration file
+config.read('config.ini')
 
-'''dao_sigma = 3.0
-dao_fwhm = 8.0
-dao_threshold = 9.0'''
-
-
-# Configuration for the ATIK camera
-
-dao_sigma = 3.0
-dao_fwhm = 8.0
-dao_threshold = 12.0
-
+dao_sigma = float(config['source_detection']['dao_sigma'])
+dao_fwhm = float(config['source_detection']['dao_fwhm'])
+dao_threshold = float(config['source_detection']['dao_threshold'])
 
 # Configurations for calculations
-search_cone = 0.001 # Decimal degree
-dummyObservationDate = "2022-01-01T12:00:00"
+possible_distance = float(config['calculations']['possible_distance'])
+search_cone = float(config['calculations']['search_cone'])
+dummyObservationDate = config['calculations']['dummyObservationDate']
 
 # Gravitational constant is convenient if measure distances in parsecs (pc), velocities in kilometres per second (km/s) and masses in solar units M
-image_limit = 2000
+image_limit = float(config['imageplot']['image_limit'])
 
 # Define frame percent
-frame_percentage = 5
+frame_percentage = float(config['frame']['frame_percentage'])
 
 # Define the limiting magnitue of the components
 limiting_magnitude_primary = 13
 limiting_magnitude_secondary = 13
 
-
 # Insert the downloaded wds file path here
-# wds_file = "/usr/share/dr3map/wds/wdsweb_summ2.txt"
-wds_file = "C:/Users/gerge/Documents/Catalogs/WDS/wdsweb_summ2.txt"
+wds_file = config['data']['wds_file']
 
 # Create WDS table
 wds_converters = {  '2000 Coord': np.str_,
@@ -121,218 +112,6 @@ wds_data = Table.read(wds_file,
 
 # Set working directory to read Double Star images
 workingDirectory = sys.argv[1]
-
-#########################
-### Declare functions ###
-#########################
-
-
-
-
-# Function to check, if a number is 'nan'
-def isNaN(num):
-    return num != num
-
-# Function to create precise coordinates for Epoch 2000
-def getPreciseCoord(ra, dec, date):
-    coord_object = {}
-    coords = [str(ra) + ' ' + str(dec)]
-    if isNaN(date):
-        coord_object = SkyCoord(coords, frame='icrs', unit=(u.degree, u.degree))
-    else:
-        coord_object = SkyCoord(coords, frame='icrs', unit=(u.degree, u.degree), obstime=date)
-    j2000_coord = coord_object.transform_to(FK5(equinox='J2000.0'))
-    j2000_coords = j2000_coord.to_string(style='hmsdms', precision=2)[0]
-    j2000_coord_formatted = str(j2000_coords).replace("d",":").replace("h",":").replace("m",":").replace("s","")
-    return j2000_coord_formatted
-
-# Function to calculate utc from cet
-def getUTC(date_time):
-    utc_date_time = ''
-    if isNaN(date_time):
-        utc_date_time = str(date_time)
-    else:
-        date_of_observation_time_cet = Time(date_time, precision=0)
-        time_zone_delta = TimeDelta(-3600, format='sec')
-        date_of_observation_time_utc = date_of_observation_time_cet + time_zone_delta
-        utc_date_time = str(date_of_observation_time_utc.jyear)
-    return utc_date_time
-
-def convertStringToNan(str):
-    string = np.nan
-    if str == 'null' or str == '' or str == '.':
-        string = np.nan
-    else:
-        string = str
-    return string
-
-def roundNumber(num):
-    if type(num) == np.float32 or type(num) == np.float64 or type(num) == float or type(num) == int:
-        finalNumber = np.round(num, 3)
-    else:
-        finalNumber = num
-    return finalNumber
-
-# Function to calculate the Standard error in RA/DEC measurements
-def calcStandardError(arr):
-    stderr = np.std(arr)
-    return stderr
-
-def create_unique_id(wds_id, discov):
-    id_array = [i + j for i, j in zip(wds_id, discov)]
-    return id_array
-
-def delete_invalid_lines_wds(catalog):
-    rows_to_delete_ra = np.where(catalog['Coord (RA) hms'] == '.')
-    catalog.remove_rows(rows_to_delete_ra)
-    rows_to_delete_dec = np.where(catalog['Coord (DEC) dms'] == '.')
-    catalog.remove_rows(rows_to_delete_dec)
-    rows_to_delete_mag_a = np.where(catalog['Mag_A'] == '.')
-    catalog.remove_rows(rows_to_delete_mag_a)
-    rows_to_delete_mag_b = np.where(catalog['Mag_B'] == '.')
-    catalog.remove_rows(rows_to_delete_mag_b)
-
-    return catalog
-
-def calculate_wds_ra_hourangle(wds_ra_array):
-    wds_ra_hms = []
-    for star in wds_ra_array:
-        if len(str(star)) == 9:
-            wds_ra_hms.append(str(star[0:2]) + 'h' + str(star[2:4]) + 'm' + str(star[4:9]) + 's')
-        else:
-            wds_ra_hms.append('.')
-    return wds_ra_hms
-
-def calculate_wds_dec_hourangle(wds_dec_array):
-    wds_dec_dms = []
-    for star in wds_dec_array:
-        if len(str(star)) == 9:
-            wds_dec_dms.append(str(star[0:3]) + 'd' + str(star[3:5]) + 'm' + str(star[5:9]) + 's')
-        else:
-            wds_dec_dms.append('.')
-    return wds_dec_dms
-
-# Create Image plot of the double stars
-def imagePlot(filename, pairname, raa, deca, rab, decb):
-    image_data = fits.open(filename)
-    header = image_data[0].header
-    wcs_helix = WCS(image_data[0].header, naxis=2)
-    image = image_data[0].data
-    image_height = header['NAXIS2']
-
-    star_a = SkyCoord(raa * u.deg, deca * u.deg, frame='icrs')
-    star_b = SkyCoord(rab * u.deg, decb * u.deg, frame='icrs')
-    star_a_pix = utils.skycoord_to_pixel(star_a, wcs_helix)
-    star_b_pix = utils.skycoord_to_pixel(star_b, wcs_helix)
-    plt.scatter(star_a_pix[0] + 40, star_a_pix[1], marker="_", s=50, color="grey")
-    plt.scatter(star_a_pix[0], star_a_pix[1] + 40, marker="|", s=50, color="grey")
-    plt.scatter(star_b_pix[0] + 40, star_b_pix[1], marker="_", s=50, color="grey")
-    plt.scatter(star_b_pix[0], star_b_pix[1] + 40, marker="|", s=50, color="grey")
-
-    plt.title(pairname)
-
-    plt.imshow(image, origin='lower',cmap='Greys', aspect='equal', vmax=image_limit, vmin=0) # , cmap='cividis'
-    plt.savefig(str(workingDirectory + '/' + pairname + '_img.jpg').replace(' ', ''),dpi=300.0, bbox_inches='tight', pad_inches=0.2)
-    plt.close()
-
-def calculate_photo_center(wcs, header):
-    photo_left_upper = SkyCoord.from_pixel(0, 0, wcs, origin=0, mode='all')
-    photo_right_lower = SkyCoord.from_pixel(header['NAXIS2'], header['NAXIS1'], wcs, origin=0, mode='all')
-    center = SkyCoord(header['CRVAL1'] * u.degree, header['CRVAL2'] * u.degree)
-    radius = photo_left_upper.separation(photo_right_lower) / 2
-    print('Center of photo: ', center.to_string('hmsdms'), '/', center.to_string('decimal'),
-      '\nRadius of photo: ', radius)
-    return center, radius
-
-def plot_image_with_frame(image_array, frame_edges, output_filename): #
-    print('frame edges: ', frame_edges)
-    # Create a figure and axis to plot the image
-    fig, ax = plt.subplots()
-    
-    # Display the image
-    ax.imshow(image_array, cmap='gray', vmax=image_limit, vmin=0)
-    
-    # Get the frame edges from the dictionary
-    left = frame_edges[0][0]
-    right = frame_edges[0][1]
-    top = frame_edges[1][0]
-    bottom = frame_edges[1][1]
-    
-    # Plot the frame as a rectangle
-    rect = plt.Rectangle((left, top), right-left, bottom-top, edgecolor='red', facecolor='none', linewidth=2)
-    ax.add_patch(rect)
-
-    # Plot small circles at specified coordinates
-    '''for coord in circle_coords:
-        circle = plt.Circle(coord, radius=5, color='blue', fill=True)
-        ax.add_patch(circle)'''
-    
-    # Adjust the axis limits to match the image size
-    ax.set_xlim(0, image_array.shape[1])
-    ax.set_ylim(image_array.shape[0], 0)
-    
-    # Add axis labels
-    ax.set_xlabel('X Coordinate (pixels)')
-    ax.set_ylabel('Y Coordinate (pixels)')
-    
-    # Show x and y scales with ticks
-    ax.set_xticks(np.arange(0, image_array.shape[1], step=image_array.shape[1] // 10))
-    ax.set_yticks(np.arange(0, image_array.shape[0], step=image_array.shape[0] // 10))
-        
-    # Save the result as a JPG file
-    plt.savefig(str(workingDirectory + '/' + output_filename), format='jpg', bbox_inches='tight', pad_inches=0)
-    
-    # Close the plot to free up memory
-    plt.close()
-
-def define_image_plane(wcs, header):
-    # Define inner rectangle coordinates
-    # Define the inner rectangle percent in image pixels measured from the edge of the image
-
-    frame_sink = (frame_percentage / 100) * header['NAXIS2']
-
-    photo_x_coords = [frame_sink, header['NAXIS1'] - frame_sink]
-    photo_y_coords = [frame_sink, header['NAXIS2'] - frame_sink]
-
-
-    photo_center = SkyCoord(header['CRVAL1'] * u.degree, header['CRVAL2'] * u.degree)
-    photo_left_upper = SkyCoord.from_pixel(photo_y_coords[0], photo_x_coords[0], wcs, origin=0, mode='all')
-    photo_left_lower = SkyCoord.from_pixel(photo_y_coords[1], photo_x_coords[0], wcs, origin=0, mode='all')
-    photo_right_upper = SkyCoord.from_pixel(photo_y_coords[0], photo_x_coords[1], wcs, origin=0, mode='all')
-    photo_right_lower = SkyCoord.from_pixel(photo_y_coords[1], photo_x_coords[1], wcs, origin=0, mode='all')
-    # print('photo_coords in pixel: ', photo_x_coords, photo_y_coords)
-    # print('photo_coords in degree: ', SkyCoord.to_pixel(photo_left_upper, wcs, origin=0, mode='all'), SkyCoord.to_pixel(photo_left_lower, wcs, origin=0, mode='all'), SkyCoord.to_pixel(photo_right_upper, wcs, origin=0, mode='all'))
-    half_width = photo_left_upper.separation(photo_right_upper) / 2
-    half_height = photo_left_upper.separation(photo_left_lower) / 2
-    corners = SkyCoord(
-        ra=[photo_center.ra - half_width, photo_center.ra + half_width,
-            photo_center.ra + half_width, photo_center.ra - half_width],
-        dec=[photo_center.dec - half_height, photo_center.dec - half_height,
-            photo_center.dec + half_height, photo_center.dec + half_height]
-        )
-    frame = [photo_x_coords, photo_y_coords]
-
-    return corners, frame
-
-
-def catalog_search_in_image(wcs, header, center, radius, wds_catalog_list):
-    #image_region = define_image_region(wcs, header)
-    d2d = center.separation(wds_catalog_list)
-    catalogmsk = d2d < radius
-    idxcatalog = np.where(catalogmsk)[0]
-    image_plane = define_image_plane(wcs, header)[0]
-
-    in_fov = []
-    for obj in wds_catalog_list[idxcatalog]:
-        if (np.min(image_plane.ra) <= obj.ra <= np.max(image_plane.ra)) and (np.min(image_plane.dec) <= obj.dec <= np.max(image_plane.dec)):
-            in_fov.append(wds_catalog_list)
-
-    return wdsTable[idxcatalog]
-
-def exit_if_no_doubles_found(doubles_table):
-    if len(doubles_table) == 0:
-        print("Double stars not found on images. Exiting the program.")
-        sys.exit()
 
 ###################################################################################################################################
 
@@ -396,13 +175,7 @@ print('Files:', files)
 
 print('Creating wds catalog - ' , datetime.datetime.now())
 
-wdsTable = hstack([wds_data, calculate_wds_ra_hourangle(wds_data['Coord (RA)'])])
-wdsTable.rename_column('col0', 'Coord (RA) hms')
-wdsTable = hstack([wdsTable, calculate_wds_dec_hourangle(wds_data['Coord (DEC)'])])
-wdsTable.rename_column('col0', 'Coord (DEC) dms')
-wdsTable = hstack([wdsTable, create_unique_id(wds_data['2000 Coord'], wds_data['Discov'])])
-wdsTable.rename_column('col0', 'Unique ID')
-wdsTable = delete_invalid_lines_wds(wdsTable)
+wdsTable = dscalculation.create_wds_table(wds_data)
 
 print('WDS angle formatting done, creating catalog... - ' , datetime.datetime.now())
 
@@ -422,66 +195,10 @@ for fitsFile in files:
     file_counter = file_counter + 1
     print('\n\n### Processing file', file_counter, 'out of', len(files),': ', fitsFile, '###')
     fitsFileName = workingDirectory + '/' + fitsFile
-    hdu = fits.open(fitsFileName)
-    mywcs = WCS(hdu[0].header, naxis=2)
-    file_header = hdu[0].header
-    
-	# Set observation date and time
-    # fitsFileDate = dscalculation.set_observation_date(file_header)
-    fitsFileDate = ''
-    key_to_lookup_a = 'DATE-OBS'
-    key_to_lookup_b = 'DATE'
-    if key_to_lookup_a in file_header:
-        fitsFileDate = file_header['DATE-OBS']
-    elif key_to_lookup_b in file_header:
-        fitsFileDate = file_header['DATE']
-    else:
-        fitsFileDate = np.nan
-    
-    # Estimate the background and background noise
-    # data[0]
-    data = hdu[0].data
 
-    # Get sources from the image
-    #sources = dscalculation.get_sources_from_image(data, mywcs, dao_sigma, dao_fwhm, dao_threshold, fitsFileName, fitsFileDate)
+    hdu, image_wcs, fits_header, fits_data, fits_file_date = dscalculation.get_fits_data(fitsFileName)
 
-    mean, median, std = sigma_clipped_stats(data, sigma = dao_sigma)  
-
-    daofind = DAOStarFinder(fwhm=dao_fwhm, threshold=dao_threshold*std)  
-    sources = daofind(data - median)
-    ra2, dec2 = mywcs.all_pix2world(sources['xcentroid'], sources['ycentroid'], 1)
-    sources.add_column(ra2, name='ra_deg') 
-    sources.add_column(dec2, name='dec_deg')
-    sources.add_column(fitsFileDate, name='image_date')
-    sources.add_column(fitsFileName, name='file')
-  
-
-    
-    photo_center, photo_radius = calculate_photo_center(mywcs, file_header)
-    # doubles_on_photo = get_objects_from_catalog(wds_catalog, photo_center, photo_radius)
-    # print(wdsTable[doubles_on_photo])
-
-    doubles_on_image = catalog_search_in_image(mywcs, file_header, photo_center, photo_radius, wds_catalog)
-    image_plane = define_image_plane(mywcs, file_header)
-    plot_image_with_frame(data, image_plane[1], fitsFile[:-4] + '_plot.jpg')
-    # print(doubles_on_image)
-    doubles_on_image.write(workingDirectory + '/' + fitsFile[:-4] + '_double_stars.csv', format='ascii', overwrite=True, delimiter=',')
-
-    sources_catalog = SkyCoord(ra=sources['ra_deg']*u.degree, dec=sources['dec_deg']*u.degree, frame='fk5')
-    idxw, idxs, wsd2d, wsd3d = search_around_sky(wds_catalog, sources_catalog, search_cone*u.deg)
-    composit_catalog = hstack([wdsTable[idxw]['2000 Coord', 'Discov', 'Comp', 'Date (first)', 'PA_f', 'PA_l', 'Sep_f', 'Sep_l', 'Mag_A', 'Mag_B'], sources[idxs]['id', 'mag', 'ra_deg', 'dec_deg']])
-    companion_catalog = SkyCoord(ra=composit_catalog['ra_deg'] * u.degree, dec=composit_catalog['dec_deg'] * u.degree).directional_offset_by(composit_catalog['PA_l']*u.degree, composit_catalog['Sep_l']*u.arcsec)
-    idxs2, d2ds2, d3ds2 = match_coordinates_sky(companion_catalog, sources_catalog)
-    composit_catalog2 = hstack([composit_catalog, sources[idxs2]]) #['id', 'mag', 'ra_deg', 'dec_deg']
-
-    sources_pa = SkyCoord(ra=composit_catalog2['ra_deg_1']*u.degree, dec=composit_catalog2['dec_deg_1']*u.degree).position_angle(SkyCoord(ra=composit_catalog2['ra_deg_2']*u.degree, dec=composit_catalog2['dec_deg_2']*u.degree)).to(u.deg)
-    sources_sep = SkyCoord(ra=composit_catalog2['ra_deg_1']*u.degree, dec=composit_catalog2['dec_deg_1']*u.degree).separation(SkyCoord(ra=composit_catalog2['ra_deg_2']*u.degree, dec=composit_catalog2['dec_deg_2']*u.degree)).to(u.arcsec)
-    sources_mag_diff = composit_catalog2['mag_2'] - composit_catalog2['mag_1']
-    
-    composit_catalog2.add_column(sources_pa, name='theta_measured')
-    composit_catalog2.add_column(sources_sep, name='rho_measured')
-    composit_catalog2.add_column(sources_mag_diff, name='mag_diff')
-    sources_ds = vstack([sources_ds, composit_catalog2])
+    sources_ds = dscalculation.get_sources_from_image(sources_ds, wds_catalog, fits_data, fits_header, fitsFileName, fits_file_date, image_wcs, wdsTable, dao_sigma, dao_fwhm, dao_threshold)
 
 upd_sources_ds = sources_ds[sources_ds['rho_measured'] != 0]
 
@@ -493,7 +210,7 @@ print('### Updated sources DS table grouped by WDS Identifier, Discoverer and Co
 
 upd_sources_ds_by_object.write(workingDirectory + '/double_stars.csv', format='ascii', overwrite=True, delimiter=',')
 
-exit_if_no_doubles_found(upd_sources_ds_by_object)
+dscalculation.exit_if_no_doubles_found(upd_sources_ds_by_object)
 
 objectMean = upd_sources_ds_by_object.groups.aggregate(np.mean)
 
@@ -503,34 +220,14 @@ for ds in upd_sources_ds_by_object.groups:
     print('\n### Group index:', count, '###')
     # print(ds)
     count = count + 1
-    pairObjectId = ds[0]['2000 Coord'] + ds[0]['Discov'] + str(ds[0]['Comp'])
 
-    starActualRa1 = float(ds['ra_deg_1'].mean())
-    starActualDec1 = float(ds['dec_deg_1'].mean())
-    starActualRa2 = float(ds['ra_deg_2'].mean())
-    starActualDec2 = float(ds['dec_deg_2'].mean())
-         
-    # Calculate attributes
-    #pairParallaxFactor, pairPmFactor, pairPmFactor, pairPmCommon, pairAbsMag1, pairAbsMag2, pairLum1, pairLum2, pairRad1, pairRad2, pairDR3Theta, pairDR3Rho, pairMass1, pairMass2, pairBVIndexA, pairBVIndexB, pairSepPar, pairEscapeVelocity, pairRelativeVelocity, pairHarshawFactor, pairHarshawPhysicality, pairBinarity = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 
+    double_star = dscalculation.wds_measurement(ds)
 
-    pairMeanTheta = float(ds['theta_measured'].degree.mean())
-    pairMeanThetaErr = float(ds['theta_measured'].degree.std())
-    pairMeanRho = float(ds['rho_measured'].arcsec.mean())
-    pairMeanRhoErr = float(ds['rho_measured'].arcsec.std())
-    pairMagnitudeA = ds['mag_1']
-    pairMagnitudeB = ds['mag_2']
-    pairMagDiff = float((ds['mag_diff']).mean())
-    pairMagDiffErr = (ds['mag_diff']).std()
-    dateOfObservation = getUTC(Time(ds['image_date'].data).mean())
-    pairAMeasuredCoord = SkyCoord(ra=ds['ra_deg_1'].groups.aggregate(np.mean) * u.deg, dec=ds['dec_deg_1'].groups.aggregate(np.mean) * u.deg)
-    pairBMeasuredCoord = SkyCoord(ra=ds['ra_deg_2'].groups.aggregate(np.mean) * u.deg, dec=ds['dec_deg_2'].groups.aggregate(np.mean) * u.deg)
-    
-    preciseCoord = str(getPreciseCoord(starActualRa1, starActualDec1, fitsFileDate))
-    reportName = (workingDirectory + '/' + pairObjectId + '.txt').replace(' ', '')
+    reportName = (workingDirectory + '/' + double_star.pairObjectId + '.txt').replace(' ', '')
     reportFile = open(reportName, "a")
 
     firstFitsImageFileName = ds['file'][0]
-    imagePlot(firstFitsImageFileName, pairObjectId, starActualRa1, starActualDec1, starActualRa2, starActualDec2)
+    dscalculation.imagePlot(firstFitsImageFileName, workingDirectory, double_star.pairObjectId, double_star.starActualRa1, double_star.starActualDec1, double_star.starActualRa2, double_star.starActualDec2)
 
     # Print temp data
     print('\n### COMPONENTS ###')
@@ -540,20 +237,20 @@ for ds in upd_sources_ds_by_object.groups:
     print('PA last: ', str(ds[0]['PA_l']))
     print('Sep last: ',  str(ds[0]['Sep_l']))
     print('Date of observation (human readable): ', Time(ds['image_date'].data).mean())
-    print('Date of observation (Julian date): ' + dateOfObservation)
-    print('Precise coordinates (J2000): ' + preciseCoord)
+    print('Date of observation (Julian date): ' + double_star.dateOfObservation)
+    print('Precise coordinates (J2000): ' + double_star.preciseCoord)
     print('\nTheta measurements\n') # , ds['dspaactual']
-    print('Mean:', pairMeanTheta)
-    print('Error:', pairMeanThetaErr)
+    print('Mean:', double_star.pairMeanTheta)
+    print('Error:', double_star.pairMeanThetaErr)
     print('\nRho measurements\n') # , ds['dssepactual']
-    print('Mean:', pairMeanRho)
-    print('Error:', pairMeanRhoErr)
+    print('Mean:', double_star.pairMeanRho)
+    print('Error:', double_star.pairMeanRhoErr)
     print('\nMagnitude difference measurements\n') # , ds['dsmagdiff']
-    print('Mean:', pairMagDiff)
-    print('Error:', pairMagDiffErr)
+    print('Mean:', double_star.pairMagDiff)
+    print('Error:', double_star.pairMagDiffErr)
     
     # Write results to file
-    reportTable.add_row([ds[0]['2000 Coord'] + ds[0]['Discov'] + str(ds[0]['Comp']), dateOfObservation, pairMeanTheta, pairMeanThetaErr, pairMeanRho, pairMeanRhoErr, np.nan, np.nan, pairMagDiff, pairMagDiffErr, 'Filter wawelenght', 'filter FWHM', '0.2', '1', 'TLB_2024', 'C', '7', preciseCoord])
+    reportTable.add_row([ds[0]['2000 Coord'] + ds[0]['Discov'] + str(ds[0]['Comp']), double_star.dateOfObservation, double_star.pairMeanTheta, double_star.pairMeanThetaErr, double_star.pairMeanRho, double_star.pairMeanRhoErr, np.nan, np.nan, double_star.pairMagDiff, double_star.pairMagDiffErr, 'Filter wawelenght', 'filter FWHM', '0.2', '1', 'TLB_2024', 'C', '7', double_star.preciseCoord])
     reportFile.write('### WDS Data ###')
     reportFile.write('\nWDS Identifier: ' + ds[0]['2000 Coord'])
     reportFile.write('\nDiscoverer and components: ' + str(ds[0]['Discov']) + ' ' + str(ds[0]['Comp']))
@@ -563,23 +260,23 @@ for ds in upd_sources_ds_by_object.groups:
     reportFile.write('\nSep last: ' +  str(ds[0]['Sep_l']))
     reportFile.write('\n\n### Measurements ###')
     reportFile.write('\nDate of observation (human readable): ' + str(Time(ds['image_date'].data).mean()))
-    reportFile.write('\nDate of observation: ' + dateOfObservation)
-    reportFile.write('\nPrecise coordinates (J2000): ' + preciseCoord)
+    reportFile.write('\nDate of observation: ' + double_star.dateOfObservation)
+    reportFile.write('\nPrecise coordinates (J2000): ' + double_star.preciseCoord)
     reportFile.write('\n\nPosition angle:')
     reportFile.write('\nTheta measurements' + str(ds['theta_measured'].degree))
-    reportFile.write('\nMean: ' + str(roundNumber(pairMeanTheta)))
-    reportFile.write('\nError: ' + str(roundNumber(pairMeanThetaErr)))
+    reportFile.write('\nMean: ' + str(dscalculation.roundNumber(double_star.pairMeanTheta)))
+    reportFile.write('\nError: ' + str(dscalculation.roundNumber(double_star.pairMeanThetaErr)))
     reportFile.write('\n\nSeparation:')
     reportFile.write('\nRho measurements\n' + str(ds['rho_measured'].arcsec))
-    reportFile.write('\nMean: ' + str(roundNumber(pairMeanRho)))
-    reportFile.write('\nError: ' + str(roundNumber(pairMeanRhoErr)))
+    reportFile.write('\nMean: ' + str(dscalculation.roundNumber(double_star.pairMeanRho)))
+    reportFile.write('\nError: ' + str(dscalculation.roundNumber(double_star.pairMeanRhoErr)))
     reportFile.write('\n\nMagnitude measurements\n'  + str(ds['mag_diff']))
-    reportFile.write('\nMean: ' + str(roundNumber(pairMagDiff)))
-    reportFile.write('\nError: ' + str(roundNumber(pairMagDiffErr)))
+    reportFile.write('\nMean: ' + str(dscalculation.roundNumber(double_star.pairMagDiff)))
+    reportFile.write('\nError: ' + str(dscalculation.roundNumber(double_star.pairMagDiffErr)))
 
     
     reportFile.write('\n\n### WDS form:\n')
-    wdsform = str(ds[0]['2000 Coord']) + ',' + dateOfObservation + ',' +  str(roundNumber(pairMeanTheta)) + ',' +  str(roundNumber(pairMeanThetaErr)) + ',' +  str(roundNumber(pairMeanRho)) + ',' +  str(roundNumber(pairMeanRhoErr)) + ',' +  'nan' + ',' +  'nan' + ',' +  str(roundNumber(pairMagDiff)) + ',' +  str(roundNumber(pairMagDiffErr)) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TLB_2023' + ',' +  'C' + ',' + '7'+ ',' + str(getPreciseCoord(starActualRa1, starActualDec1, fitsFileDate))
+    wdsform = str(ds[0]['2000 Coord']) + ',' + double_star.dateOfObservation + ',' +  str(dscalculation.roundNumber(double_star.pairMeanTheta)) + ',' +  str(dscalculation.roundNumber(double_star.pairMeanThetaErr)) + ',' +  str(dscalculation.roundNumber(double_star.pairMeanRho)) + ',' +  str(dscalculation.roundNumber(double_star.pairMeanRhoErr)) + ',' +  'nan' + ',' +  'nan' + ',' +  str(dscalculation.roundNumber(double_star.pairMagDiff)) + ',' +  str(dscalculation.roundNumber(double_star.pairMagDiffErr)) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TLB_2023' + ',' +  'C' + ',' + '7'+ ',' + str(dscalculation.getPreciseCoord(double_star.starActualRa1, double_star.starActualDec1, fits_file_date))
     reportFile.write(str(wdsform))
 
 reportTable.write(workingDirectory + '/double_stars_wds_format.txt', format='ascii', overwrite=True, delimiter=',')

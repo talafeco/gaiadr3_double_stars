@@ -210,27 +210,6 @@ sources_ds = Table()
 
 file_counter = 0
 
-'''def get_fits_data(fits_file):
-    hdu = fits.open(fits_file)
-    wcs = WCS(hdu[0].header, naxis=2)
-    fits_header = hdu[0].header
-    fits_data = hdu[0].data
-    
-	# Set observation date and time
-    fits_file_date = ''
-    key_to_lookup_a = 'DATE-OBS'
-    key_to_lookup_b = 'DATE'
-    if key_to_lookup_a in fits_header:
-        fits_file_date = fits_header['DATE-OBS']
-    elif key_to_lookup_b in fits_header:
-        fits_file_date = fits_header['DATE']
-    else:
-        fits_file_date = np.nan
-
-    return hdu, wcs, fits_header, fits_data, fits_file_date'''
-
-
-
 ### Run source detection, collect star data to Qtable
 print('\n### Running source detection ###\n' , datetime.datetime.now())
 for fitsFile in files:
@@ -274,7 +253,7 @@ for ds in upd_sources_ds_by_object.groups:
         print('Gaia A star: ' + str(gaiaAStar['designation']))
         print('Gaia B star: ' + str(gaiaBStar['designation']))
 
-        gaia_ds = dscalculation.double_star_attributes_calculation(gaiaAStar, gaiaBStar, ds)
+        gaia_ds = dscalculation.gaia_calculations(gaiaAStar, gaiaBStar, ds)
 
         reportName = (workingDirectory + '/' + gaia_ds.pairObjectId + '.txt').replace(' ', '')
         reportFile = open(reportName, "a")
