@@ -29,6 +29,8 @@ Excel obs orbit 3,1109 optikai így is, úgy is, de az eltérés nagy, lehet a k
 # design the measurement and calculation functions independently, process the images and write measurements, if there is no response from gaia in 10s or the star not found
 # Upodate gaia search, to get a minimal distance in arcsecs
 
+import pprint
+
 import os
 import sys
 import numpy as np
@@ -255,6 +257,10 @@ for ds in upd_sources_ds_by_object.groups:
 
         wds_double_star = dscalculation.wds_measurement(ds)
         gaia_ds = dscalculation.gaia_calculations(gaiaAStar, gaiaBStar, ds)
+        historic_orbit_calculation = dscalculation.calculate_historical_orbit(gaia_ds, wds_double_star, ds)
+
+        print('### Historic Orbit Calculation ###')
+        print(pprint.pprint(vars(historic_orbit_calculation)))
 
         reportName = (workingDirectory + '/' + wds_double_star.pairObjectId + '.txt').replace(' ', '')
         reportFile = open(reportName, "a")
@@ -314,10 +320,10 @@ for ds in upd_sources_ds_by_object.groups:
         print('Separation:', gaia_ds.pairSepPar, 'parsec,', gaia_ds.pairSepPar * 206265, 'AU')
         print('Pair Escape velocity:', gaia_ds.pairEscapeVelocity, 'km/s')
         print('Pair Relative velocity:', gaia_ds.pairRelativeVelocity, 'km/s')
-        print('### Pair historical orbit calculations ###')
+        '''print('### Pair historical orbit calculations ###')
         print('Historic criterion: ', gaia_ds.pair_orbit[0])
         print('Max orbit velolicy: ', gaia_ds.pair_orbit[1])
-        print('Observed velocity: ', gaia_ds.pair_orbit[2])
+        print('Observed velocity: ', gaia_ds.pair_orbit[2])'''
         print('Pair Harshaw factor:', gaia_ds.pairHarshawFactor)
         print('Pair Harshaw physicality:', gaia_ds.pairHarshawPhysicality)
         print('Pair binarity:', gaia_ds.pairBinarity)
@@ -333,8 +339,8 @@ for ds in upd_sources_ds_by_object.groups:
         reportFile.write('\nPA last: ' + str(ds[0]['PA_l']))
         reportFile.write('\nSep last: ' +  str(ds[0]['Sep_l']))
         reportFile.write('\n\n### Gaia DR3 Data ###')
-        reportFile.write('\nMain star: ' + gaia_ds.pairDesA)
-        reportFile.write('\nCompanion: ' + gaia_ds.pairDesB)
+        reportFile.write('\nMain star: ' + gaia_ds.pairDesignationA)
+        reportFile.write('\nCompanion: ' + gaia_ds.pairDesignationB)
         reportFile.write('\nPair G magnitudes A: ' + str(dscalculation.roundNumber(gaia_ds.pairMagA)) + ' B: ' + str(dscalculation.roundNumber(gaia_ds.pairMagB)))
         reportFile.write('\nPosition angle: ' + str(dscalculation.roundNumber(gaia_ds.pairDR3Theta)))
         reportFile.write('\nSeparation: ' + str(dscalculation.roundNumber(gaia_ds.pairDR3Rho)))
