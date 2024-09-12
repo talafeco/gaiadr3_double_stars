@@ -39,7 +39,6 @@ gaia_dr3_epoch = 2016.0
 # Gravitational constant is convenient if measure distances in parsecs (pc), velocities in kilometres per second (km/s) and masses in solar units M
 gravConst = 0.0043009 
 auToParsec = 0.0000048481368111358
-image_limit = 10000
 
 # Constant to calculate star luminosity and mass
 sun_luminosity = 3.0128 * (10 ** 28)
@@ -467,7 +466,7 @@ def hrdPlot(pairname, working_directory, mag_abs_a, mag_abs_b, bv_a, bv_b):
 
 
 # Create Image plot of the double stars
-def imagePlot(filename, working_directory, pairname, raa, deca, rab, decb):
+def imagePlot(filename, working_directory, pairname, raa, deca, rab, decb, image_limit):
     # data[0]
     #image_data = fits.open(working_directory + '/' + filename)
     image_data = fits.open(filename)
@@ -488,15 +487,6 @@ def imagePlot(filename, working_directory, pairname, raa, deca, rab, decb):
     plt.imshow(image, origin='lower',cmap='Greys', aspect='equal', vmax=image_limit, vmin=0) # , cmap='cividis'
     plt.savefig(str(working_directory + '/' + pairname + '_img.jpg').replace(' ', ''),dpi=300.0, bbox_inches='tight', pad_inches=0.2)
     plt.close()
-
-def get_gaia_dr3_data(doublestars):
-    pairACoord = SkyCoord(ra=doublestars['ra_deg_1'].mean(), dec=doublestars['dec_deg_1'].mean(), unit=(u.degree, u.degree), frame='icrs')
-    pairBCoord = SkyCoord(ra=doublestars['ra_deg_2'].mean(), dec=doublestars['dec_deg_2'].mean(), unit=(u.degree, u.degree), frame='icrs')
-    a = Gaia.cone_search_async(pairACoord, radius=u.Quantity(search_cone, u.deg))
-    b = Gaia.cone_search_async(pairBCoord, radius=u.Quantity(search_cone, u.deg))
-    a_query = a.get_results()
-    b_query = b.get_results()
-    return a_query, b_query
 
 def calc_average_distance(star_a_par, star_a_par_err, star_b_par, star_b_par_err, sep):
     # Calcualte average distance in lightyears
@@ -586,7 +576,7 @@ def get_objects_from_catalog(catalog, photo_center, photo_radius):
     catalog_mask = d2d < photo_radius
     return catalog_mask
 
-def plot_image_with_frame(image_array, frame_edges, output_filename): #
+def plot_image_with_frame(image_array, frame_edges, output_filename, image_limit): #
     print('frame edges: ', frame_edges)
     # Create a figure and axis to plot the image
     fig, ax = plt.subplots()
@@ -704,6 +694,16 @@ def get_sources_from_image(image_data, image_wcs, dao_sigma, dao_fwhm, dao_thres
     sources.add_column(fits_file_name, name='file')
 
     return sources
+
+def get_gaia_dr3_data(doublestars):
+    pairACoord = SkyCoord(ra=doublestars['ra_deg_1'].mean(), dec=doublestars['dec_deg_1'].mean(), unit=(u.degree, u.degree), frame='icrs')
+    pairBCoord = SkyCoord(ra=doublestars['ra_deg_2'].mean(), dec=doublestars['dec_deg_2'].mean(), unit=(u.degree, u.degree), frame='icrs')
+    a = Gaia.cone_search_async(pairACoord, radius=u.Quantity(search_cone, u.deg))
+    b = Gaia.cone_search_async(pairBCoord, radius=u.Quantity(search_cone, u.deg))
+    a_query = a.get_results()
+    b_query = b.get_results()
+    
+    return a_query, b_query
 
 def get_gaia_dr3_data_offline(doublestars, segment_lib):
     pairACoord = SkyCoord(ra=doublestars['ra_deg_1'].mean(), dec=doublestars['dec_deg_1'].mean(), unit=(u.degree, u.degree), frame='icrs')
@@ -863,7 +863,7 @@ def calculate_historical_orbit(gaia_data, wds_data, double_star):
 
     return pair_orbit
 
-def gaia_calculations(gaia_star_a, gaia_star_b, double_star):
+def gaia_calculations(gaia_star_a, gaia_star_b, double_star, search_key):
     pairObjectId = double_star[0]['2000 Coord'] + double_star[0]['Discov'] + str(double_star[0]['Comp'])
     pairDistanceMinA = calcDistanceMin(float(gaia_star_a['parallax']), float(gaia_star_a['parallax_error']))
     pairDistanceMinB = calcDistanceMin(float(gaia_star_b['parallax']), float(gaia_star_b['parallax_error']))
@@ -871,10 +871,10 @@ def gaia_calculations(gaia_star_a, gaia_star_b, double_star):
     # Calculate attributes
     pairParallaxFactor, pairPmFactor, pairPmFactor, pairPmCommon, pairAbsMag1, pairAbsMag2, pairLum1, pairLum2, pairRad1, pairRad2, pairDR3Theta, pairDR3Rho, pairMass1, pairMass2, pairBVIndexA, pairBVIndexB, pairSepPar, pairEscapeVelocity, pairRelativeVelocity, pairHarshawFactor, pairHarshawPhysicality, pairBinarity = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 
 
-    pairCoordA = SkyCoord(ra=gaia_star_a['ra'] * u.deg, dec=gaia_star_a['dec'] * u.deg)
-    pairCoordB = SkyCoord(ra=gaia_star_b['ra'] * u.deg, dec=gaia_star_b['dec'] * u.deg)
-    pairParallaxFactor = (calcParallaxFactor(gaia_star_a['parallax'], gaia_star_b['parallax'])) * 100
-    pairPmFactor = (calcPmFactor(gaia_star_a['pmra'], gaia_star_a['pmdec'], gaia_star_b['pmra'], gaia_star_b['pmdec']))
+    pairCoordA = SkyCoord(ra=float(gaia_star_a['ra']) * u.deg, dec=float(gaia_star_a['dec']) * u.deg)
+    pairCoordB = SkyCoord(ra=float(gaia_star_b['ra']) * u.deg, dec=float(gaia_star_b['dec']) * u.deg)
+    pairParallaxFactor = (calcParallaxFactor(float(gaia_star_a['parallax']), float(gaia_star_b['parallax']))) * 100
+    pairPmFactor = (calcPmFactor(float(gaia_star_a['pmra']), float(gaia_star_a['pmdec']), float(gaia_star_b['pmra']), float(gaia_star_b['pmdec'])))
     pairPmCommon = calcPmCategory(pairPmFactor * 100)
     pairAbsMag1 = calcAbsMag(float(gaia_star_a['phot_g_mean_mag']), float(gaia_star_a['parallax'])) # Calculate Absolute magnitude
     pairAbsMag2 = calcAbsMag(float(gaia_star_b['phot_g_mean_mag']), float(gaia_star_b['parallax'])) # Calculate Absolute magnitude
@@ -882,8 +882,8 @@ def gaia_calculations(gaia_star_a, gaia_star_b, double_star):
     pairLum2 = calcLuminosity(pairAbsMag2)
     pairAltLum1 = calcLuminosityAlternate(pairAbsMag1)
     pairAltLum2 = calcLuminosityAlternate(pairAbsMag2)
-    pairRad1 = calcRadius(pairLum1, gaia_star_a['teff_gspphot'])
-    pairRad2 = calcRadius(pairLum2, gaia_star_b['teff_gspphot'])
+    pairRad1 = calcRadius(pairLum1, float(gaia_star_a['teff_gspphot']))
+    pairRad2 = calcRadius(pairLum2, float(gaia_star_b['teff_gspphot']))
     # pairDR3Theta = thetaCalc(deltaRa(gaia_star_a['ra'], gaia_star_b['ra'], gaia_star_b['dec']), deltaDec(gaia_star_b['dec'], gaia_star_a['dec'])) + addThetaValue
     pairDR3Theta = pairCoordA.position_angle(pairCoordB).degree
     # pairDR3Rho = rhoCalc(gaia_star_a['ra'], gaia_star_a['dec'], gaia_star_b['ra'], gaia_star_b['dec'])
@@ -903,14 +903,17 @@ def gaia_calculations(gaia_star_a, gaia_star_b, double_star):
     pairBinarity = calcBinarity(pairRelativeVelocity, pairEscapeVelocity)
     
     # Calculate values for each pair based on the groups
-    pairDesignationA = str(gaia_star_a['designation'])
-    pairDesignationB = str(gaia_star_b['designation'])
-    pairRaA = gaia_star_a['ra']
-    pairDecA = gaia_star_a['dec']
-    pairRaB = gaia_star_b['ra']
-    pairDecB = gaia_star_b['dec']
-    pairMagA = gaia_star_a['phot_g_mean_mag']
-    pairMagB = gaia_star_b['phot_g_mean_mag']
+    # The key you are searching for (case insensitive)
+    pairDesignationA = str(gaia_star_a[search_key])
+    pairDesignationB = str(gaia_star_b[search_key])
+
+
+    pairRaA = float(gaia_star_a['ra'])
+    pairDecA = float(gaia_star_a['dec'])
+    pairRaB = float(gaia_star_b['ra'])
+    pairDecB = float(gaia_star_b['dec'])
+    pairMagA = float(gaia_star_a['phot_g_mean_mag'])
+    pairMagB = float(gaia_star_b['phot_g_mean_mag'])
     pairGMagDiff = float(gaia_star_b['phot_g_mean_mag']) - float(gaia_star_a['phot_g_mean_mag'])
     pairRadVelA = convertStringToNan(gaia_star_a['radial_velocity'])
     pairRadVelErrA = convertStringToNan(gaia_star_a['radial_velocity_error'])
