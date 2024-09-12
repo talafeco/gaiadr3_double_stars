@@ -51,7 +51,97 @@ hipparcos_file = Table.read(f"C:/Users/gerge/Documents/Catalogs/Hipparcos/I_239_
 # Insert the downloaded wds file path here
 wds_file = "C:/Users/gerge/Documents/Catalogs/WDS/wdsweb_summ2.txt"
 
+######################
+### Define classes ###
+######################
 
+# Define double star class
+class gaia_calculated_attributes:
+    def __init__(self, pairParallaxFactor, pairPmFactor, pairPmCommon, pairAbsMag1, pairAbsMag2, pairLum1, pairLum2, pairAltLum1, pairAltLum2, pairRad1, pairRad2, pairDR3Theta, pairDR3Rho, pairMass1, pairMass2, pairBVIndexA, pairBVIndexB, pairSepPar2, pairDistance, pairSepPar, pairEscapeVelocity, pairRelativeVelocity, pairHarshawFactor, pairHarshawPhysicality, pairBinarity, pairDesignationA, pairDesignationB, pairRaA, pairDecA, pairRaB, pairDecB, pairMagA, pairMagB, pairGMagDiff, pairRadVelA, pairRadVelErrA, pairRadVelB, pairRadVelErrB, pairRadVelRatioA, pairRadVelRatioB, dateOfObservation, pairACurrentCoord, pairBCurrentCoord, pairAMeasuredCoord, pairBMeasuredCoord, pairACoordErr, pairBCoordErr, preciseCoord, gaiaData):
+        self.pairParallaxFactor = pairParallaxFactor
+        self.pairPmFactor = pairPmFactor
+        self.pairPmCommon = pairPmCommon
+        self.pairAbsMag1 = pairAbsMag1
+        self.pairAbsMag2 = pairAbsMag2
+        self.pairLum1 = pairLum1
+        self.pairLum2 = pairLum2
+        self.pairAltLum1 = pairAltLum1
+        self.pairAltLum2 = pairAltLum2
+        self.pairRad1 = pairRad1
+        self.pairRad2 = pairRad2
+        self.pairDR3Theta = pairDR3Theta
+        self.pairDR3Rho = pairDR3Rho
+        self.pairMass1 = pairMass1
+        self.pairMass2 = pairMass2
+        self.pairBVIndexA = pairBVIndexA
+        self.pairBVIndexB = pairBVIndexB
+        self.pairSepPar2 = pairSepPar2
+        self.pairDistance = pairDistance
+        self.pairSepPar = pairSepPar
+        self.pairEscapeVelocity = pairEscapeVelocity
+        self.pairRelativeVelocity = pairRelativeVelocity
+        self.pairHarshawFactor = pairHarshawFactor
+        self.pairHarshawPhysicality = pairHarshawPhysicality
+        self.pairBinarity = pairBinarity
+        self.pairDesignationA = pairDesignationA
+        self.pairDesignationB = pairDesignationB
+        self.pairRaA = pairRaA
+        self.pairDecA = pairDecA
+        self.pairRaB = pairRaB
+        self.pairDecB = pairDecB
+        self.pairMagA = pairMagA
+        self.pairMagB = pairMagB
+        self.pairGMagDiff = pairGMagDiff
+        self.pairRadVelA = pairRadVelA
+        self.pairRadVelErrA =pairRadVelErrA
+        self.pairRadVelB = pairRadVelB
+        self.pairRadVelErrB = pairRadVelErrB
+        self.pairRadVelRatioA = pairRadVelRatioA
+        self.pairRadVelRatioB = pairRadVelRatioB
+        self.dateOfObservation = dateOfObservation
+        self.pairACurrentCoord = pairACurrentCoord
+        self.pairBCurrentCoord = pairBCurrentCoord
+        self.pairAMeasuredCoord = pairAMeasuredCoord
+        self.pairBMeasuredCoord = pairBMeasuredCoord
+        self.pairACoordErr = pairACoordErr
+        self.pairBCoordErr = pairBCoordErr
+        self.preciseCoord = preciseCoord
+        self.gaiaData = gaiaData
+
+class wds_attributes:
+    def __init__(self, pairObjectId, starActualRa1, starActualDec1, starActualRa2, starActualDec2, pairMeanTheta, pairMeanThetaErr, pairMeanRho, pairMeanRhoErr, pairMagnitudeA, pairMagnitudeB, pairMagDiff, pairMagDiffErr, dateOfObservation, pairAMeasuredCoord, pairBMeasuredCoord, preciseCoord):
+        self.pairObjectId = pairObjectId
+        self.starActualRa1 = starActualRa1
+        self.starActualDec1 = starActualDec1
+        self.starActualRa2 = starActualRa2
+        self.starActualDec2 = starActualDec2
+        self.pairMeanTheta = pairMeanTheta
+        self.pairMeanThetaErr = pairMeanThetaErr
+        self.pairMeanRho = pairMeanRho
+        self.pairMeanRhoErr = pairMeanRhoErr
+        self.pairMagnitudeA = pairMagnitudeA
+        self.pairMagnitudeB = pairMagnitudeB
+        self.pairMagDiff = pairMagDiff
+        self.pairMagDiffErr = pairMagDiffErr
+        self.dateOfObservation = dateOfObservation
+        self.pairAMeasuredCoord = pairAMeasuredCoord
+        self.pairBMeasuredCoord = pairBMeasuredCoord
+        self.preciseCoord = preciseCoord
+
+# Historic orbit calculation object
+class historic_orbit:
+    def __init__(self, historic_criterion, max_orbit_velolicy, observed_velocity, input_data_variables, delta_theta, delta_rho, delta_time):
+        self.historic_criterion = historic_criterion
+        self.max_orbit_velolicy = max_orbit_velolicy
+        self.observed_velocity = observed_velocity
+        self.input_data_variables = input_data_variables
+        self.delta_theta = delta_theta
+        self.delta_rho = delta_rho
+        self.delta_time = delta_time
+
+########################
+### Define functions ###
+########################
 
 # function to test the package
 def print_hello_world():
@@ -418,16 +508,7 @@ def calc_average_distance(star_a_par, star_a_par_err, star_b_par, star_b_par_err
     wtd_sep = wtd_dist * sep
     return wtd_sep, wtd_dist, wtd_sep
     
-# Historic orbit calculation object
-class historic_orbit:
-    def __init__(self, historic_criterion, max_orbit_velolicy, observed_velocity, input_data_variables, delta_theta, delta_rho, delta_time):
-        self.historic_criterion = historic_criterion
-        self.max_orbit_velolicy = max_orbit_velolicy
-        self.observed_velocity = observed_velocity
-        self.input_data_variables = input_data_variables
-        self.delta_theta = delta_theta
-        self.delta_rho = delta_rho
-        self.delta_time = delta_time
+
 
 # Calculate maximum orbit speed
 def calc_historic_orbit(massa, massb, sep_pc, avg_distance, dr3_rho, wds_first_rho, measured_rho, wds_first_theta, measured_theta, wds_first_obs, obs_time):
@@ -720,78 +801,7 @@ def get_sources_from_image(sources_ds, wds_catalog, fits_data, fits_header, fits
 
     return ds_sources
 
-# Define double star class
-class gaia_calculated_attributes:
-    def __init__(self, pairParallaxFactor, pairPmFactor, pairPmCommon, pairAbsMag1, pairAbsMag2, pairLum1, pairLum2, pairAltLum1, pairAltLum2, pairRad1, pairRad2, pairDR3Theta, pairDR3Rho, pairMass1, pairMass2, pairBVIndexA, pairBVIndexB, pairSepPar2, pairDistance, pairSepPar, pairEscapeVelocity, pairRelativeVelocity, pairHarshawFactor, pairHarshawPhysicality, pairBinarity, pairDesignationA, pairDesignationB, pairRaA, pairDecA, pairRaB, pairDecB, pairMagA, pairMagB, pairGMagDiff, pairRadVelA, pairRadVelErrA, pairRadVelB, pairRadVelErrB, pairRadVelRatioA, pairRadVelRatioB, dateOfObservation, pairACurrentCoord, pairBCurrentCoord, pairAMeasuredCoord, pairBMeasuredCoord, pairACoordErr, pairBCoordErr, preciseCoord, gaiaData):
-        self.pairParallaxFactor = pairParallaxFactor
-        self.pairPmFactor = pairPmFactor
-        self.pairPmCommon = pairPmCommon
-        self.pairAbsMag1 = pairAbsMag1
-        self.pairAbsMag2 = pairAbsMag2
-        self.pairLum1 = pairLum1
-        self.pairLum2 = pairLum2
-        self.pairAltLum1 = pairAltLum1
-        self.pairAltLum2 = pairAltLum2
-        self.pairRad1 = pairRad1
-        self.pairRad2 = pairRad2
-        self.pairDR3Theta = pairDR3Theta
-        self.pairDR3Rho = pairDR3Rho
-        self.pairMass1 = pairMass1
-        self.pairMass2 = pairMass2
-        self.pairBVIndexA = pairBVIndexA
-        self.pairBVIndexB = pairBVIndexB
-        self.pairSepPar2 = pairSepPar2
-        self.pairDistance = pairDistance
-        self.pairSepPar = pairSepPar
-        self.pairEscapeVelocity = pairEscapeVelocity
-        self.pairRelativeVelocity = pairRelativeVelocity
-        self.pairHarshawFactor = pairHarshawFactor
-        self.pairHarshawPhysicality = pairHarshawPhysicality
-        self.pairBinarity = pairBinarity
-        self.pairDesignationA = pairDesignationA
-        self.pairDesignationB = pairDesignationB
-        self.pairRaA = pairRaA
-        self.pairDecA = pairDecA
-        self.pairRaB = pairRaB
-        self.pairDecB = pairDecB
-        self.pairMagA = pairMagA
-        self.pairMagB = pairMagB
-        self.pairGMagDiff = pairGMagDiff
-        self.pairRadVelA = pairRadVelA
-        self.pairRadVelErrA =pairRadVelErrA
-        self.pairRadVelB = pairRadVelB
-        self.pairRadVelErrB = pairRadVelErrB
-        self.pairRadVelRatioA = pairRadVelRatioA
-        self.pairRadVelRatioB = pairRadVelRatioB
-        self.dateOfObservation = dateOfObservation
-        self.pairACurrentCoord = pairACurrentCoord
-        self.pairBCurrentCoord = pairBCurrentCoord
-        self.pairAMeasuredCoord = pairAMeasuredCoord
-        self.pairBMeasuredCoord = pairBMeasuredCoord
-        self.pairACoordErr = pairACoordErr
-        self.pairBCoordErr = pairBCoordErr
-        self.preciseCoord = preciseCoord
-        self.gaiaData = gaiaData
 
-class wds_attributes:
-    def __init__(self, pairObjectId, starActualRa1, starActualDec1, starActualRa2, starActualDec2, pairMeanTheta, pairMeanThetaErr, pairMeanRho, pairMeanRhoErr, pairMagnitudeA, pairMagnitudeB, pairMagDiff, pairMagDiffErr, dateOfObservation, pairAMeasuredCoord, pairBMeasuredCoord, preciseCoord):
-        self.pairObjectId = pairObjectId
-        self.starActualRa1 = starActualRa1
-        self.starActualDec1 = starActualDec1
-        self.starActualRa2 = starActualRa2
-        self.starActualDec2 = starActualDec2
-        self.pairMeanTheta = pairMeanTheta
-        self.pairMeanThetaErr = pairMeanThetaErr
-        self.pairMeanRho = pairMeanRho
-        self.pairMeanRhoErr = pairMeanRhoErr
-        self.pairMagnitudeA = pairMagnitudeA
-        self.pairMagnitudeB = pairMagnitudeB
-        self.pairMagDiff = pairMagDiff
-        self.pairMagDiffErr = pairMagDiffErr
-        self.dateOfObservation = dateOfObservation
-        self.pairAMeasuredCoord = pairAMeasuredCoord
-        self.pairBMeasuredCoord = pairBMeasuredCoord
-        self.preciseCoord = preciseCoord
 
 def calculate_disctance_overlap(gaia_star_a, gaia_star_b):
     distanceCommon = ()
@@ -952,7 +962,7 @@ def wds_measurement(double_star):
 
     return wds_measurements
 
-def print_wds_data(wds_measurements):
+def print_wds_data(wds_measurements, ds):
     print('\n### COMPONENTS ###')
     print('WDS Identifier:', ds[0]['2000 Coord'], ds[0]['Discov'], ds[0]['Comp'])
     print('Magnitude Pri: ' + str(ds[0]['Mag_A']))
@@ -960,59 +970,59 @@ def print_wds_data(wds_measurements):
     print('PA last: ', str(ds[0]['PA_l']))
     print('Sep last: ',  str(ds[0]['Sep_l']))
     print('Date of observation (human readable): ', Time(ds['image_date'].data).mean())
-    print('Date of observation (Julian date): ' + double_star.dateOfObservation)
-    print('Precise coordinates (J2000): ' + double_star.preciseCoord)
+    print('Date of observation (Julian date): ' + wds_measurements.dateOfObservation)
+    print('Precise coordinates (J2000): ' + wds_measurements.preciseCoord)
     print('\nTheta measurements\n') # , ds['dspaactual']
-    print('Mean:', double_star.pairMeanTheta)
-    print('Error:', double_star.pairMeanThetaErr)
+    print('Mean:', wds_measurements.pairMeanTheta)
+    print('Error:', wds_measurements.pairMeanThetaErr)
     print('\nRho measurements\n') # , ds['dssepactual']
-    print('Mean:', double_star.pairMeanRho)
-    print('Error:', double_star.pairMeanRhoErr)
+    print('Mean:', wds_measurements.pairMeanRho)
+    print('Error:', wds_measurements.pairMeanRhoErr)
     print('\nMagnitude difference measurements\n') # , ds['dsmagdiff']
-    print('Mean:', double_star.pairMagDiff)
-    print('Error:', double_star.pairMagDiffErr)
+    print('Mean:', wds_measurements.pairMagDiff)
+    print('Error:', wds_measurements.pairMagDiffErr)
 
 def print_gaia_data(gaia_data_calculations, wds_measurements):
     print('\n### COMPONENTS ###')
-    print('\nDate of observation: ' + gaia_ds.dateOfObservation)
-    print('\nPrecise coordinates (J2000): ' + gaia_ds.preciseCoord)
-    print('\nComponent A:', gaia_ds.pairDesignationA)
-    print('Component B:', gaia_ds.pairDesignationB)
+    print('\nDate of observation: ' + gaia_data_calculations.dateOfObservation)
+    print('\nPrecise coordinates (J2000): ' + gaia_data_calculations.preciseCoord)
+    print('\nComponent A:', gaia_data_calculations.pairDesignationA)
+    print('Component B:', gaia_data_calculations.pairDesignationB)
     print('\nCalculated coordinates')
-    print('\nComponent A DR3 2016:', gaia_ds.pairRaA, gaia_ds.pairDecA)
-    print('Component A DR3 on date:', gaia_ds.pairACurrentCoord.ra.degree, gaia_ds.pairACurrentCoord.dec.degree)
+    print('\nComponent A DR3 2016:', gaia_data_calculations.pairRaA, gaia_data_calculations.pairDecA)
+    print('Component A DR3 on date:', gaia_data_calculations.pairACurrentCoord.ra.degree, gaia_data_calculations.pairACurrentCoord.dec.degree)
     print('Component A measured:', wds_measurements.pairAMeasuredCoord.ra.degree, wds_measurements.pairAMeasuredCoord.dec.degree)
-    print('Component A error (on date - measured):', gaia_ds.pairACoordErr.arcsecond)
-    print('\nComponent B DR3 2016:', gaia_ds.pairRaB, gaia_ds.pairDecB)
-    print('Component B DR3 on date:', gaia_ds.pairBCurrentCoord.ra.degree, gaia_ds.pairBCurrentCoord.dec.degree)
+    print('Component A error (on date - measured):', gaia_data_calculations.pairACoordErr.arcsecond)
+    print('\nComponent B DR3 2016:', gaia_data_calculations.pairRaB, gaia_data_calculations.pairDecB)
+    print('Component B DR3 on date:', gaia_data_calculations.pairBCurrentCoord.ra.degree, gaia_data_calculations.pairBCurrentCoord.dec.degree)
     print('Component B measured:', wds_measurements.pairBMeasuredCoord.ra.degree, wds_measurements.pairBMeasuredCoord.dec.degree)
-    print('Component B error (on date - measured):', gaia_ds.pairBCoordErr.arcsecond)
-    print('2016 Calculated Position angle / Separation: ', SkyCoord(ra=gaia_ds.pairRaA*u.degree, dec=gaia_ds.pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=gaia_ds.pairRaB*u.degree, dec=gaia_ds.pairDecB*u.degree, frame='icrs')).degree, SkyCoord(ra=gaia_ds.pairRaA*u.degree, dec=gaia_ds.pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=gaia_ds.pairRaB*u.degree, dec=gaia_ds.pairDecB*u.degree, frame='icrs')).arcsecond)
+    print('Component B error (on date - measured):', gaia_data_calculations.pairBCoordErr.arcsecond)
+    print('2016 Calculated Position angle / Separation: ', SkyCoord(ra=gaia_data_calculations.pairRaA*u.degree, dec=gaia_data_calculations.pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=gaia_data_calculations.pairRaB*u.degree, dec=gaia_data_calculations.pairDecB*u.degree, frame='icrs')).degree, SkyCoord(ra=gaia_data_calculations.pairRaA*u.degree, dec=gaia_data_calculations.pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=gaia_data_calculations.pairRaB*u.degree, dec=gaia_data_calculations.pairDecB*u.degree, frame='icrs')).arcsecond)
     #print('Current Calculated Position angle / Separation: ', SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree, SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond)
-    print('Current Calculated Position angle / Separation: ', gaia_ds.pairACurrentCoord.position_angle(gaia_ds.pairBCurrentCoord).degree, gaia_ds.pairACurrentCoord.separation(gaia_ds.pairBCurrentCoord).arcsecond)
-    print('\n\nParallax factor:', gaia_ds.pairParallaxFactor, '%')
-    print('Proper motion factor:', gaia_ds.pairPmFactor * 100, '%')
-    print('Proper motion category:', gaia_ds.pairPmCommon)
-    print('Absolute magnitude A:', gaia_ds.pairAbsMag1)
-    print('Absolute magnitude B:', gaia_ds.pairAbsMag2)
-    print('Luminosity A:', gaia_ds.pairLum1)
-    print('Luminosity B:', gaia_ds.pairLum2)
-    print('Luminosity Alternate A:', gaia_ds.pairAltLum1)
-    print('Luminosity Alternate B:', gaia_ds.pairAltLum2)
-    print('Mass A:', gaia_ds.pairMass1)
-    print('Mass B:', gaia_ds.pairMass2)
-    print('BV index A:', gaia_ds.pairBVIndexA, 'B:', gaia_ds.pairBVIndexB)
-    print('Radial velocity of the stars', 'A:', gaia_ds.pairRadVelA, 'km/s (Err:', gaia_ds.pairRadVelErrA, 'km/s)', 'B:', gaia_ds.pairRadVelB, 'km/s (Err:', gaia_ds.pairRadVelErrB, 'km/s)')
-    print('Radial velocity ratio A:', gaia_ds.pairRadVelRatioA, '%')
-    print('Radial velocity ratio B:', gaia_ds.pairRadVelRatioB, '%')
-    print('Separation:', gaia_ds.pairSepPar, 'parsec,', gaia_ds.pairSepPar * 206265, 'AU')
-    print('Pair Escape velocity:', gaia_ds.pairEscapeVelocity, 'km/s')
-    print('Pair Relative velocity:', gaia_ds.pairRelativeVelocity, 'km/s')
+    print('Current Calculated Position angle / Separation: ', gaia_data_calculations.pairACurrentCoord.position_angle(gaia_data_calculations.pairBCurrentCoord).degree, gaia_data_calculations.pairACurrentCoord.separation(gaia_data_calculations.pairBCurrentCoord).arcsecond)
+    print('\n\nParallax factor:', gaia_data_calculations.pairParallaxFactor, '%')
+    print('Proper motion factor:', gaia_data_calculations.pairPmFactor * 100, '%')
+    print('Proper motion category:', gaia_data_calculations.pairPmCommon)
+    print('Absolute magnitude A:', gaia_data_calculations.pairAbsMag1)
+    print('Absolute magnitude B:', gaia_data_calculations.pairAbsMag2)
+    print('Luminosity A:', gaia_data_calculations.pairLum1)
+    print('Luminosity B:', gaia_data_calculations.pairLum2)
+    print('Luminosity Alternate A:', gaia_data_calculations.pairAltLum1)
+    print('Luminosity Alternate B:', gaia_data_calculations.pairAltLum2)
+    print('Mass A:', gaia_data_calculations.pairMass1)
+    print('Mass B:', gaia_data_calculations.pairMass2)
+    print('BV index A:', gaia_data_calculations.pairBVIndexA, 'B:', gaia_data_calculations.pairBVIndexB)
+    print('Radial velocity of the stars', 'A:', gaia_data_calculations.pairRadVelA, 'km/s (Err:', gaia_data_calculations.pairRadVelErrA, 'km/s)', 'B:', gaia_data_calculations.pairRadVelB, 'km/s (Err:', gaia_data_calculations.pairRadVelErrB, 'km/s)')
+    print('Radial velocity ratio A:', gaia_data_calculations.pairRadVelRatioA, '%')
+    print('Radial velocity ratio B:', gaia_data_calculations.pairRadVelRatioB, '%')
+    print('Separation:', gaia_data_calculations.pairSepPar, 'parsec,', gaia_data_calculations.pairSepPar * 206265, 'AU')
+    print('Pair Escape velocity:', gaia_data_calculations.pairEscapeVelocity, 'km/s')
+    print('Pair Relative velocity:', gaia_data_calculations.pairRelativeVelocity, 'km/s')
     '''print('### Pair historical orbit calculations ###')
-    print('Historic criterion: ', gaia_ds.pair_orbit[0])
-    print('Max orbit velolicy: ', gaia_ds.pair_orbit[1])
-    print('Observed velocity: ', gaia_ds.pair_orbit[2])'''
-    print('Pair Harshaw factor:', gaia_ds.pairHarshawFactor)
-    print('Pair Harshaw physicality:', gaia_ds.pairHarshawPhysicality)
-    print('Pair binarity:', gaia_ds.pairBinarity)
+    print('Historic criterion: ', gaia_data_calculations.pair_orbit[0])
+    print('Max orbit velolicy: ', gaia_data_calculations.pair_orbit[1])
+    print('Observed velocity: ', gaia_data_calculations.pair_orbit[2])'''
+    print('Pair Harshaw factor:', gaia_data_calculations.pairHarshawFactor)
+    print('Pair Harshaw physicality:', gaia_data_calculations.pairHarshawPhysicality)
+    print('Pair binarity:', gaia_data_calculations.pairBinarity)
     print('Analysis finished: ' , datetime.datetime.now())

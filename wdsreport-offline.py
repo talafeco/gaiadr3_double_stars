@@ -273,61 +273,12 @@ for ds in upd_sources_ds_by_object.groups:
         firstFitsImageFileName = ds['file'][0]
         print(str(firstFitsImageFileName), str(wds_double_star.pairObjectId), str(gaia_ds.pairRaA), str(gaia_ds.pairDecA), str(gaia_ds.pairRaB), str(gaia_ds.pairDecB))
         dscalculation.imagePlot(firstFitsImageFileName, workingDirectory, wds_double_star.pairObjectId, gaia_ds.pairRaA, gaia_ds.pairDecA, gaia_ds.pairRaB, gaia_ds.pairDecB)
-    
-        # Print temp data
-        print('\n### COMPONENTS ###')
-        print('\nWDS Identifier:', ds[0]['2000 Coord'], ds[0]['Discov'], ds[0]['Comp'])
-        print('\nDate of observation: ' + wds_double_star.dateOfObservation)
-        print('\nPrecise coordinates (J2000): ' + wds_double_star.preciseCoord)
-        print('\nComponent A:', gaia_ds.pairDesignationA)
-        print('Component B:', gaia_ds.pairDesignationB)
-        print('\nCalculated coordinates')
-        print('\nComponent A DR3 2016:', gaia_ds.pairRaA, gaia_ds.pairDecA)
-        print('Component A DR3 on date:', gaia_ds.pairACurrentCoord.ra.degree, gaia_ds.pairACurrentCoord.dec.degree)
-        print('Component A measured:', wds_double_star.pairAMeasuredCoord.ra.degree, wds_double_star.pairAMeasuredCoord.dec.degree)
-        print('Component A error (on date - measured):', gaia_ds.pairACoordErr.arcsecond)
-        print('\nComponent B DR3 2016:', gaia_ds.pairRaB, gaia_ds.pairDecB)
-        print('Component B DR3 on date:', gaia_ds.pairBCurrentCoord.ra.degree, gaia_ds.pairBCurrentCoord.dec.degree)
-        print('Component B measured:', wds_double_star.pairBMeasuredCoord.ra.degree, wds_double_star.pairBMeasuredCoord.dec.degree)
-        print('Component B error (on date - measured):', gaia_ds.pairBCoordErr.arcsecond)
-        print('2016 Calculated Position angle / Separation: ', SkyCoord(ra=gaia_ds.pairRaA*u.degree, dec=gaia_ds.pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=gaia_ds.pairRaB*u.degree, dec=gaia_ds.pairDecB*u.degree, frame='icrs')).degree, SkyCoord(ra=gaia_ds.pairRaA*u.degree, dec=gaia_ds.pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=gaia_ds.pairRaB*u.degree, dec=gaia_ds.pairDecB*u.degree, frame='icrs')).arcsecond)
-        #print('Current Calculated Position angle / Separation: ', SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree, SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond)
-        print('Current Calculated Position angle / Separation: ', gaia_ds.pairACurrentCoord.position_angle(gaia_ds.pairBCurrentCoord).degree, gaia_ds.pairACurrentCoord.separation(gaia_ds.pairBCurrentCoord).arcsecond)
-        print('\nTheta measurements\n') # , ds['dspaactual']
-        print('Mean:', wds_double_star.pairMeanTheta)
-        print('Error:', wds_double_star.pairMeanThetaErr)
-        print('\nRho measurements\n') # , ds['dssepactual']
-        print('Mean:', wds_double_star.pairMeanRho)
-        print('Error:', wds_double_star.pairMeanRhoErr)
-        print('\nMagnitude measurements\n') # , ds['dsmagdiff']
-        print('Mean:', wds_double_star.pairMagDiff)
-        print('Error:', wds_double_star.pairMagDiffErr)
-        print('\n\nParallax factor:', gaia_ds.pairParallaxFactor, '%')
-        print('Proper motion factor:', gaia_ds.pairPmFactor * 100, '%')
-        print('Proper motion category:', gaia_ds.pairPmCommon)
-        print('Absolute magnitude A:', gaia_ds.pairAbsMag1)
-        print('Absolute magnitude B:', gaia_ds.pairAbsMag2)
-        print('Luminosity A:', gaia_ds.pairLum1)
-        print('Luminosity B:', gaia_ds.pairLum2)
-        print('Luminosity Alternate A:', gaia_ds.pairAltLum1)
-        print('Luminosity Alternate B:', gaia_ds.pairAltLum2)
-        print('Mass A:', gaia_ds.pairMass1)
-        print('Mass B:', gaia_ds.pairMass2)
-        print('BV index A:', gaia_ds.pairBVIndexA, 'B:', gaia_ds.pairBVIndexB)
-        print('Radial velocity of the stars', 'A:', gaia_ds.pairRadVelA, 'km/s (Err:', gaia_ds.pairRadVelErrA, 'km/s)', 'B:', gaia_ds.pairRadVelB, 'km/s (Err:', gaia_ds.pairRadVelErrB, 'km/s)')
-        print('Radial velocity ratio A:', gaia_ds.pairRadVelRatioA, '%')
-        print('Radial velocity ratio B:', gaia_ds.pairRadVelRatioB, '%')
-        print('Separation:', gaia_ds.pairSepPar, 'parsec,', gaia_ds.pairSepPar * 206265, 'AU')
-        print('Pair Escape velocity:', gaia_ds.pairEscapeVelocity, 'km/s')
-        print('Pair Relative velocity:', gaia_ds.pairRelativeVelocity, 'km/s')
-        '''print('### Pair historical orbit calculations ###')
-        print('Historic criterion: ', gaia_ds.pair_orbit[0])
-        print('Max orbit velolicy: ', gaia_ds.pair_orbit[1])
-        print('Observed velocity: ', gaia_ds.pair_orbit[2])'''
-        print('Pair Harshaw factor:', gaia_ds.pairHarshawFactor)
-        print('Pair Harshaw physicality:', gaia_ds.pairHarshawPhysicality)
-        print('Pair binarity:', gaia_ds.pairBinarity)
-        print('Analysis finished: ' , datetime.datetime.now())
+
+        dscalculation.print_wds_data(wds_double_star, ds)
+        dscalculation.print_gaia_data(gaia_ds, wds_double_star)
+
+
+       
         
         # Write results to file
         reportTable.add_row([ds[0]['2000 Coord'] + ds[0]['Discov'] + str(ds[0]['Comp']), wds_double_star.dateOfObservation, wds_double_star.pairMeanTheta, wds_double_star.pairMeanThetaErr, wds_double_star.pairMeanRho, wds_double_star.pairMeanRhoErr, np.nan, np.nan, wds_double_star.pairMagDiff, wds_double_star.pairMagDiffErr, 'Filter wawelenght', 'filter FWHM', '0.2', '1', 'TLB_2024', 'C', '7', wds_double_star.preciseCoord])
