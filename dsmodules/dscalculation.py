@@ -43,6 +43,7 @@ auToParsec = 0.0000048481368111358
 # Constant to calculate star luminosity and mass
 sun_luminosity = 3.0128 * (10 ** 28)
 sun_absolute_luminosity = 3.828 * (10 ** 26)
+frame_percentage = 5
 
 # Constant variables
 hipparcos_file = Table.read(f"C:/Users/gerge/Documents/Catalogs/Hipparcos/I_239_selection.csv", format='ascii')
@@ -576,7 +577,7 @@ def get_objects_from_catalog(catalog, photo_center, photo_radius):
     catalog_mask = d2d < photo_radius
     return catalog_mask
 
-def plot_image_with_frame(image_array, frame_edges, output_filename, image_limit): #
+def plot_image_with_frame(image_array, frame_edges, output_filename, image_limit, workingDirectory): #
     print('frame edges: ', frame_edges)
     # Create a figure and axis to plot the image
     fig, ax = plt.subplots()
@@ -647,7 +648,7 @@ def define_image_plane(wcs, header):
     return corners, frame
 
 
-def catalog_search_in_image(wcs, header, center, radius, wds_catalog_list):
+def catalog_search_in_image(wcs, header, center, radius, wds_catalog_list, wdsTable):
     #image_region = define_image_region(wcs, header)
     d2d = center.separation(wds_catalog_list)
     catalogmsk = d2d < radius

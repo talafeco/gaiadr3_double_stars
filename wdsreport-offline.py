@@ -1,7 +1,11 @@
 #!/usr/bin/python3
 # WDS Report tool to measure double stars on astronomical images based on Gaia DR3 data
 # Version: 1.0
-# Usage: wdsreport <image_folder>
+# Usage: wdsmeasure -d [IMAGE FOLDER] -[OPTIONS]
+# -d <image_folder>             Define the image folder path
+# -o    --orbit_calculations    Calculate the historical orbit of the double star
+# -g    --gaia_measurements     Calculate the double star attributes based on the Gaia DR3 data release
+# -O    --offline               Use the offline DR3 star data instead of the online TAP service query to calculate the double star attributes
 
 # Tasks
 # Calculate the double star's precise coordinates for current epoch

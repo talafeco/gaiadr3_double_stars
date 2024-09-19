@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # WDS Report tool to measure double stars on astronomical images based on Gaia DR3 data
 # Version: 1.0
-# Usage: wdsreport <image_folder>
+
 
 # Tasks
 # Calculate the double star's precise coordinates for current epoch
