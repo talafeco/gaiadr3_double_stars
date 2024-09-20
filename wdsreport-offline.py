@@ -289,11 +289,13 @@ for ds in upd_sources_ds_by_object.groups:
     firstFitsImageFileName = ds['file'][0]
     wds_double_star = dscalculation.wds_measurement(ds)
     dscalculation.imagePlot(firstFitsImageFileName, workingDirectory, wds_double_star.pairObjectId, wds_double_star.starActualRa1, wds_double_star.starActualDec1, wds_double_star.starActualRa2, wds_double_star.starActualDec2, image_limit)
-    pprint.pprint(vars(wds_double_star))
+    #pprint.pprint(vars(wds_double_star))
     #dscalculation.print_wds_data(wds_double_star, ds)
 
     reportName = (workingDirectory + '/' + wds_double_star.pairObjectId + '.txt').replace(' ', '')
     reportFile = open(reportName, "a")
+
+    dscalculation.write_wds_report(ds, wds_double_star, workingDirectory)
 
     gaiaAStar, gaiaBStar, searchKey = 0, 0, 0
 
@@ -307,135 +309,17 @@ for ds in upd_sources_ds_by_object.groups:
     if gaiaAStar and gaiaBStar:
         gaia_ds = dscalculation.gaia_calculations(gaiaAStar, gaiaBStar, ds, searchKey)
         gaiaData = gaia_ds.gaiaData
-        pprint.pprint(vars(gaia_ds))
+        # pprint.pprint(vars(gaia_ds))
 
         if args.orbit_calculations:
             historic_orbit_calculation = dscalculation.calculate_historical_orbit(gaia_ds, wds_double_star, ds)
-            print('### Historic Orbit Calculation ###')
-            pprint.pprint(vars(historic_orbit_calculation))
+            dscalculation.write_historic_orbit_report(wds_double_star, historic_orbit_calculation, workingDirectory)
+            # pprint.pprint(vars(historic_orbit_calculation))
 
         dscalculation.hrdPlot(wds_double_star.pairObjectId, workingDirectory, gaia_ds.pairAbsMag1, gaia_ds.pairAbsMag2, gaia_ds.pairBVIndexA, gaia_ds.pairBVIndexB)
+        dscalculation.write_gaia_report(ds, wds_double_star, gaia_ds, workingDirectory)
+
             
  
 
 reportTable.write(workingDirectory + '/double_stars_wds_format.txt', format='ascii', overwrite=True, delimiter=',')
-
-#print('firstFitsImageFileName =', ds['file'][0])
-
-#print(str(firstFitsImageFileName), str(wds_double_star.pairObjectId), str(gaia_ds.pairRaA), str(gaia_ds.pairDecA), str(gaia_ds.pairRaB), str(gaia_ds.pairDecB))
-
-#dscalculation.print_gaia_data(gaia_ds, wds_double_star)
-
-
-'''
-if gaiaAStar and gaiaBStar:
-print('Gaia A star: ' + str(gaiaAStar['designation']))
-print('Gaia B star: ' + str(gaiaBStar['designation']))
-
-wds_double_star = dscalculation.wds_measurement(ds)
-
-gaia_ds = dscalculation.gaia_calculations(gaiaAStar, gaiaBStar, ds)
-
-historic_orbit_calculation = dscalculation.calculate_historical_orbit(gaia_ds, wds_double_star, ds)
-
-print('### Historic Orbit Calculation ###')
-print(pprint.pprint(vars(historic_orbit_calculation)))
-
-reportName = (workingDirectory + '/' + wds_double_star.pairObjectId + '.txt').replace(' ', '')
-reportFile = open(reportName, "a")
-
-gaiaData = gaia_ds.gaiaData
-
-dscalculation.hrdPlot(wds_double_star.pairObjectId, workingDirectory, gaia_ds.pairAbsMag1, gaia_ds.pairAbsMag2, gaia_ds.pairBVIndexA, gaia_ds.pairBVIndexB)
-
-print('firstFitsImageFileName =', ds['file'][0])
-firstFitsImageFileName = ds['file'][0]
-print(str(firstFitsImageFileName), str(wds_double_star.pairObjectId), str(gaia_ds.pairRaA), str(gaia_ds.pairDecA), str(gaia_ds.pairRaB), str(gaia_ds.pairDecB))
-dscalculation.imagePlot(firstFitsImageFileName, workingDirectory, wds_double_star.pairObjectId, gaia_ds.pairRaA, gaia_ds.pairDecA, gaia_ds.pairRaB, gaia_ds.pairDecB)
-
-dscalculation.print_wds_data(wds_double_star, ds)
-dscalculation.print_gaia_data(gaia_ds, wds_double_star)
-
-# Write results to file
-reportTable.add_row([ds[0]['2000 Coord'] + ds[0]['Discov'] + str(ds[0]['Comp']), wds_double_star.dateOfObservation, wds_double_star.pairMeanTheta, wds_double_star.pairMeanThetaErr, wds_double_star.pairMeanRho, wds_double_star.pairMeanRhoErr, np.nan, np.nan, wds_double_star.pairMagDiff, wds_double_star.pairMagDiffErr, 'Filter wawelenght', 'filter FWHM', '0.2', '1', 'TLB_2024', 'C', '7', wds_double_star.preciseCoord])
-reportFile.write('### WDS Data ###')
-reportFile.write('\nWDS Identifier: ' + ds[0]['2000 Coord'])
-reportFile.write('\nDiscoverer and components: ' + str(ds[0]['Discov']) + ' ' + str(ds[0]['Comp']))
-reportFile.write('\nMagnitude Pri: ' + str(ds[0]['Mag_A']))
-reportFile.write('\nMagnitude Sec: ' + str(ds[0]['Mag_B']))
-reportFile.write('\nPA last: ' + str(ds[0]['PA_l']))
-reportFile.write('\nSep last: ' +  str(ds[0]['Sep_l']))
-reportFile.write('\n\n### Gaia DR3 Data ###')
-reportFile.write('\nMain star: ' + gaia_ds.pairDesignationA)
-reportFile.write('\nCompanion: ' + gaia_ds.pairDesignationB)
-reportFile.write('\nPair G magnitudes A: ' + str(dscalculation.roundNumber(gaia_ds.pairMagA)) + ' B: ' + str(dscalculation.roundNumber(gaia_ds.pairMagB)))
-reportFile.write('\nPosition angle: ' + str(dscalculation.roundNumber(gaia_ds.pairDR3Theta)))
-reportFile.write('\nSeparation: ' + str(dscalculation.roundNumber(gaia_ds.pairDR3Rho)))
-reportFile.write('\nMagnitude difference: ' + str(dscalculation.roundNumber(gaia_ds.pairGMagDiff)))
-reportFile.write('\nPrecise coordinates (J2000): ' + wds_double_star.preciseCoord)
-reportFile.write('\nDate of observation: ' + wds_double_star.dateOfObservation)
-reportFile.write('\n\nCalculated coordinates')
-reportFile.write('\nComponent A DR3 2016: ' + str(gaia_ds.pairRaA) + ' ' + str(gaia_ds.pairDecA))
-reportFile.write('\nComponent A DR3 on date: ' + str(gaia_ds.pairACurrentCoord.ra.degree) + ' ' + str(gaia_ds.pairACurrentCoord.dec.degree))
-reportFile.write('\nComponent A measured: ' + str(wds_double_star.pairAMeasuredCoord.ra.degree) + ' ' + str(wds_double_star.pairAMeasuredCoord.dec.degree))
-reportFile.write('\nComponent A error (on date - measured): ' + str(gaia_ds.pairACoordErr.arcsecond))
-reportFile.write('\nComponent B DR3 2016: ' + str(gaia_ds.pairRaB) + ' ' + str(gaia_ds.pairDecB))
-reportFile.write('\nComponent B DR3 on date: ' + str(gaia_ds.pairBCurrentCoord.ra.degree) + ' ' + str(gaia_ds.pairBCurrentCoord.dec.degree))
-reportFile.write('\nComponent B measured: ' + str(wds_double_star.pairBMeasuredCoord.ra.degree) + ' ' + str(wds_double_star.pairBMeasuredCoord.dec.degree))
-reportFile.write('\nComponent B error (on date - measured): ' + str(gaia_ds.pairBCoordErr.arcsecond))
-reportFile.write('\n\n2016 Calculated Position angle / Separation: '  + str(SkyCoord(ra=gaia_ds.pairRaA*u.degree, dec=gaia_ds.pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=gaia_ds.pairRaB*u.degree, dec=gaia_ds.pairDecB*u.degree, frame='icrs')).degree) + ' ' + str(SkyCoord(ra=gaia_ds.pairRaA*u.degree, dec=gaia_ds.pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=gaia_ds.pairRaB*u.degree, dec=gaia_ds.pairDecB*u.degree, frame='icrs')).arcsecond))
-reportFile.write('\nCurrent Calculated Position angle / Separation: ' + str(gaia_ds.pairACurrentCoord.position_angle(gaia_ds.pairBCurrentCoord).degree) + ' ' + str(gaia_ds.pairACurrentCoord.separation(gaia_ds.pairBCurrentCoord).arcsecond))
-reportFile.write('\n\n### Measurements ###')
-reportFile.write('\nPosition angle:')
-reportFile.write('\nTheta measurements' + str(ds['theta_measured'].degree))
-reportFile.write('\nMean: ' + str(dscalculation.roundNumber(wds_double_star.pairMeanTheta)))
-reportFile.write('\nError: ' + str(dscalculation.roundNumber(wds_double_star.pairMeanThetaErr)))
-reportFile.write('\n\nSeparation:')
-reportFile.write('\nRho measurements\n' + str(ds['rho_measured'].arcsec))
-reportFile.write('\nMean: ' + str(dscalculation.roundNumber(wds_double_star.pairMeanRho)))
-reportFile.write('\nError: ' + str(dscalculation.roundNumber(wds_double_star.pairMeanRhoErr)))
-reportFile.write('\n\nMagnitude measurements\n'  + str(ds['mag_diff']))
-reportFile.write('\nMean: ' + str(dscalculation.roundNumber(wds_double_star.pairMagDiff)))
-reportFile.write('\nError: ' + str(dscalculation.roundNumber(wds_double_star.pairMagDiffErr)))
-reportFile.write('\n\n### Calculated attributes ###')
-reportFile.write('\nSeparation (Measured): ' + str(dscalculation.roundNumber(wds_double_star.pairMeanRho)))
-reportFile.write('\nPosition angle (Measured): ' + str(dscalculation.roundNumber(wds_double_star.pairMeanTheta)))
-reportFile.write('\nMagnitude difference (Measured): ' + str(dscalculation.roundNumber(wds_double_star.pairMagDiff)) + ' (Err: ' + str(dscalculation.roundNumber(wds_double_star.pairMagDiffErr)) + ')')
-reportFile.write('\nAbsolute magnitude A: ' + str(dscalculation.roundNumber(gaia_ds.pairAbsMag1)))
-reportFile.write('\nAbsolute magnitude B: ' + str(dscalculation.roundNumber(gaia_ds.pairAbsMag2)))
-reportFile.write('\nLuminosity A: ' + str(dscalculation.roundNumber(gaia_ds.pairLum1)))
-reportFile.write('\nLuminosity B: ' + str(dscalculation.roundNumber(gaia_ds.pairLum2)))
-reportFile.write('\nRad A: ' + str(dscalculation.roundNumber(gaia_ds.pairRad1)))
-reportFile.write('\nRad B: ' + str(dscalculation.roundNumber(gaia_ds.pairRad2)))
-reportFile.write('\nMass A: ' + str(dscalculation.roundNumber(gaia_ds.pairMass1)))
-reportFile.write('\nMass B: ' + str(dscalculation.roundNumber(gaia_ds.pairMass2)))
-reportFile.write('\nBV index A: ' + str(dscalculation.roundNumber(gaia_ds.pairBVIndexA)) + ' B: ' + str(dscalculation.roundNumber(gaia_ds.pairBVIndexB)))
-reportFile.write('\nRadial velocity of the stars ' + 'A:' + str(dscalculation.roundNumber(gaia_ds.pairRadVelA)) + 'km/s (Err:' + str(dscalculation.roundNumber(gaia_ds.pairRadVelErrA)) + 'km/s)' + ' B:' + str(dscalculation.roundNumber(gaia_ds.pairRadVelB)) + 'km/s (Err:' + str(dscalculation.roundNumber(gaia_ds.pairRadVelErrB)) + 'km/s)')
-reportFile.write('\nRadial velocity ratio A: ' + str(dscalculation.roundNumber(gaia_ds.pairRadVelRatioA)) + ' %')
-reportFile.write('\nRadial velocity ratio B: ' + str(dscalculation.roundNumber(gaia_ds.pairRadVelRatioB)) + ' %')
-reportFile.write('\nSeparation: ' + str(dscalculation.roundNumber(gaia_ds.pairDistance[2] * auToParsec)) + ' parsec, ' + str(dscalculation.roundNumber((gaia_ds.pairDistance[2]))) + ' AU')
-reportFile.write('\nPair Escape velocity: ' + str(dscalculation.roundNumber(gaia_ds.pairEscapeVelocity)) + ' km/s')
-reportFile.write('\nPair Relative velocity: ' + str(dscalculation.roundNumber(gaia_ds.pairRelativeVelocity)) + ' km/s')
-reportFile.write('\n\n### Analysis ###')
-reportFile.write('\nParallax factor: ' + str(dscalculation.roundNumber(gaia_ds.pairParallaxFactor)) + ' %')
-reportFile.write('\nProper motion factor: ' + str(dscalculation.roundNumber(gaia_ds.pairPmFactor) * 100) + ' %')
-reportFile.write('\nProper motion category: '+ str(gaia_ds.pairPmCommon))
-reportFile.write('\nPair Harshaw factor: ' + str(dscalculation.roundNumber(gaia_ds.pairHarshawFactor)))
-reportFile.write('\nPair Harshaw physicality: ' + str(gaia_ds.pairHarshawPhysicality))
-reportFile.write('\nPair binarity: ' + str(gaia_ds.pairBinarity))'''
-
-# new function - orbit calculation
-'''reportFile.write('\n\n### Pair historical orbit calculations ###')
-reportFile.write('\nHistoric criterion: ' + str(gaia_ds.pair_orbit[0]))
-reportFile.write('\nDelta theta: ' + str(gaia_ds.pair_orbit[4]))
-reportFile.write('\nDelta rho: ' + str(gaia_ds.pair_orbit[5]))
-reportFile.write('\nDelta time: ' + str(gaia_ds.pair_orbit[6]))
-reportFile.write('\nMax orbit velolicy: ' + str(gaia_ds.pair_orbit[1]))
-reportFile.write('\nObserved velocity: ' + str(gaia_ds.pair_orbit[2]))
-reportFile.write('\nInput data variables: ' + str(gaia_ds.pair_orbit[3]))'''
-
-'''reportFile.write('\n\n### WDS form:\n')
-wdsform = str(ds[0]['2000 Coord']) + ',' + wds_double_star.dateOfObservation + ',' +  str(dscalculation.roundNumber(wds_double_star.pairMeanTheta)) + ',' +  str(dscalculation.roundNumber(wds_double_star.pairMeanThetaErr)) + ',' +  str(dscalculation.roundNumber(wds_double_star.pairMeanRho)) + ',' +  str(dscalculation.roundNumber(wds_double_star.pairMeanRhoErr)) + ',' +  'nan' + ',' +  'nan' + ',' +  str(dscalculation.roundNumber(wds_double_star.pairMagDiff)) + ',' +  str(dscalculation.roundNumber(wds_double_star.pairMagDiffErr)) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TLB_2023' + ',' +  'C' + ',' + '7'+ ',' + str(dscalculation.getPreciseCoord(gaia_ds.pairRaA, gaia_ds.pairDecA, fits_file_date))
-reportFile.write(str(wdsform))
-reportFile.write('\n\n### Gaia data:\n')
-reportFile.write(str(gaiaData))'''
