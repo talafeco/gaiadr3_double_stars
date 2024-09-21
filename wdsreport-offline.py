@@ -260,7 +260,7 @@ for fitsFile in files:
 
     hdu, image_wcs, fits_header, fits_data, fits_file_date = dscalculation.get_fits_data(fitsFileName)
 
-    sources_ds = dscalculation.get_sources_from_image(sources_ds, wds_catalog, fits_data, fits_header, fitsFileName, fits_file_date, image_wcs, wdsTable, dao_sigma, dao_fwhm, dao_threshold)
+    sources_ds = dscalculation.get_sources_from_image(sources_ds, wds_catalog, fits_data, fits_header, fitsFileName, fits_file_date, image_wcs, wdsTable, dao_sigma, dao_fwhm, dao_threshold, search_cone)
 
 upd_sources_ds = sources_ds[sources_ds['rho_measured'] != 0]
 upd_sources_ds_by_object = upd_sources_ds.group_by(['2000 Coord', 'Discov', 'Comp'])
@@ -303,7 +303,7 @@ for ds in upd_sources_ds_by_object.groups:
         gaiaAStar, gaiaBStar = dscalculation.get_gaia_dr3_data_offline(ds, segment_lib)
         searchKey = 'designation'
     elif args.gaia_measurements and args.offline is False:
-        gaiaAStar, gaiaBStar = dscalculation.get_gaia_dr3_data(ds)
+        gaiaAStar, gaiaBStar = dscalculation.get_gaia_dr3_data(ds, search_cone)
         searchKey = 'DESIGNATION'
         
     if gaiaAStar and gaiaBStar:
@@ -316,7 +316,7 @@ for ds in upd_sources_ds_by_object.groups:
             dscalculation.write_historic_orbit_report(wds_double_star, historic_orbit_calculation, workingDirectory)
             # pprint.pprint(vars(historic_orbit_calculation))
 
-        dscalculation.hrdPlot(wds_double_star.pairObjectId, workingDirectory, gaia_ds.pairAbsMag1, gaia_ds.pairAbsMag2, gaia_ds.pairBVIndexA, gaia_ds.pairBVIndexB)
+        dscalculation.hrdPlot(wds_double_star.pairObjectId, workingDirectory, gaia_ds.pairAbsMag1, gaia_ds.pairAbsMag2, gaia_ds.pairBVIndexA, gaia_ds.pairBVIndexB, hipparcos_file)
         dscalculation.write_gaia_report(ds, wds_double_star, gaia_ds, workingDirectory)
 
             

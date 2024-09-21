@@ -31,8 +31,7 @@ from astroquery.gaia import Gaia
 Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"  # Reselect Data Release 3, default
 
 # configurations
-possible_distance = 30000.0 # AU
-search_cone = 0.001 # Decimal degree
+# search_cone = 0.001 # Decimal degree
 dummyObservationDate = "2022-01-01T12:00:00"
 gaia_dr3_epoch = 2016.0
 
@@ -43,10 +42,10 @@ auToParsec = 0.0000048481368111358
 # Constant to calculate star luminosity and mass
 sun_luminosity = 3.0128 * (10 ** 28)
 sun_absolute_luminosity = 3.828 * (10 ** 26)
-frame_percentage = 5
+# frame_percentage = 5
 
 # Constant variables
-hipparcos_file = Table.read(f"C:/Users/gerge/Documents/Catalogs/Hipparcos/I_239_selection.csv", format='ascii')
+# hipparcos_file = Table.read(f"C:/Users/gerge/Documents/Catalogs/Hipparcos/I_239_selection.csv", format='ascii')
 
 # Insert the downloaded wds file path here
 wds_file = "C:/Users/gerge/Documents/Catalogs/WDS/wdsweb_summ2.txt"
@@ -443,7 +442,7 @@ def calculate_wds_dec_hourangle(wds_dec_array):
     return wds_dec_dms
 
 # Create HRD plot of the double stars based on Hipparcos
-def hrdPlot(pairname, working_directory, mag_abs_a, mag_abs_b, bv_a, bv_b):
+def hrdPlot(pairname, working_directory, mag_abs_a, mag_abs_b, bv_a, bv_b, hipparcos_file):
     print(pairname, mag_abs_a, mag_abs_b, bv_a, bv_b)
     if pairname and mag_abs_a and mag_abs_b and bv_a and bv_b:
         hipparcos_abs_mag = hipparcos_file['Abs_mag']
@@ -618,7 +617,7 @@ def plot_image_with_frame(image_array, frame_edges, output_filename, image_limit
     # Close the plot to free up memory
     plt.close()
 
-def define_image_plane(wcs, header):
+def define_image_plane(wcs, header, frame_percentage):
     # Define inner rectangle coordinates
     # Define the inner rectangle percent in image pixels measured from the edge of the image
 
@@ -695,7 +694,7 @@ def set_observation_date(file_header):
 
     return sources'''
 
-def get_gaia_dr3_data(doublestars):
+def get_gaia_dr3_data(doublestars, search_cone):
     pairACoord = SkyCoord(ra=doublestars['ra_deg_1'].mean(), dec=doublestars['dec_deg_1'].mean(), unit=(u.degree, u.degree), frame='icrs')
     pairBCoord = SkyCoord(ra=doublestars['ra_deg_2'].mean(), dec=doublestars['dec_deg_2'].mean(), unit=(u.degree, u.degree), frame='icrs')
     a = Gaia.cone_search_async(pairACoord, radius=u.Quantity(search_cone, u.deg))
@@ -772,7 +771,7 @@ def get_fits_data(fits_file):
 
     return hdu, wcs, fits_header, fits_data, fits_file_date
 
-def get_sources_from_image(sources_ds, wds_catalog, fits_data, fits_header, fits_file_name, fits_file_date, image_wcs, wds_table, dao_sigma, dao_fwhm, dao_threshold):
+def get_sources_from_image(sources_ds, wds_catalog, fits_data, fits_header, fits_file_name, fits_file_date, image_wcs, wds_table, dao_sigma, dao_fwhm, dao_threshold, search_cone):
     ds_sources = Table()
     mean, median, std = sigma_clipped_stats(fits_data, sigma = dao_sigma)  
     daofind = DAOStarFinder(fwhm=dao_fwhm, threshold=dao_threshold*std)  
@@ -803,7 +802,7 @@ def get_sources_from_image(sources_ds, wds_catalog, fits_data, fits_header, fits
 
 
 
-def calculate_disctance_overlap(gaia_star_a, gaia_star_b):
+def calculate_disctance_overlap(gaia_star_a, gaia_star_b, possible_distance):
     distanceCommon = ()
     pairDistanceMinA = calcDistanceMin(float(gaia_star_a['parallax']), float(gaia_star_a['parallax_error']))
     pairDistanceMinB = calcDistanceMin(float(gaia_star_b['parallax']), float(gaia_star_b['parallax_error']))
@@ -1075,8 +1074,8 @@ def write_gaia_report(ds, wds_data, gaia_ds, image_folder):
     report_file.write('\nPA last: ' + str(ds[0]['PA_l']))
     report_file.write('\nSep last: ' +  str(ds[0]['Sep_l']))
     report_file.write('\n\n### Gaia DR3 Data ###')
-    report_file.write('\nMain star: ' + gaia_ds.pairDesignationA)
-    report_file.write('\nCompanion: ' + gaia_ds.pairDesignationB)
+    report_file.write('\nMain star: ' + gaia_ds.pairDesignationA.data)
+    report_file.write('\nCompanion: ' + gaia_ds.pairDesignationB.data)
     report_file.write('\nPair G magnitudes A: ' + str(roundNumber(gaia_ds.pairMagA)) + ' B: ' + str(roundNumber(gaia_ds.pairMagB)))
     report_file.write('\nPosition angle: ' + str(roundNumber(gaia_ds.pairDR3Theta)))
     report_file.write('\nSeparation: ' + str(roundNumber(gaia_ds.pairDR3Rho)))
@@ -1119,7 +1118,7 @@ def write_gaia_report(ds, wds_data, gaia_ds, image_folder):
     report_file.write('\nMass A: ' + str(roundNumber(gaia_ds.pairMass1)))
     report_file.write('\nMass B: ' + str(roundNumber(gaia_ds.pairMass2)))
     report_file.write('\nBV index A: ' + str(roundNumber(gaia_ds.pairBVIndexA)) + ' B: ' + str(roundNumber(gaia_ds.pairBVIndexB)))
-    report_file.write('\nRadial velocity of the stars ' + 'A:' + str(roundNumber(gaia_ds.pairRadVelA)) + 'km/s (Err:' + str(roundNumber(gaia_ds.pairRadVelErrA)) + 'km/s)' + ' B:' + str(roundNumber(gaia_ds.pairRadVelB)) + 'km/s (Err:' + str(roundNumber(gaia_ds.pairRadVelErrB)) + 'km/s)')
+    report_file.write('\nRadial velocity of the stars ' + 'A:' + str(roundNumber(gaia_ds.pairRadVelA.data)) + 'km/s (Err:' + str(roundNumber(gaia_ds.pairRadVelErrA.data)) + 'km/s)' + ' B:' + str(roundNumber(gaia_ds.pairRadVelB.data)) + 'km/s (Err:' + str(roundNumber(gaia_ds.pairRadVelErrB.data)) + 'km/s)')
     report_file.write('\nRadial velocity ratio A: ' + str(roundNumber(gaia_ds.pairRadVelRatioA)) + ' %')
     report_file.write('\nRadial velocity ratio B: ' + str(roundNumber(gaia_ds.pairRadVelRatioB)) + ' %')
     report_file.write('\nSeparation: ' + str(roundNumber(gaia_ds.pairDistance[2] * auToParsec)) + ' parsec, ' + str(roundNumber((gaia_ds.pairDistance[2]))) + ' AU')
