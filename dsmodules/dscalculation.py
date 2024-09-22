@@ -42,7 +42,7 @@ auToParsec = 0.0000048481368111358
 # Constant to calculate star luminosity and mass
 sun_luminosity = 3.0128 * (10 ** 28)
 sun_absolute_luminosity = 3.828 * (10 ** 26)
-# frame_percentage = 5
+frame_percentage = 5
 
 # Constant variables
 # hipparcos_file = Table.read(f"C:/Users/gerge/Documents/Catalogs/Hipparcos/I_239_selection.csv", format='ascii')
@@ -498,8 +498,6 @@ def calc_average_distance(star_a_par, star_a_par_err, star_b_par, star_b_par_err
     wtd_sep = wtd_dist * sep
     return wtd_sep, wtd_dist, wtd_sep
     
-
-
 # Calculate maximum orbit speed
 def calc_historic_orbit(massa, massb, sep_pc, avg_distance, dr3_rho, wds_first_rho, measured_rho, wds_first_theta, measured_theta, wds_first_obs, obs_time):
     # Check data types
@@ -617,7 +615,7 @@ def plot_image_with_frame(image_array, frame_edges, output_filename, image_limit
     # Close the plot to free up memory
     plt.close()
 
-def define_image_plane(wcs, header, frame_percentage):
+def define_image_plane(wcs, header):
     # Define inner rectangle coordinates
     # Define the inner rectangle percent in image pixels measured from the edge of the image
 
@@ -625,8 +623,6 @@ def define_image_plane(wcs, header, frame_percentage):
 
     photo_x_coords = [frame_sink, header['NAXIS1'] - frame_sink]
     photo_y_coords = [frame_sink, header['NAXIS2'] - frame_sink]
-
-
     photo_center = SkyCoord(header['CRVAL1'] * u.degree, header['CRVAL2'] * u.degree)
     photo_left_upper = SkyCoord.from_pixel(photo_y_coords[0], photo_x_coords[0], wcs, origin=0, mode='all')
     photo_left_lower = SkyCoord.from_pixel(photo_y_coords[1], photo_x_coords[0], wcs, origin=0, mode='all')

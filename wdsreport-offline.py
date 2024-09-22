@@ -96,6 +96,12 @@ parser.add_argument(
     help="Path of the directory containing the fits files"
 )
 
+parser.add_argument(
+    '-f', '--find_doubles_on_image',
+    action='store_true',  # This makes it a flag (True when present, False when absent)
+    help="Search for double stars in the WDS database, which should be on the image no matter, if they are too faint, close, etc."
+)
+
 args = parser.parse_args()
 
 # Set working directory to read Double Star images
@@ -259,6 +265,10 @@ for fitsFile in files:
     fitsFileName = workingDirectory + '/' + fitsFile
 
     hdu, image_wcs, fits_header, fits_data, fits_file_date = dscalculation.get_fits_data(fitsFileName)
+
+    if args.find_doubles_on_image:
+        image_center, image_radius = dscalculation.calculate_photo_center(image_wcs, fits_header)
+        print(dscalculation.catalog_search_in_image(image_wcs, fits_header, image_center, image_radius, wds_catalog, wdsTable))
 
     sources_ds = dscalculation.get_sources_from_image(sources_ds, wds_catalog, fits_data, fits_header, fitsFileName, fits_file_date, image_wcs, wdsTable, dao_sigma, dao_fwhm, dao_threshold, search_cone)
 
