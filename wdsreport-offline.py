@@ -112,8 +112,11 @@ workingDirectory = args.directory
 # Create a ConfigParser object
 config = configparser.ConfigParser()
 
+# Define the configuration file
+config_file = '/home/gergoe/Git/gaiadr3_double_stars/config.ini'
+
 # Read the configuration file
-config.read('config.ini')
+config.read(config_file)
 
 # Configuration of the camera
 dao_sigma = float(config['source_detection']['dao_sigma'])
