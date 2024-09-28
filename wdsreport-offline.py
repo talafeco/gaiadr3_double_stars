@@ -70,7 +70,7 @@ parser = argparse.ArgumentParser(description="A program with command line option
 
 # Add optional argument --gaia-measurements
 parser.add_argument(
-    '-g', '--gaia_measurements',
+    '-G', '--gaia_measurements',
     action='store_true',  # This makes it a flag (True when present, False when absent)
     help="Do double star gaia calculations"
 )
@@ -102,6 +102,12 @@ parser.add_argument(
     help="Search for double stars in the WDS database, which should be on the image no matter, if they are too faint, close, etc."
 )
 
+parser.add_argument(
+    '-y', '--generate_wds_list',
+    action='store_true',  # This makes it a flag (True when present, False when absent)
+    help="Write the list of double stars in the WDS database, which should be on the image into a file."
+)
+
 args = parser.parse_args()
 
 # Set working directory to read Double Star images
@@ -112,8 +118,11 @@ workingDirectory = args.directory
 # Create a ConfigParser object
 config = configparser.ConfigParser()
 
+# Define the configuration file
+config_file = '/home/gergoe/Git/gaiadr3_double_stars/config.ini'
+
 # Read the configuration file
-config.read('config.ini')
+config.read(config_file)
 
 # Configuration of the camera
 dao_sigma = float(config['source_detection']['dao_sigma'])
@@ -268,14 +277,16 @@ for fitsFile in files:
 
     if args.find_doubles_on_image:
         image_center, image_radius = dscalculation.calculate_photo_center(image_wcs, fits_header)
-        print(dscalculation.catalog_search_in_image(image_wcs, fits_header, image_center, image_radius, wds_catalog, wdsTable))
+        doubles_on_image_table = dscalculation.catalog_search_in_image(image_wcs, fits_header, image_center, image_radius, wds_catalog, wdsTable)
+        if args.generate_wds_list:
+            doubles_on_image_table.write(workingDirectory + fitsFileName[:-4] + '_wds_pairs.csv', format='ascii', overwrite=True, delimiter=',')
 
     sources_ds = dscalculation.get_sources_from_image(sources_ds, wds_catalog, fits_data, fits_header, fitsFileName, fits_file_date, image_wcs, wdsTable, dao_sigma, dao_fwhm, dao_threshold, search_cone)
 
 upd_sources_ds = sources_ds[sources_ds['rho_measured'] != 0]
 upd_sources_ds_by_object = upd_sources_ds.group_by(['2000 Coord', 'Discov', 'Comp'])
 
-print(upd_sources_ds_by_object.info)
+#print(upd_sources_ds_by_object.info)
 
 print('### Updated sources DS table grouped by WDS Identifier, Discoverer and Components ###')
 print(upd_sources_ds_by_object)
