@@ -358,7 +358,7 @@ def calcRelativeVelocity(pmraa, pmdeca, pmrab, pmdecb, radvela, radvelb, dista, 
     tanrab = calcTangentialSpeedComponent(distb, pmrab)
     tandecb = calcTangentialSpeedComponent(distb, pmdecb)
     tanspeeddiff = math.sqrt((tanraa - tanrab) ** 2 + (tandeca - tandecb) ** 2)
-    radspeeddif = math.fabs(float(radvela) - float(radvelb))
+    radspeeddif = math.fabs(float(convertStringToNan(radvela)) - float(convertStringToNan(radvelb)))
     sumspeeddiff = math.sqrt(tanspeeddiff ** 2 + radspeeddif ** 2)
     return sumspeeddiff
 
@@ -575,7 +575,6 @@ def get_objects_from_catalog(catalog, photo_center, photo_radius):
     return catalog_mask
 
 def plot_image_with_frame(image_array, wds_double_stars, frame_edges, output_filename, image_limit, workingDirectory): #
-    print('frame edges: ', frame_edges)
     # Create a figure and axis to plot the image
     fig, ax = plt.subplots()
     
@@ -591,12 +590,8 @@ def plot_image_with_frame(image_array, wds_double_stars, frame_edges, output_fil
     # Plot the frame as a rectangle
     rect = plt.Rectangle((left, top), right-left, bottom-top, edgecolor='red', facecolor='none', linewidth=2)
     ax.add_patch(rect)
-
-    # Plot small circles at specified coordinates
-    for coord in wds_double_stars:
-        circle = plt.Circle(coord, radius=5, color='blue', fill=True)
-        ax.add_patch(circle)
-    
+    ax.scatter(wds_double_stars[0], wds_double_stars[1], c=wds_double_stars[0], s=15, edgecolor='white', facecolor='none', alpha=0.2, linewidths=0.5)
+  
     # Adjust the axis limits to match the image size
     ax.set_xlim(0, image_array.shape[1])
     ax.set_ylim(image_array.shape[0], 0)
@@ -610,7 +605,7 @@ def plot_image_with_frame(image_array, wds_double_stars, frame_edges, output_fil
     ax.set_yticks(np.arange(0, image_array.shape[0], step=image_array.shape[0] // 10))
         
     # Save the result as a JPG file
-    plt.savefig(str(workingDirectory + '/' + output_filename), format='jpg', bbox_inches='tight', pad_inches=0)
+    plt.savefig(str(workingDirectory + '/' + output_filename), format='jpg', bbox_inches='tight', pad_inches=0, dpi=300.0)
     
     # Close the plot to free up memory
     plt.close()
@@ -695,8 +690,10 @@ def get_gaia_dr3_data(doublestars, search_cone):
     pairBCoord = SkyCoord(ra=doublestars['ra_deg_2'].mean(), dec=doublestars['dec_deg_2'].mean(), unit=(u.degree, u.degree), frame='icrs')
     a = Gaia.cone_search_async(pairACoord, radius=u.Quantity(search_cone, u.deg))
     b = Gaia.cone_search_async(pairBCoord, radius=u.Quantity(search_cone, u.deg))
-    a_query = a.get_results()
-    b_query = b.get_results()
+    a_query = a.get_results()[0]
+    b_query = b.get_results()[0]
+    print(a_query['DESIGNATION'])
+    print(b_query['DESIGNATION'])
     
     return a_query, b_query
 
@@ -858,6 +855,7 @@ def calculate_historical_orbit(gaia_data, wds_data, double_star):
 
 def gaia_calculations(gaia_star_a, gaia_star_b, double_star, search_key):
     pairObjectId = double_star[0]['2000 Coord'] + double_star[0]['Discov'] + str(double_star[0]['Comp'])
+    print(gaia_star_a['parallax'], '\n', gaia_star_a['parallax_error'], '\n', gaia_star_b['parallax'], '\n',gaia_star_b['parallax_error'])
     pairDistanceMinA = calcDistanceMin(float(gaia_star_a['parallax']), float(gaia_star_a['parallax_error']))
     pairDistanceMinB = calcDistanceMin(float(gaia_star_b['parallax']), float(gaia_star_b['parallax_error']))
     
@@ -874,8 +872,8 @@ def gaia_calculations(gaia_star_a, gaia_star_b, double_star, search_key):
     pairLum2 = calcLuminosity(pairAbsMag2)
     pairAltLum1 = calcLuminosityAlternate(pairAbsMag1)
     pairAltLum2 = calcLuminosityAlternate(pairAbsMag2)
-    pairRad1 = calcRadius(pairLum1, float(gaia_star_a['teff_gspphot']))
-    pairRad2 = calcRadius(pairLum2, float(gaia_star_b['teff_gspphot']))
+    pairRad1 = calcRadius(pairLum1, float(convertStringToNan(gaia_star_a['teff_gspphot'])))
+    pairRad2 = calcRadius(pairLum2, float(convertStringToNan(gaia_star_b['teff_gspphot'])))
     # pairDR3Theta = thetaCalc(deltaRa(gaia_star_a['ra'], gaia_star_b['ra'], gaia_star_b['dec']), deltaDec(gaia_star_b['dec'], gaia_star_a['dec'])) + addThetaValue
     pairDR3Theta = pairCoordA.position_angle(pairCoordB).degree
     # pairDR3Rho = rhoCalc(gaia_star_a['ra'], gaia_star_a['dec'], gaia_star_b['ra'], gaia_star_b['dec'])
@@ -1108,7 +1106,7 @@ def write_gaia_report(ds, wds_data, gaia_ds, image_folder):
     report_file.write('\nMass A: ' + str(roundNumber(gaia_ds.pairMass1)))
     report_file.write('\nMass B: ' + str(roundNumber(gaia_ds.pairMass2)))
     report_file.write('\nBV index A: ' + str(roundNumber(gaia_ds.pairBVIndexA)) + ' B: ' + str(roundNumber(gaia_ds.pairBVIndexB)))
-    report_file.write('\nRadial velocity of the stars ' + 'A:' + str(roundNumber(gaia_ds.pairRadVelA.data)) + 'km/s (Err:' + str(roundNumber(gaia_ds.pairRadVelErrA.data)) + 'km/s)' + ' B:' + str(roundNumber(gaia_ds.pairRadVelB.data)) + 'km/s (Err:' + str(roundNumber(gaia_ds.pairRadVelErrB.data)) + 'km/s)')
+    report_file.write('\nRadial velocity of the stars ' + 'A:' + str(roundNumber(gaia_ds.pairRadVelA)) + 'km/s (Err:' + str(roundNumber(gaia_ds.pairRadVelErrA)) + 'km/s)' + ' B:' + str(roundNumber(gaia_ds.pairRadVelB)) + 'km/s (Err:' + str(roundNumber(gaia_ds.pairRadVelErrB)) + 'km/s)')
     report_file.write('\nRadial velocity ratio A: ' + str(roundNumber(gaia_ds.pairRadVelRatioA)) + ' %')
     report_file.write('\nRadial velocity ratio B: ' + str(roundNumber(gaia_ds.pairRadVelRatioB)) + ' %')
     report_file.write('\nSeparation: ' + str(roundNumber(gaia_ds.pairDistance[2] * auToParsec)) + ' parsec, ' + str(roundNumber((gaia_ds.pairDistance[2]))) + ' AU')
@@ -1137,3 +1135,8 @@ def write_historic_orbit_report(wds_data, historic_orbit_object, image_folder):
     report_file.write('\nObserved velocity: ' + str(historic_orbit_object.observed_velocity))
     report_file.write('\nInput data variables: ' + str(historic_orbit_object.input_data_variables))
     report_file.close()
+
+def convert_coords_to_pixel(sky_coords, wcs):
+    pixel_coords = SkyCoord.to_pixel(sky_coords, wcs)
+    
+    return pixel_coords
