@@ -20,6 +20,8 @@ from astropy.time import Time, TimeDelta
 from astropy.utils.masked import Masked
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+import warnings
+warnings.filterwarnings("ignore")
 
 
 Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"  # Reselect Data Release 3, default
@@ -31,9 +33,9 @@ workingDirectory = sys.argv[1]
 # Define the magnitude limit of the image used during Gaia DR3 queries
 gaia_dr3_magnitude_limit = 17
 dao_sigma = 3.0
-dao_fwhm = 8.0
+dao_fwhm = 12.0
 dao_threshold = 12.0
-search_cone = 0.00028 # Decimal degree
+search_cone = 0.0004 # Decimal degree
 image_limit = 500
 
 directoryContent = os.listdir(workingDirectory)
@@ -140,7 +142,7 @@ def plot_sum(wcs, hdu, sum_list, filename):
     im = ax.scatter(sum_list['ra_deg'], sum_list['dec_deg'], s=20, facecolor='none', c=normalized_color_scale, cmap='jet', alpha=0.4, linewidths=1, transform=ax.get_transform('fk5'))
     plt.colorbar(im)
     plt.title(filename)
-    plt.savefig(filename, dpi=300.0, bbox_inches='tight', pad_inches=0.2)
+    plt.savefig(str(workingDirectory) + '/' + filename, dpi=300.0, bbox_inches='tight', pad_inches=0.2)
     plt.close()
 
 gaia_catalog = create_master_catalog()
@@ -171,8 +173,8 @@ for fitsFile in files:
     composit_catalog.add_column(bkg_limiting_mag + composit_catalog['mag'], name='measured_mag')
     composit_catalog.add_column(composit_catalog['phot_g_mean_mag'].data - composit_catalog['measured_mag'], name='mag_difference')
 
-    sources[0].write('sources-' + str(file_counter) + '.csv', format='ascii', overwrite=True, delimiter=',')
-    composit_catalog.write('composit_catalog-' + str(file_counter) + '.csv', format='ascii', overwrite=True, delimiter=',')
+    sources[0].write(workingDirectory + '/' + 'sources-' + str(file_counter) + '.csv', format='ascii', overwrite=True, delimiter=',')
+    composit_catalog.write(workingDirectory + '/' + 'composit_catalog-' + str(file_counter) + '.csv', format='ascii', overwrite=True, delimiter=',')
     plot_sources(sources[2], sources[1], sources[0], composit_catalog, 'source_plot_' + str(file_counter))
     measured_objects = vstack([measured_objects, composit_catalog])
 
@@ -219,4 +221,4 @@ for measured_object in grouped_objects.groups:
 sum_plot = extract_sources(workingDirectory + '/' + files[0])
 plot_sum(sum_plot[2], sum_plot[1], measurements_table, 'sum_plot.jpg')
 
-measurements_table.write('measurements_table' + '.csv', format='ascii', overwrite=True, delimiter=',')
+measurements_table.write(workingDirectory + '/' + 'measurements_table' + '.csv', format='ascii', overwrite=True, delimiter=',')

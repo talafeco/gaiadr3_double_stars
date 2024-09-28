@@ -30,7 +30,7 @@ gaia_dr3_magnitude_limit = 20
 dao_sigma = 3.0
 dao_fwhm = 8.0
 dao_threshold = 12.0
-search_cone = 0.0005 # Decimal degree
+search_cone = 0.002 # Decimal degree
 
 directoryContent = os.listdir(workingDirectory)
 print('Working directory: ', workingDirectory)
@@ -118,8 +118,8 @@ for fitsFile in files:
     composit_catalog.add_column(composit_catalog['phot_g_mean_mag'].data - composit_catalog['measured_mag'], name='mag_difference')
 
     print('### Composit Catalog No. ', file_counter, '\n', composit_catalog)
-    sources.write('sources' + str(file_counter) + '.csv', format='ascii', overwrite=True, delimiter=',')
-    composit_catalog.write('composit_catalog' + str(file_counter) + '.csv', format='ascii', overwrite=True, delimiter=',')
+    sources.write(workingDirectory + '/' + 'sources' + str(file_counter) + '.csv', format='ascii', overwrite=True, delimiter=',')
+    composit_catalog.write(workingDirectory + '/' + 'composit_catalog' + str(file_counter) + '.csv', format='ascii', overwrite=True, delimiter=',')
 
 
 
