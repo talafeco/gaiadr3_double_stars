@@ -574,7 +574,7 @@ def get_objects_from_catalog(catalog, photo_center, photo_radius):
     catalog_mask = d2d < photo_radius
     return catalog_mask
 
-def plot_image_with_frame(image_array, frame_edges, output_filename, image_limit, workingDirectory): #
+def plot_image_with_frame(image_array, wds_double_stars, frame_edges, output_filename, image_limit, workingDirectory): #
     print('frame edges: ', frame_edges)
     # Create a figure and axis to plot the image
     fig, ax = plt.subplots()
@@ -593,9 +593,9 @@ def plot_image_with_frame(image_array, frame_edges, output_filename, image_limit
     ax.add_patch(rect)
 
     # Plot small circles at specified coordinates
-    '''for coord in circle_coords:
+    for coord in wds_double_stars:
         circle = plt.Circle(coord, radius=5, color='blue', fill=True)
-        ax.add_patch(circle)'''
+        ax.add_patch(circle)
     
     # Adjust the axis limits to match the image size
     ax.set_xlim(0, image_array.shape[1])
@@ -796,8 +796,6 @@ def get_sources_from_image(sources_ds, wds_catalog, fits_data, fits_header, fits
 
     return ds_sources
 
-
-
 def calculate_disctance_overlap(gaia_star_a, gaia_star_b, possible_distance):
     distanceCommon = ()
     pairDistanceMinA = calcDistanceMin(float(gaia_star_a['parallax']), float(gaia_star_a['parallax_error']))
@@ -865,7 +863,6 @@ def gaia_calculations(gaia_star_a, gaia_star_b, double_star, search_key):
     
     # Calculate attributes
     pairParallaxFactor, pairPmFactor, pairPmFactor, pairPmCommon, pairAbsMag1, pairAbsMag2, pairLum1, pairLum2, pairRad1, pairRad2, pairDR3Theta, pairDR3Rho, pairMass1, pairMass2, pairBVIndexA, pairBVIndexB, pairSepPar, pairEscapeVelocity, pairRelativeVelocity, pairHarshawFactor, pairHarshawPhysicality, pairBinarity = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 
-
     pairCoordA = SkyCoord(ra=float(gaia_star_a['ra']) * u.deg, dec=float(gaia_star_a['dec']) * u.deg)
     pairCoordB = SkyCoord(ra=float(gaia_star_b['ra']) * u.deg, dec=float(gaia_star_b['dec']) * u.deg)
     pairParallaxFactor = (calcParallaxFactor(float(gaia_star_a['parallax']), float(gaia_star_b['parallax']))) * 100
@@ -890,7 +887,6 @@ def gaia_calculations(gaia_star_a, gaia_star_b, double_star, search_key):
     pairSepPar2 = sepCalc(pairDistanceMinA, pairDistanceMinB, pairDR3Rho) # Separation of the pairs in parsecs
     pairDistance = calc_average_distance(float(gaia_star_a['parallax']), float(gaia_star_a['parallax_error']), float(gaia_star_b['parallax']), float(gaia_star_b['parallax_error']), pairDR3Rho)
     pairSepPar = pairDistance[2] * auToParsec
-
     pairEscapeVelocity = calcEscapevelocity(pairMass1, pairMass2, pairSepPar, gravConst)
     pairRelativeVelocity = calcRelativeVelocity(float(gaia_star_a['pmra']), float(gaia_star_a['pmdec']), float(gaia_star_b['pmra']), float(gaia_star_b['pmdec']), gaia_star_a['radial_velocity'], gaia_star_b['radial_velocity'], pairDistanceMinA, pairDistanceMinB)
     pairHarshawFactor = calcHarshaw((pairParallaxFactor) / 100, (pairPmFactor))
@@ -901,8 +897,6 @@ def gaia_calculations(gaia_star_a, gaia_star_b, double_star, search_key):
     # The key you are searching for (case insensitive)
     pairDesignationA = str(gaia_star_a[search_key])
     pairDesignationB = str(gaia_star_b[search_key])
-
-
     pairRaA = float(gaia_star_a['ra'])
     pairDecA = float(gaia_star_a['dec'])
     pairRaB = float(gaia_star_b['ra'])
