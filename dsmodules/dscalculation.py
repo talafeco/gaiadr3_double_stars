@@ -588,9 +588,9 @@ def plot_image_with_frame(image_array, wds_double_stars, frame_edges, output_fil
     bottom = frame_edges[1][1]
     
     # Plot the frame as a rectangle
-    rect = plt.Rectangle((left, top), right-left, bottom-top, edgecolor='red', facecolor='none', linewidth=2)
-    ax.add_patch(rect)
-    ax.scatter(wds_double_stars[0], wds_double_stars[1], c=wds_double_stars[0], s=15, edgecolor='white', facecolor='none', alpha=0.2, linewidths=0.5)
+    #rect = plt.Rectangle((left, top), right-left, bottom-top, edgecolor='red', facecolor='none', linewidth=2)
+    #ax.add_patch(rect)
+    ax.scatter(wds_double_stars[0], wds_double_stars[1], edgecolor='white', s=15, facecolor='none', cmap='gist_rainbow', alpha=1, linewidths=0.5) #edgecolor='white',
   
     # Adjust the axis limits to match the image size
     ax.set_xlim(0, image_array.shape[1])
