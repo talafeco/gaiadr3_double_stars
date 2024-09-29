@@ -33,6 +33,10 @@ Excel obs orbit 3,1109 optikai így is, úgy is, de az eltérés nagy, lehet a k
 # design the measurement and calculation functions independently, process the images and write measurements, if there is no response from gaia in 10s or the star not found
 # Upodate gaia search, to get a minimal distance in arcsecs
 
+# Unknown exit if file is wrong
+# Get DR3 based HRD
+# Dont create wds doubles image, if no pairs found on images
+
 import pprint
 import argparse
 import os
@@ -119,7 +123,8 @@ workingDirectory = args.directory
 config = configparser.ConfigParser()
 
 # Define the configuration file
-config_file = 'C:\\Users\\gerge\\Documents\\Github\\gaiadr3_double_stars\\config.ini'
+# config_file = 'C:\\Users\\gerge\\Documents\\Github\\gaiadr3_double_stars\\config.ini'
+config_file = '/home/gergoe/Git/gaiadr3_double_stars/config.ini'
 
 # Read the configuration file
 config.read(config_file)

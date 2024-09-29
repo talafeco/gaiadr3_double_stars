@@ -462,7 +462,7 @@ def hrdPlot(pairname, working_directory, mag_abs_a, mag_abs_b, bv_a, bv_b, hippa
         plt.savefig(savename, bbox_inches='tight', dpi=300.0)
         plt.close()
     else:
-        print('Data is missiong, HRD plot cannot be created!')
+        print('Data is missing, HRD plot cannot be created!')
 
 
 # Create Image plot of the double stars

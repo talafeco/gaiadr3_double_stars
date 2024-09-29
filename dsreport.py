@@ -37,7 +37,7 @@ hipparcos_bv_index = hipparcos_file['B-V']
 dao_sigma = 3.0
 dao_fwhm = 7.0
 dao_threshold = 12.0
-possible_distance = 10000.0 # AU
+possible_distance = 30000.0 # AU
 search_cone = 0.001 # Decimal degree
 image_limit = 2000
 
