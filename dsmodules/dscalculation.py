@@ -56,7 +56,7 @@ wds_file = "C:/Users/gerge/Documents/Catalogs/WDS/wdsweb_summ2.txt"
 
 # Define double star class
 class gaia_calculated_attributes:
-    def __init__(self, pairParallaxFactor, pairPmFactor, pairPmCommon, pairAbsMag1, pairAbsMag2, pairLum1, pairLum2, pairAltLum1, pairAltLum2, pairRad1, pairRad2, pairDR3Theta, pairDR3Rho, pairMass1, pairMass2, pairBVIndexA, pairBVIndexB, pairSepPar2, pairDistance, pairSepPar, pairEscapeVelocity, pairRelativeVelocity, pairHarshawFactor, pairHarshawPhysicality, pairBinarity, pairDesignationA, pairDesignationB, pairRaA, pairDecA, pairRaB, pairDecB, pairMagA, pairMagB, pairGMagDiff, pairRadVelA, pairRadVelErrA, pairRadVelB, pairRadVelErrB, pairRadVelRatioA, pairRadVelRatioB, dateOfObservation, pairACurrentCoord, pairBCurrentCoord, pairAMeasuredCoord, pairBMeasuredCoord, pairACoordErr, pairBCoordErr, preciseCoord, gaiaData, pairDist1, pairDist2, pairDist3d):
+    def __init__(self, pairParallaxFactor, pairPmFactor, pairPmCommon, pairAbsMag1, pairAbsMag2, pairLum1, pairLum2, pairAltLum1, pairAltLum2, pairRad1, pairRad2, pairDR3Theta, pairDR3Rho, pairMass1, pairMass2, pairBVIndexA, pairBVIndexB, pairSepPar2, pairDistance, pairSepPar, pairEscapeVelocity, pairRelativeVelocity, pairHarshawFactor, pairHarshawPhysicality, pairBinarity, pairDesignationA, pairDesignationB, pairRaA, pairDecA, pairRaB, pairDecB, pairMagA, pairMagB, pairGMagDiff, pairRadVelA, pairRadVelErrA, pairRadVelB, pairRadVelErrB, pairRadVelRatioA, pairRadVelRatioB, dateOfObservation, pairACurrentCoord, pairBCurrentCoord, pairAMeasuredCoord, pairBMeasuredCoord, pairACoordErr, pairBCoordErr, preciseCoord, gaiaData, pairDist1, pairDist2, pairDist3d, pairGravitationalBound):
         self.pairParallaxFactor = pairParallaxFactor
         self.pairPmFactor = pairPmFactor
         self.pairPmCommon = pairPmCommon
@@ -109,6 +109,7 @@ class gaia_calculated_attributes:
         self.pairDist1 = pairDist1
         self.pairDist2 = pairDist2
         self.pairDist3d = pairDist3d
+        self.pairGravitationalBound = pairGravitationalBound
 
 class wds_attributes:
     def __init__(self, pairObjectId, starActualRa1, starActualDec1, starActualRa2, starActualDec2, pairMeanTheta, pairMeanThetaErr, pairMeanRho, pairMeanRhoErr, pairMagnitudeA, pairMagnitudeB, pairMagDiff, pairMagDiffErr, dateOfObservation, pairAMeasuredCoord, pairBMeasuredCoord, preciseCoord):
@@ -432,7 +433,6 @@ def calcRelativeVelocity(pmraa, pmdeca, pmrab, pmdecb, radvela, radvelb, dista, 
     sumspeeddiff = math.sqrt(tanspeeddiff ** 2 + radspeeddif ** 2)
     return sumspeeddiff
 
-
 # Function to calculate the Escape velocity of the system, separation should be calculated in parsec!
 
 def calcEscapevelocity(mass_a, mass_b, separation, gravconst):
@@ -456,6 +456,61 @@ def calcBinarity(relsped, escsped):
         else:
             binarity = 'no'
     return binarity
+
+def calc_gravitationall_bound(parallax1_mas, parallax2_mas, proper_motion1_mas_yr, proper_motion2_mas_yr, radial_velocity1_kms, radial_velocity2_kms, separation_arcsec, mass1_solar, mass2_solar):
+    """
+    Determine if two stars are gravitationally bound.
+
+    Parameters:
+    parallax1_mas (float): Parallax of the first star in milliarcseconds.
+    parallax2_mas (float): Parallax of the second star in milliarcseconds.
+    proper_motion1_mas_yr (float): Total proper motion of the first star in mas/year.
+    proper_motion2_mas_yr (float): Total proper motion of the second star in mas/year.
+    radial_velocity1_kms (float): Radial velocity of the first star in km/s.
+    radial_velocity2_kms (float): Radial velocity of the second star in km/s.
+    separation_arcsec (float): Angular separation between the two stars in arcseconds.
+    mass1_solar (float): Mass of the first star in solar masses.
+    mass2_solar (float): Mass of the second star in solar masses.
+
+    Returns:
+    bool: True if the stars are likely gravitationally bound, False otherwise.
+    """
+    # Convert parallax to distance in parsecs
+    d1 = 1000.0 / parallax1_mas
+    d2 = 1000.0 / parallax2_mas
+    
+    # Calculate the physical separation between the stars in parsecs
+    separation_parsecs = (separation_arcsec / 3600.0) * (np.pi / 180.0) * (d1 + d2) / 2
+    
+    # Calculate transverse velocities for both stars (km/s)
+    V_t1 = 4.74 * proper_motion1_mas_yr * d1
+    V_t2 = 4.74 * proper_motion2_mas_yr * d2
+
+    # Calculate the relative velocity (km/s)
+    V_rel = np.sqrt((V_t1 - V_t2)**2 + (float(radial_velocity1_kms) - float(radial_velocity2_kms))**2)
+
+    # Convert mass from solar masses to kg
+    solar_mass_kg = 1.989e30
+    M1 = mass1_solar * solar_mass_kg
+    M2 = mass2_solar * solar_mass_kg
+
+    # Convert separation from parsecs to meters
+    parsec_to_m = 3.086e16
+    D_m = separation_parsecs * parsec_to_m
+
+    # Calculate gravitational potential energy (Joules)
+    G = 6.67430e-11  # gravitational constant in m^3 kg^-1 s^-2
+    U = -G * M1 * M2 / D_m
+
+    # Calculate reduced mass (kg)
+    mu = (M1 * M2) / (M1 + M2)
+
+    # Calculate kinetic energy (Joules)
+    V_rel_m_s = V_rel * 1000  # convert km/s to m/s
+    K = 0.5 * mu * V_rel_m_s**2
+
+    # Compare kinetic energy and gravitational potential energy
+    return K < abs(U)
 
 # Function to calculate the Standard error in RA/DEC measurements
 def calcStandardError(arr):
@@ -991,6 +1046,7 @@ def gaia_calculations(gaia_star_a, gaia_star_b, double_star, search_key):
     pairHarshawFactor = calcHarshaw((pairParallaxFactor) / 100, (pairPmFactor))
     pairHarshawPhysicality = calcHarshawPhysicality(pairHarshawFactor * 100)
     pairBinarity = calcBinarity(pairRelativeVelocity, pairEscapeVelocity)
+    pairGravitationalBound = calc_gravitationall_bound(float(gaia_star_a['parallax']), float(gaia_star_b['parallax']), float(gaia_star_a['pm']), float(gaia_star_b['pmra']), convertStringToNan(gaia_star_a['radial_velocity']), convertStringToNan(gaia_star_b['radial_velocity']), pairDR3Rho, pairMass1, pairMass2)
     
     # Calculate values for each pair based on the groups
     # The key you are searching for (case insensitive)
@@ -1027,7 +1083,7 @@ def gaia_calculations(gaia_star_a, gaia_star_b, double_star, search_key):
     preciseCoord = str(getPreciseCoord(pairRaA, pairDecA, Time(double_star['image_date'].data).mean()))
     gaiaData = str(double_star[0]['2000 Coord']) + ',' + str(double_star[0]['Discov']) + ',' + str(gaia_star_a['pmra']) + ',' + str(gaia_star_a['pmdec']) + ',' + str(gaia_star_b['pmra']) + ',' + str(gaia_star_b['pmdec']) + ',' + str(gaia_star_a['parallax']) + ',' + str(gaia_star_b['parallax']) + ',' + str(calcDistance(gaia_star_a['parallax'])) + ',' + str(calcDistance(gaia_star_b['parallax'])) + ',' + str(gaia_star_a['radial_velocity']) + ',' + str(gaia_star_b['radial_velocity']) + ',' + 'pairRad1' + ',' + 'pairRad2' + ',' + str(pairLum1) + ',' + str(pairLum2) + ',' + str(gaia_star_a['teff_gspphot']) + ',' + str(gaia_star_b['teff_gspphot']) + ',' + str(gaia_star_a['phot_g_mean_mag']) + ',' + str(gaia_star_b['phot_g_mean_mag']) + ',' + str(gaia_star_a['phot_bp_mean_mag']) + ',' + str(gaia_star_b['phot_bp_mean_mag']) + ',' + str(gaia_star_a['phot_rp_mean_mag']) + ',' + str(gaia_star_b['phot_rp_mean_mag']) + ',' + str(pairDR3Theta) + ',' + str(pairDR3Rho) + ',' + str(gaia_star_a['ra']) + ',' + str(gaia_star_a['dec']) + ',' + str(gaia_star_b['ra']) + ',' + str(gaia_star_b['dec']) + ',' + str(gaia_star_a['parallax_error']) + ',' + str(gaia_star_b['parallax_error'])
 
-    double_star_calculation_results = gaia_calculated_attributes(pairParallaxFactor, pairPmFactor, pairPmCommon, pairAbsMag1, pairAbsMag2, pairLum1, pairLum2, pairAltLum1, pairAltLum2, pairRad1, pairRad2, pairDR3Theta, pairDR3Rho, pairMass1, pairMass2, pairBVIndexA, pairBVIndexB, pairSepPar2, pairDistance, pairSepPar, pairEscapeVelocity, pairRelativeVelocity, pairHarshawFactor, pairHarshawPhysicality, pairBinarity, pairDesignationA, pairDesignationB, pairRaA, pairDecA, pairRaB, pairDecB, pairMagA, pairMagB, pairGMagDiff, pairRadVelA, pairRadVelErrA, pairRadVelB, pairRadVelErrB, pairRadVelRatioA, pairRadVelRatioB, dateOfObservation, pairACurrentCoord, pairBCurrentCoord, pairAMeasuredCoord, pairBMeasuredCoord, pairACoordErr, pairBCoordErr, preciseCoord, gaiaData, pairDist1, pairDist2, pairDist3d)
+    double_star_calculation_results = gaia_calculated_attributes(pairParallaxFactor, pairPmFactor, pairPmCommon, pairAbsMag1, pairAbsMag2, pairLum1, pairLum2, pairAltLum1, pairAltLum2, pairRad1, pairRad2, pairDR3Theta, pairDR3Rho, pairMass1, pairMass2, pairBVIndexA, pairBVIndexB, pairSepPar2, pairDistance, pairSepPar, pairEscapeVelocity, pairRelativeVelocity, pairHarshawFactor, pairHarshawPhysicality, pairBinarity, pairDesignationA, pairDesignationB, pairRaA, pairDecA, pairRaB, pairDecB, pairMagA, pairMagB, pairGMagDiff, pairRadVelA, pairRadVelErrA, pairRadVelB, pairRadVelErrB, pairRadVelRatioA, pairRadVelRatioB, dateOfObservation, pairACurrentCoord, pairBCurrentCoord, pairAMeasuredCoord, pairBMeasuredCoord, pairACoordErr, pairBCoordErr, preciseCoord, gaiaData, pairDist1, pairDist2, pairDist3d, pairGravitationalBound)
 
     return double_star_calculation_results
 
@@ -1226,6 +1282,7 @@ def write_gaia_report(ds, wds_data, gaia_ds, image_folder):
     report_file.write('\nPair Harshaw factor: ' + str(roundNumber(gaia_ds.pairHarshawFactor)))
     report_file.write('\nPair Harshaw physicality: ' + str(gaia_ds.pairHarshawPhysicality))
     report_file.write('\nPair binarity: ' + str(gaia_ds.pairBinarity))
+    report_file.write('\nPair gravitational bound: ' + str(gaia_ds.pairGravitationalBound))
     report_file.close()
 
 def write_historic_orbit_report(wds_data, historic_orbit_object, image_folder):
