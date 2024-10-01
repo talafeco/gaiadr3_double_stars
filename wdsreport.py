@@ -123,8 +123,8 @@ workingDirectory = args.directory
 config = configparser.ConfigParser()
 
 # Define the configuration file
-# config_file = 'C:\\Users\\gerge\\Documents\\Github\\gaiadr3_double_stars\\config.ini'
-config_file = '/home/gergoe/Git/gaiadr3_double_stars/config.ini'
+config_file = 'C:\\Users\\gerge\\Documents\\Github\\gaiadr3_double_stars\\config.ini'
+# config_file = '/home/gergoe/Git/gaiadr3_double_stars/config.ini'
 
 # Read the configuration file
 config.read(config_file)
@@ -151,6 +151,7 @@ sun_absolute_luminosity = 3.828 * (10 ** 26)
 
 # Constant variables
 hipparcos_file = Table.read(config['data']['hipparcos_file'], format='ascii')
+gaia_file = Table.read(config['data']['gaia_file'], format='ascii')
 
 # Insert the downloaded wds file path here
 wds_file = config['data']['wds_file']
@@ -317,7 +318,7 @@ for ds in upd_sources_ds_by_object.groups:
     if gaiaAStar and gaiaBStar:
         gaia_ds = dscalculation.gaia_calculations(gaiaAStar, gaiaBStar, ds, searchKey)
         gaiaData = gaia_ds.gaiaData
-        dscalculation.hrdPlot(wds_double_star.pairObjectId, workingDirectory, gaia_ds.pairAbsMag1, gaia_ds.pairAbsMag2, gaia_ds.pairBVIndexA, gaia_ds.pairBVIndexB, hipparcos_file)
+        dscalculation.gaia_hrd_plot(wds_double_star.pairObjectId, workingDirectory, gaia_ds.pairAbsMag1, gaia_ds.pairAbsMag2, gaia_ds.pairBVIndexA, gaia_ds.pairBVIndexB, gaia_file)
         dscalculation.write_gaia_report(ds, wds_double_star, gaia_ds, workingDirectory)
 
         if args.orbit_calculations:
