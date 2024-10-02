@@ -37,6 +37,8 @@ Excel obs orbit 3,1109 optikai így is, úgy is, de az eltérés nagy, lehet a k
 # Get DR3 based HRD
 # Dont create wds doubles image, if no pairs found on images
 
+print('Importing modules, please stand by!')
+
 import pprint
 import argparse
 import os
@@ -68,6 +70,8 @@ from astropy.time import Time, TimeDelta
 warnings.filterwarnings("ignore")
 from astroquery.gaia import Gaia
 Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"  # Reselect Data Release 3, default
+
+print('\nModule import complete.', datetime.datetime.now())
 
 # Create an ArgumentParser object
 parser = argparse.ArgumentParser(description="A program with command line options.")
@@ -159,6 +163,8 @@ wds_file = config['data']['wds_file']
 # Library of map segments
 segment_lib = config['data']['segment_lib']
 
+print('\nReading WDS data', datetime.datetime.now())
+
 # Create WDS table
 wds_converters = {  '2000 Coord': np.str_,
                     'Discov': np.str_,
@@ -198,7 +204,7 @@ wds_data = Table.read(wds_file,
 
 ###################################################################################################################################
 
-print('\n### Reading WDS database ###')
+print('\nCreating WDS table', datetime.datetime.now())
 
 dsfilename = np.array([], dtype=str)
 dswds_identifier = np.array([], dtype=str)
@@ -245,7 +251,7 @@ reportcat = np.array([], dtype=str)
 preccoord = np.array([], dtype=str)
 reportTable = QTable([reportw_identifier, reportdate, reporttheta, reportthetaerr, reportrho, reportrhoerr, reportmag_pri, reportmag_prierr, reportmag_sec, reportmag_secerr, reportfilter, reportfilterfwhm, reporttelescopeap, reportnights, reportrefcode, reporttech, reportcat, preccoord], names=('wds_identifier', 'date_of_obs', 'mean_theta', 'mean_theta_err', 'mean_rho', 'mean_rho_err', 'mag_pri', 'mag_pri_err', 'mag_sec', 'mag_sec_err', 'filter', 'filter_fwhm', 'telescope_ap', 'nights_of_obs', 'reference_code', 'tech_code', 'catalog_code', 'precise_cordinates'), meta={'name': 'report table'})'''
 
-print('\n### Creating filelist ###')
+print('\nCreating filelist', datetime.datetime.now())
 directoryContent = os.listdir(workingDirectory)
 print('Working directory: ', workingDirectory)
 
@@ -264,7 +270,7 @@ sources_ds = Table()
 file_counter = 0
 
 ### Run source detection, collect star data to Qtable
-print('\n### Running source detection ###\n' , datetime.datetime.now())
+print('\nRunning source detection', datetime.datetime.now())
 for fitsFile in files:
     # 1. Read the list of sources extracted from an image (fits) file
     file_counter = file_counter + 1
@@ -274,6 +280,7 @@ for fitsFile in files:
 
     if args.find_doubles_on_image:
         image_center, image_radius = dscalculation.calculate_photo_center(image_wcs, fits_header)
+        print('Image center and radius: ', image_center, ',', image_radius)
         doubles_on_image_table = dscalculation.catalog_search_in_image(image_wcs, fits_header, image_center, image_radius, wds_catalog, wdsTable)
         wds_doubles_radec = SkyCoord(ra=doubles_on_image_table['Coord (RA) hms'], dec=doubles_on_image_table['Coord (DEC) dms'], unit='hour, degree', frame="icrs")
         wds_doubles_pixel = dscalculation.convert_coords_to_pixel(wds_doubles_radec, image_wcs)

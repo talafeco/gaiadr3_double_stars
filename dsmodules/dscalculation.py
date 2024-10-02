@@ -607,7 +607,7 @@ def gaia_hrd_plot(pairname, working_directory, mag_abs_a, mag_abs_b, bv_a, bv_b,
         plt.scatter(df['bp_rp'], df['abs_mag'], c=colors, s=0.5, alpha=0.2, cmap='RdYlBu_r') #, 
         plt.scatter(bv_a, mag_abs_a, s=14, color="blue", label='Main star') # s= 1 / mag_abs_a
         plt.scatter(bv_b, mag_abs_b, s=7, color="red", label='Companion star') # s= 1 / mag_abs_a
-        plt.legend(loc="upper left")
+        plt.legend(loc="upper right")
         plt.axis((-0.5,4,12,-2))
         plt.title('Double Star ' + pairname + ' H-R Diagram')
         plt.xlabel('G_BP - G_RP index', color='white')
@@ -635,10 +635,13 @@ def imagePlot(filename, working_directory, pairname, raa, deca, rab, decb, image
     star_b = SkyCoord(rab * u.deg, decb * u.deg, frame='icrs')
     star_a_pix = utils.skycoord_to_pixel(star_a, wcs_helix)
     star_b_pix = utils.skycoord_to_pixel(star_b, wcs_helix)
-    plt.scatter(star_a_pix[0] + 40, star_a_pix[1], marker="_", s=50, color="grey")
-    plt.scatter(star_a_pix[0], star_a_pix[1] + 40, marker="|", s=50, color="grey")
-    plt.scatter(star_b_pix[0] + 40, star_b_pix[1], marker="_", s=50, color="grey")
-    plt.scatter(star_b_pix[0], star_b_pix[1] + 40, marker="|", s=50, color="grey")
+    plt.scatter(star_a_pix[0] + 40, star_a_pix[1], marker="_", s=50, color="blue", label='Main star')
+    plt.scatter(star_a_pix[0], star_a_pix[1] + 40, marker="|", s=50, color="blue")
+    #plt.text(star_a_pix[0] + 10, star_a_pix[1] + 40, 'm', fontsize=10, color='blue')
+    plt.scatter(star_b_pix[0] + 40, star_b_pix[1], marker="_", s=50, color="red", label='Companion')
+    plt.scatter(star_b_pix[0], star_b_pix[1] + 40, marker="|", s=50, color="red")
+    #plt.text(star_a_pix[0] - 10, star_a_pix[1] - 50, 'c', fontsize=10, color='red')
+    plt.legend(loc="upper right")
     plt.title(pairname)
     plt.imshow(image, origin='lower',cmap='Greys', aspect='equal', vmax=image_limit, vmin=0) # , cmap='cividis'
     plt.savefig(str(working_directory + '/' + pairname + '_img.jpg').replace(' ', ''),dpi=300.0, bbox_inches='tight', pad_inches=0.2)
@@ -721,8 +724,7 @@ def calculate_photo_center(wcs, header):
     photo_right_lower = SkyCoord.from_pixel(header['NAXIS2'], header['NAXIS1'], wcs, origin=0, mode='all')
     center = SkyCoord(header['CRVAL1'] * u.degree, header['CRVAL2'] * u.degree)
     radius = photo_left_upper.separation(photo_right_lower) / 2
-    print('Center of photo: ', center.to_string('hmsdms'), '/', center.to_string('decimal'),
-      '\nRadius of photo: ', radius)
+    # print('Center of photo: ', center.to_string('hmsdms'), '/', center.to_string('decimal'), '\nRadius of photo: ', radius)
     return center, radius
 
 def get_objects_from_catalog(catalog, photo_center, photo_radius):
@@ -1271,7 +1273,7 @@ def write_gaia_report(ds, wds_data, gaia_ds, image_folder):
     report_file.write('\nMass A: ' + str(roundNumber(gaia_ds.pairMass1)))
     report_file.write('\nMass B: ' + str(roundNumber(gaia_ds.pairMass2)))
     report_file.write('\nBV index (bp-rp) A: ' + str(roundNumber(gaia_ds.pairBVIndexA)) + ' B: ' + str(roundNumber(gaia_ds.pairBVIndexB)))
-    report_file.write('\nRadial velocity of the stars ' + 'A:' + str(roundNumber(gaia_ds.pairRadVelA)) + 'km/s (Err:' + str(roundNumber(gaia_ds.pairRadVelErrA)) + 'km/s)' + ' B:' + str(roundNumber(gaia_ds.pairRadVelB)) + 'km/s (Err:' + str(roundNumber(gaia_ds.pairRadVelErrB)) + 'km/s)')
+    report_file.write('\nRadial velocity of the stars ' + 'A:' + str(roundNumber(gaia_ds.pairRadVelA)) + ' km/s (Err:' + str(roundNumber(gaia_ds.pairRadVelErrA)) + ' km/s)' + ' B:' + str(roundNumber(gaia_ds.pairRadVelB)) + ' km/s (Err:' + str(roundNumber(gaia_ds.pairRadVelErrB)) + ' km/s)')
     report_file.write('\nRadial velocity ratio A: ' + str(roundNumber(gaia_ds.pairRadVelRatioA)) + ' %')
     report_file.write('\nRadial velocity ratio B: ' + str(roundNumber(gaia_ds.pairRadVelRatioB)) + ' %')
     report_file.write('\nSeparation (2d): ' + str(roundNumber(gaia_ds.pairDistance[2] * auToParsec)) + ' pc, ' + str(roundNumber((gaia_ds.pairDistance[2]))) + ' au')
@@ -1285,7 +1287,7 @@ def write_gaia_report(ds, wds_data, gaia_ds, image_folder):
     report_file.write('\nPair Harshaw factor: ' + str(roundNumber(gaia_ds.pairHarshawFactor)))
     report_file.write('\nPair Harshaw physicality: ' + str(gaia_ds.pairHarshawPhysicality))
     report_file.write('\nPair binarity: ' + str(gaia_ds.pairBinarity))
-    report_file.write('\nPair gravitational bound: ' + str(gaia_ds.pairGravitationalBound[0]), + str(gaia_ds.pairGravitationalBound[1]))
+    report_file.write('\nPair gravitational bound: ' + str(gaia_ds.pairGravitationalBound[0]) + ', ' + str(gaia_ds.pairGravitationalBound[1]) + ' (kinetic / gravitational)')
     report_file.close()
 
 def write_historic_orbit_report(wds_data, historic_orbit_object, image_folder):
