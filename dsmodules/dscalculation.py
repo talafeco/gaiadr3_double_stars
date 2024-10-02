@@ -457,7 +457,7 @@ def calcBinarity(relsped, escsped):
             binarity = 'no'
     return binarity
 
-def calc_gravitationall_bound(parallax1_mas, parallax2_mas, proper_motion1_mas_yr, proper_motion2_mas_yr, radial_velocity1_kms, radial_velocity2_kms, separation_arcsec, mass1_solar, mass2_solar):
+def calc_gravitational_bound(parallax1_mas, parallax2_mas, proper_motion1_mas_yr, proper_motion2_mas_yr, radial_velocity1_kms, radial_velocity2_kms, separation_arcsec, mass1_solar, mass2_solar):
     """
     Determine if two stars are gravitationally bound.
 
@@ -510,7 +510,10 @@ def calc_gravitationall_bound(parallax1_mas, parallax2_mas, proper_motion1_mas_y
     K = 0.5 * mu * V_rel_m_s**2
 
     # Compare kinetic energy and gravitational potential energy
-    return K < abs(U)
+    gravitational_bound = K < abs(U)
+    gravitational_bound_percentage =  K / abs(U)
+
+    return gravitational_bound, gravitational_bound_percentage
 
 # Function to calculate the Standard error in RA/DEC measurements
 def calcStandardError(arr):
@@ -1046,7 +1049,7 @@ def gaia_calculations(gaia_star_a, gaia_star_b, double_star, search_key):
     pairHarshawFactor = calcHarshaw((pairParallaxFactor) / 100, (pairPmFactor))
     pairHarshawPhysicality = calcHarshawPhysicality(pairHarshawFactor * 100)
     pairBinarity = calcBinarity(pairRelativeVelocity, pairEscapeVelocity)
-    pairGravitationalBound = calc_gravitationall_bound(float(gaia_star_a['parallax']), float(gaia_star_b['parallax']), float(gaia_star_a['pm']), float(gaia_star_b['pmra']), convertStringToNan(gaia_star_a['radial_velocity']), convertStringToNan(gaia_star_b['radial_velocity']), pairDR3Rho, pairMass1, pairMass2)
+    pairGravitationalBound = calc_gravitational_bound(float(gaia_star_a['parallax']), float(gaia_star_b['parallax']), float(gaia_star_a['pm']), float(gaia_star_b['pmra']), convertStringToNan(gaia_star_a['radial_velocity']), convertStringToNan(gaia_star_b['radial_velocity']), pairDR3Rho, pairMass1, pairMass2)
     
     # Calculate values for each pair based on the groups
     # The key you are searching for (case insensitive)
@@ -1282,7 +1285,7 @@ def write_gaia_report(ds, wds_data, gaia_ds, image_folder):
     report_file.write('\nPair Harshaw factor: ' + str(roundNumber(gaia_ds.pairHarshawFactor)))
     report_file.write('\nPair Harshaw physicality: ' + str(gaia_ds.pairHarshawPhysicality))
     report_file.write('\nPair binarity: ' + str(gaia_ds.pairBinarity))
-    report_file.write('\nPair gravitational bound: ' + str(gaia_ds.pairGravitationalBound))
+    report_file.write('\nPair gravitational bound: ' + str(gaia_ds.pairGravitationalBound[0]), + str(gaia_ds.pairGravitationalBound[1]))
     report_file.close()
 
 def write_historic_orbit_report(wds_data, historic_orbit_object, image_folder):
