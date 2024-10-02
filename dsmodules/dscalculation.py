@@ -644,7 +644,7 @@ def imagePlot(filename, working_directory, pairname, raa, deca, rab, decb, image
     plt.legend(loc="upper right")
     plt.title(pairname)
     plt.imshow(image, origin='lower',cmap='Greys', aspect='equal', vmax=image_limit, vmin=0) # , cmap='cividis'
-    plt.savefig(str(working_directory + '/' + pairname + '_img.jpg').replace(' ', ''),dpi=300.0, bbox_inches='tight', pad_inches=0.2)
+    plt.savefig(str(pairname + '_img.jpg').replace(' ', ''),dpi=300.0, bbox_inches='tight', pad_inches=0.2)
     plt.close()
 
 def calc_average_distance(star_a_par, star_a_par_err, star_b_par, star_b_par_err, sep):
@@ -1288,6 +1288,8 @@ def write_gaia_report(ds, wds_data, gaia_ds, image_folder):
     report_file.write('\nPair Harshaw physicality: ' + str(gaia_ds.pairHarshawPhysicality))
     report_file.write('\nPair binarity: ' + str(gaia_ds.pairBinarity))
     report_file.write('\nPair gravitational bound: ' + str(gaia_ds.pairGravitationalBound[0]) + ', ' + str(gaia_ds.pairGravitationalBound[1]) + ' (kinetic / gravitational)')
+    ### gaiaData = str(ds[0]['2000 Coord']) + ',' + str(ds[0]['Discov']) + ',' + str(gaiaAStar[0]['pmra']) + ',' + str(gaiaAStar[0]['pmdec']) + ',' + str(gaiaBStar[0]['pmra']) + ',' + str(gaiaBStar[0]['pmdec']) + ',' + str(gaiaAStar[0]['parallax']) + ',' + str(gaiaBStar[0]['parallax']) + ',' + str(calcDistance(gaiaAStar[0]['parallax'])) + ',' + str(calcDistance(gaiaBStar[0]['parallax'])) + ',' + str(gaiaAStar[0]['radial_velocity']) + ',' + str(gaiaBStar[0]['radial_velocity']) + ',' + 'pairRad1' + ',' + 'pairRad2' + ',' + str(pairLum1) + ',' + str(pairLum2) + ',' + str(gaiaAStar[0]['teff_gspphot']) + ',' + str(gaiaBStar[0]['teff_gspphot']) + ',' + str(gaiaAStar[0]['phot_g_mean_mag']) + ',' + str(gaiaBStar[0]['phot_g_mean_mag']) + ',' + str(gaiaAStar[0]['phot_bp_mean_mag']) + ',' + str(gaiaBStar[0]['phot_bp_mean_mag']) + ',' + str(gaiaAStar[0]['phot_rp_mean_mag']) + ',' + str(gaiaBStar[0]['phot_rp_mean_mag']) + ',' + str(pairDR3Theta) + ',' + str(pairDR3Rho) + ',' + str(gaiaAStar[0]['ra']) + ',' + str(gaiaAStar[0]['dec']) + ',' + str(gaiaBStar[0]['ra']) + ',' + str(gaiaBStar[0]['dec']) + ',' + str(gaiaAStar[0]['parallax_error']) + ',' + str(gaiaBStar[0]['parallax_error'])
+    ### wdsform = str(ds[0]['2000 Coord']) + ',' + dateOfObservation + ',' +  str(roundNumber(pairMeanTheta)) + ',' +  str(roundNumber(pairMeanThetaErr)) + ',' +  str(roundNumber(pairMeanRho)) + ',' +  str(roundNumber(pairMeanRhoErr)) + ',' +  'nan' + ',' +  'nan' + ',' +  str(roundNumber(pairMagDiff)) + ',' +  str(roundNumber(pairMagDiffErr)) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TLB_2023' + ',' +  'C' + ',' + '7'+ ',' + str(getPreciseCoord(pairRaA, pairDecA, fitsFileDate))
     report_file.close()
 
 def write_historic_orbit_report(wds_data, historic_orbit_object, image_folder):
