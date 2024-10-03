@@ -475,45 +475,52 @@ def calc_gravitational_bound(parallax1_mas, parallax2_mas, proper_motion1_mas_yr
     Returns:
     bool: True if the stars are likely gravitationally bound, False otherwise.
     """
-    # Convert parallax to distance in parsecs
-    d1 = 1000.0 / parallax1_mas
-    d2 = 1000.0 / parallax2_mas
+    try:
+        # Convert parallax to distance in parsecs
+        d1 = 1000.0 / parallax1_mas
+        d2 = 1000.0 / parallax2_mas
+        
+        # Calculate the physical separation between the stars in parsecs
+        separation_parsecs = (separation_arcsec / 3600.0) * (np.pi / 180.0) * (d1 + d2) / 2
+        
+        # Calculate transverse velocities for both stars (km/s)
+        V_t1 = 4.74 * proper_motion1_mas_yr * d1
+        V_t2 = 4.74 * proper_motion2_mas_yr * d2
+
+        # Calculate the relative velocity (km/s)
+        V_rel = np.sqrt((V_t1 - V_t2)**2 + (float(radial_velocity1_kms) - float(radial_velocity2_kms))**2)
+
+        # Convert mass from solar masses to kg
+        solar_mass_kg = 1.989e30
+        M1 = mass1_solar * solar_mass_kg
+        M2 = mass2_solar * solar_mass_kg
+
+        # Convert separation from parsecs to meters
+        parsec_to_m = 3.086e16
+        D_m = separation_parsecs * parsec_to_m
+
+        # Calculate gravitational potential energy (Joules)
+        G = 6.67430e-11  # gravitational constant in m^3 kg^-1 s^-2
+        U = -G * M1 * M2 / D_m
+
+        # Calculate reduced mass (kg)
+        mu = (M1 * M2) / (M1 + M2)
+
+        # Calculate kinetic energy (Joules)
+        V_rel_m_s = V_rel * 1000  # convert km/s to m/s
+        K = 0.5 * mu * V_rel_m_s**2
+
+        # Compare kinetic energy and gravitational potential energy
+        gravitational_bound = K < abs(U)
+        gravitational_bound_percentage =  K / abs(U)
+        result = gravitational_bound, gravitational_bound_percentage
     
-    # Calculate the physical separation between the stars in parsecs
-    separation_parsecs = (separation_arcsec / 3600.0) * (np.pi / 180.0) * (d1 + d2) / 2
-    
-    # Calculate transverse velocities for both stars (km/s)
-    V_t1 = 4.74 * proper_motion1_mas_yr * d1
-    V_t2 = 4.74 * proper_motion2_mas_yr * d2
+    except Exception as exception:
+        # Handle any error, print the error message
+        print(f"An error occurred: {exception}")
+        result = None, None
 
-    # Calculate the relative velocity (km/s)
-    V_rel = np.sqrt((V_t1 - V_t2)**2 + (float(radial_velocity1_kms) - float(radial_velocity2_kms))**2)
-
-    # Convert mass from solar masses to kg
-    solar_mass_kg = 1.989e30
-    M1 = mass1_solar * solar_mass_kg
-    M2 = mass2_solar * solar_mass_kg
-
-    # Convert separation from parsecs to meters
-    parsec_to_m = 3.086e16
-    D_m = separation_parsecs * parsec_to_m
-
-    # Calculate gravitational potential energy (Joules)
-    G = 6.67430e-11  # gravitational constant in m^3 kg^-1 s^-2
-    U = -G * M1 * M2 / D_m
-
-    # Calculate reduced mass (kg)
-    mu = (M1 * M2) / (M1 + M2)
-
-    # Calculate kinetic energy (Joules)
-    V_rel_m_s = V_rel * 1000  # convert km/s to m/s
-    K = 0.5 * mu * V_rel_m_s**2
-
-    # Compare kinetic energy and gravitational potential energy
-    gravitational_bound = K < abs(U)
-    gravitational_bound_percentage =  K / abs(U)
-
-    return gravitational_bound, gravitational_bound_percentage
+    return result
 
 # Function to calculate the Standard error in RA/DEC measurements
 def calcStandardError(arr):
@@ -608,7 +615,7 @@ def gaia_hrd_plot(pairname, working_directory, mag_abs_a, mag_abs_b, bv_a, bv_b,
         plt.scatter(bv_a, mag_abs_a, s=14, color="blue", label='Main star') # s= 1 / mag_abs_a
         plt.scatter(bv_b, mag_abs_b, s=7, color="red", label='Companion star') # s= 1 / mag_abs_a
         plt.legend(loc="upper right")
-        plt.axis((-0.5,4,12,-2))
+        plt.axis((-0.7,4,12,-2))
         plt.title('Double Star ' + pairname + ' H-R Diagram')
         plt.xlabel('G_BP - G_RP index', color='white')
         plt.ylabel('Absolute magnitude', color='white')
@@ -644,7 +651,7 @@ def imagePlot(filename, working_directory, pairname, raa, deca, rab, decb, image
     plt.legend(loc="upper right")
     plt.title(pairname)
     plt.imshow(image, origin='lower',cmap='Greys', aspect='equal', vmax=image_limit, vmin=0) # , cmap='cividis'
-    plt.savefig(str(pairname + '_img.jpg').replace(' ', ''),dpi=300.0, bbox_inches='tight', pad_inches=0.2)
+    plt.savefig(str(working_directory + '/' + pairname + '_img.jpg').replace(' ', ''),dpi=300.0, bbox_inches='tight', pad_inches=0.2)
     plt.close()
 
 def calc_average_distance(star_a_par, star_a_par_err, star_b_par, star_b_par_err, sep):
@@ -673,51 +680,60 @@ def calc_historic_orbit(massa, massb, sep_pc, avg_distance, dr3_rho, wds_first_r
     print('wds_first_obs: ', wds_first_obs, ' (', type(wds_first_obs), ')')
     print('obs_time: ', obs_time, ' (', type(obs_time), ')')
 
-    # Calculate historical delta position angle (theta in decimal degree)
-    delta_theta = math.fabs(wds_first_theta - measured_theta)
+    try:
+        # Calculate historical delta position angle (theta in decimal degree)
+        delta_theta = math.fabs(wds_first_theta - measured_theta)
+        
+        # Calculate historical delta separation (rho in arcsconds)
+        delta_rho = math.fabs(wds_first_rho - measured_rho)
+        
+        # Calculate historical delta time (years)
+        delta_time = float(obs_time) - float(wds_first_obs)
+        
+        # Calculate half axis
+        half_axis = avg_distance * (1.26 * dr3_rho)
+        print('half_axis: ', half_axis, ' (', type(half_axis), ')')
+        
+        # Calculate maximum orbital velocity
+        # GYÖK(0.0043*($M$20+$N$20)*(2/($N$11*0.00000485)-1/(N25*0.00000485)))
+        max_orbit_velolicy = math.sqrt(gravConst * ((massa + massb) * (2 / (sep_pc)) - 1 / (half_axis * 0.00000485)))
+        #max_orbit_velolicy_alt = math.sqrt(0.0043 * (massa + massb) * (2 / (sep_pc) - 1 / (half_axis * 0.00000485)))
+        
+        # GYÖK((P33*(P35/$I$11))^2+(P34/$I$11)^2)
+        relative_velocity = math.sqrt((measured_rho * (delta_theta / delta_time)) ** 2 + (delta_rho / delta_time) ** 2)
+        #relative_velocity_alt = math.sqrt((measured_rho * (delta_theta / delta_time)) ** 2 + (delta_rho / delta_time) ** 2)
+        
+        # 0.0474*$N$10*P36
+        observed_velocity = 0.0474 * avg_distance * relative_velocity
+        historic_criterion = ''
+        input_data_variables = {
+            "massa" : massa,
+            "massb" : massb,
+            "sep_pc" : sep_pc, 
+            "avg_distance" : avg_distance, 
+            "dr3_rho" : dr3_rho, 
+            "wds_first_rho" : wds_first_rho, 
+            "measured_rho" : measured_rho, 
+            "wds_first_theta" : wds_first_theta, 
+            "measured_theta" : measured_theta, 
+            "wds_first_obs" : wds_first_obs, 
+            "obs_time" : obs_time
+        }
+        
+        if observed_velocity < max_orbit_velolicy:
+            historic_criterion = 'Physical'
+        else:
+            historic_criterion = 'Optical'
+        
+        result = historic_criterion, max_orbit_velolicy, observed_velocity, input_data_variables, delta_theta, delta_rho, delta_time
+
+    except Exception as exception:
+
+        # Handle any error, print the error message
+        print(f"An error occurred in historic orbit calculation: {exception}")
+        result = None, None, None, None, None, None, None
     
-    # Calculate historical delta separation (rho in arcsconds)
-    delta_rho = math.fabs(wds_first_rho - measured_rho)
-    
-    # Calculate historical delta time (years)
-    delta_time = float(obs_time) - float(wds_first_obs)
-    
-    # Calculate half axis
-    half_axis = avg_distance * (1.26 * dr3_rho)
-    print('half_axis: ', half_axis, ' (', type(half_axis), ')')
-    
-    # Calculate maximum orbital velocity
-    # GYÖK(0.0043*($M$20+$N$20)*(2/($N$11*0.00000485)-1/(N25*0.00000485)))
-    max_orbit_velolicy = math.sqrt(gravConst * ((massa + massb) * (2 / (sep_pc)) - 1 / (half_axis * 0.00000485)))
-    #max_orbit_velolicy_alt = math.sqrt(0.0043 * (massa + massb) * (2 / (sep_pc) - 1 / (half_axis * 0.00000485)))
-    
-    # GYÖK((P33*(P35/$I$11))^2+(P34/$I$11)^2)
-    relative_velocity = math.sqrt((measured_rho * (delta_theta / delta_time)) ** 2 + (delta_rho / delta_time) ** 2)
-    #relative_velocity_alt = math.sqrt((measured_rho * (delta_theta / delta_time)) ** 2 + (delta_rho / delta_time) ** 2)
-    
-    # 0.0474*$N$10*P36
-    observed_velocity = 0.0474 * avg_distance * relative_velocity
-    historic_criterion = ''
-    input_data_variables = {
-        "massa" : massa,
-        "massb" : massb,
-        "sep_pc" : sep_pc, 
-        "avg_distance" : avg_distance, 
-        "dr3_rho" : dr3_rho, 
-        "wds_first_rho" : wds_first_rho, 
-        "measured_rho" : measured_rho, 
-        "wds_first_theta" : wds_first_theta, 
-        "measured_theta" : measured_theta, 
-        "wds_first_obs" : wds_first_obs, 
-        "obs_time" : obs_time
-    }
-    
-    if observed_velocity < max_orbit_velolicy:
-        historic_criterion = 'Physical'
-    else:
-        historic_criterion = 'Optical'   
-    
-    return historic_criterion, max_orbit_velolicy, observed_velocity, input_data_variables, delta_theta, delta_rho, delta_time
+    return result
 
 def calculate_photo_center(wcs, header):
     photo_left_upper = SkyCoord.from_pixel(0, 0, wcs, origin=0, mode='all')
@@ -844,16 +860,20 @@ def set_observation_date(file_header):
     return sources'''
 
 def get_gaia_dr3_data(doublestars, search_cone):
-    pairACoord = SkyCoord(ra=doublestars['ra_deg_1'].mean(), dec=doublestars['dec_deg_1'].mean(), unit=(u.degree, u.degree), frame='icrs')
-    pairBCoord = SkyCoord(ra=doublestars['ra_deg_2'].mean(), dec=doublestars['dec_deg_2'].mean(), unit=(u.degree, u.degree), frame='icrs')
-    a = Gaia.cone_search_async(pairACoord, radius=u.Quantity(search_cone, u.deg))
-    b = Gaia.cone_search_async(pairBCoord, radius=u.Quantity(search_cone, u.deg))
-    a_query = a.get_results()[0]
-    b_query = b.get_results()[0]
-    print(a_query['DESIGNATION'])
-    print(b_query['DESIGNATION'])
-    
-    return a_query, b_query
+    try:
+        pairACoord = SkyCoord(ra=doublestars['ra_deg_1'].mean(), dec=doublestars['dec_deg_1'].mean(), unit=(u.degree, u.degree), frame='icrs')
+        pairBCoord = SkyCoord(ra=doublestars['ra_deg_2'].mean(), dec=doublestars['dec_deg_2'].mean(), unit=(u.degree, u.degree), frame='icrs')
+        a = Gaia.cone_search_async(pairACoord, radius=u.Quantity(search_cone, u.deg))
+        b = Gaia.cone_search_async(pairBCoord, radius=u.Quantity(search_cone, u.deg))
+        a_query = a.get_results()[0]
+        b_query = b.get_results()[0]
+        print(a_query['DESIGNATION'])
+        print(b_query['DESIGNATION'])
+        result = a_query, b_query
+    except IndexError:
+        print('Index error, a or b query unsuccessful.')
+        result = None, None
+    return result
 
 def get_gaia_dr3_data_offline(doublestars, segment_lib):
     pairACoord = SkyCoord(ra=doublestars['ra_deg_1'].mean(), dec=doublestars['dec_deg_1'].mean(), unit=(u.degree, u.degree), frame='icrs')
@@ -922,7 +942,7 @@ def get_fits_data(fits_file):
 
     return hdu, wcs, fits_header, fits_data, fits_file_date
 
-def get_sources_from_image(sources_ds, wds_catalog, fits_data, fits_header, fits_file_name, fits_file_date, image_wcs, wds_table, dao_sigma, dao_fwhm, dao_threshold, search_cone):
+def get_ds_from_image(sources_ds, wds_catalog, fits_data, fits_header, fits_file_name, fits_file_date, image_wcs, wds_table, dao_sigma, dao_fwhm, dao_threshold, search_cone):
     ds_sources = Table()
     mean, median, std = sigma_clipped_stats(fits_data, sigma = dao_sigma)  
     daofind = DAOStarFinder(fwhm=dao_fwhm, threshold=dao_threshold*std)  
@@ -1288,8 +1308,9 @@ def write_gaia_report(ds, wds_data, gaia_ds, image_folder):
     report_file.write('\nPair Harshaw physicality: ' + str(gaia_ds.pairHarshawPhysicality))
     report_file.write('\nPair binarity: ' + str(gaia_ds.pairBinarity))
     report_file.write('\nPair gravitational bound: ' + str(gaia_ds.pairGravitationalBound[0]) + ', ' + str(gaia_ds.pairGravitationalBound[1]) + ' (kinetic / gravitational)')
-    ### gaiaData = str(ds[0]['2000 Coord']) + ',' + str(ds[0]['Discov']) + ',' + str(gaiaAStar[0]['pmra']) + ',' + str(gaiaAStar[0]['pmdec']) + ',' + str(gaiaBStar[0]['pmra']) + ',' + str(gaiaBStar[0]['pmdec']) + ',' + str(gaiaAStar[0]['parallax']) + ',' + str(gaiaBStar[0]['parallax']) + ',' + str(calcDistance(gaiaAStar[0]['parallax'])) + ',' + str(calcDistance(gaiaBStar[0]['parallax'])) + ',' + str(gaiaAStar[0]['radial_velocity']) + ',' + str(gaiaBStar[0]['radial_velocity']) + ',' + 'pairRad1' + ',' + 'pairRad2' + ',' + str(pairLum1) + ',' + str(pairLum2) + ',' + str(gaiaAStar[0]['teff_gspphot']) + ',' + str(gaiaBStar[0]['teff_gspphot']) + ',' + str(gaiaAStar[0]['phot_g_mean_mag']) + ',' + str(gaiaBStar[0]['phot_g_mean_mag']) + ',' + str(gaiaAStar[0]['phot_bp_mean_mag']) + ',' + str(gaiaBStar[0]['phot_bp_mean_mag']) + ',' + str(gaiaAStar[0]['phot_rp_mean_mag']) + ',' + str(gaiaBStar[0]['phot_rp_mean_mag']) + ',' + str(pairDR3Theta) + ',' + str(pairDR3Rho) + ',' + str(gaiaAStar[0]['ra']) + ',' + str(gaiaAStar[0]['dec']) + ',' + str(gaiaBStar[0]['ra']) + ',' + str(gaiaBStar[0]['dec']) + ',' + str(gaiaAStar[0]['parallax_error']) + ',' + str(gaiaBStar[0]['parallax_error'])
-    ### wdsform = str(ds[0]['2000 Coord']) + ',' + dateOfObservation + ',' +  str(roundNumber(pairMeanTheta)) + ',' +  str(roundNumber(pairMeanThetaErr)) + ',' +  str(roundNumber(pairMeanRho)) + ',' +  str(roundNumber(pairMeanRhoErr)) + ',' +  'nan' + ',' +  'nan' + ',' +  str(roundNumber(pairMagDiff)) + ',' +  str(roundNumber(pairMagDiffErr)) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TLB_2023' + ',' +  'C' + ',' + '7'+ ',' + str(getPreciseCoord(pairRaA, pairDecA, fitsFileDate))
+    wdsform = str(ds[0]['2000 Coord']) + ',' + wds_data.dateOfObservation + ',' +  str(roundNumber(wds_data.pairMeanTheta)) + ',' +  str(roundNumber(wds_data.pairMeanThetaErr)) + ',' +  str(roundNumber(wds_data.pairMeanRho)) + ',' +  str(roundNumber(wds_data.pairMeanRhoErr)) + ',' +  'nan' + ',' +  'nan' + ',' +  str(roundNumber(wds_data.pairMagDiff)) + ',' +  str(roundNumber(wds_data.pairMagDiffErr)) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TLB_2023' + ',' +  'C' + ',' + '7'+ ',' + str(getPreciseCoord(wds_data.starActualRa1, wds_data.starActualDec1, fits_file_date))
+    report_file.write('\nWDS form: ' + wdsform)
+    report_file.write('\nGaia data: ' + gaia_ds.gaiaData)
     report_file.close()
 
 def write_historic_orbit_report(wds_data, historic_orbit_object, image_folder):
