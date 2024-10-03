@@ -1061,8 +1061,8 @@ def gaia_calculations(gaia_star_a, gaia_star_b, double_star, search_key):
     pairDist3d = calculate_3d_distance(float(gaia_star_a['parallax']), float(gaia_star_b['parallax']), pairDR3Rho)
     pairMass1 = calcMass(pairLum1)
     pairMass2 = calcMass(pairLum2)
-    pairBVIndexA = float(gaia_star_a['phot_bp_mean_mag']) - float(gaia_star_a['phot_rp_mean_mag'])
-    pairBVIndexB = float(gaia_star_b['phot_bp_mean_mag']) - float(gaia_star_b['phot_rp_mean_mag'])
+    pairBVIndexA = float(convertStringToNan(gaia_star_a['phot_bp_mean_mag'])) - float(convertStringToNan(gaia_star_a['phot_rp_mean_mag']))
+    pairBVIndexB = float(convertStringToNan(gaia_star_b['phot_bp_mean_mag'])) - float(convertStringToNan(gaia_star_b['phot_rp_mean_mag']))
     pairSepPar2 = sepCalc(pairDistanceMinA, pairDistanceMinB, pairDR3Rho) # Separation of the pairs in parsecs
     pairDistance = calc_average_distance(float(gaia_star_a['parallax']), float(gaia_star_a['parallax_error']), float(gaia_star_b['parallax']), float(gaia_star_b['parallax_error']), pairDR3Rho)
     pairSepPar = pairDistance[2] * auToParsec
