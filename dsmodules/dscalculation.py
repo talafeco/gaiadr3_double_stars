@@ -48,7 +48,7 @@ frame_percentage = 5
 # hipparcos_file = Table.read(f"C:/Users/gerge/Documents/Catalogs/Hipparcos/I_239_selection.csv", format='ascii')
 
 # Insert the downloaded wds file path here
-wds_file = "C:/Users/gerge/Documents/Catalogs/WDS/wdsweb_summ2.txt"
+# wds_file = "C:/Users/gerge/Documents/Catalogs/WDS/wdsweb_summ2.txt"
 
 ######################
 ### Define classes ###
