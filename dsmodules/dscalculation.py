@@ -617,7 +617,7 @@ def gaia_hrd_plot(pairname, working_directory, mag_abs_a, mag_abs_b, bv_a, bv_b,
         plt.scatter(bv_a, mag_abs_a, s=50, marker='D' , color="blue", label='Main star') # s= 1 / mag_abs_a
         plt.scatter(bv_b, mag_abs_b, s=50, marker='^' , color="red", label='Companion star') # s= 1 / mag_abs_a
         plt.legend(loc="upper right")
-        plt.axis((-0.7,4,12,-2))
+        plt.axis((-0.8,4,12,-2))
         #plt.title('Double Star ' + pairname + ' H-R Diagram')
         plt.xlabel('G_BP - G_RP index', color='white')
         plt.ylabel('Absolute magnitude', color='white')
@@ -651,7 +651,7 @@ def imagePlot(filename, working_directory, pairname, raa, deca, rab, decb, image
     #plt.text(star_a_pix[0] - 10, star_a_pix[1] - 50, 'c', fontsize=10, color='red')
     plt.legend(loc="upper right")
     plt.title(pairname)
-    plt.imshow(image, origin='lower',cmap='Greys', aspect='equal') # , vmax=image_limit, vmin=0
+    plt.imshow(image, origin='lower',cmap='Greys', aspect='equal', vmax=image_limit, vmin=0) # 
     plt.savefig(str(working_directory + '/' + pairname + '_img.jpg').replace(' ', ''),dpi=300.0, bbox_inches='tight', pad_inches=0.2)
     plt.close()
 
@@ -803,26 +803,25 @@ def crop_double_star_to_jpg_with_markers(fits_path, working_directory, pairname,
     midpoint = star_a.directional_offset_by(ds_pa, (ds_sep / 2))
     star_a_pix = utils.skycoord_to_pixel(star_a, wcs_helix)
     star_b_pix = utils.skycoord_to_pixel(star_b, wcs_helix)
-    plt.scatter(star_a_pix[0] + 20, star_a_pix[1], marker="_", s=200, color="blue", label='Main star')
-    plt.scatter(star_a_pix[0], star_a_pix[1] + 20, marker="|", s=200, color="blue")
-    plt.scatter(star_b_pix[0] + 20, star_b_pix[1], marker="_", s=200, color="red", label='Companion')
-    plt.scatter(star_b_pix[0], star_b_pix[1] + 20, marker="|", s=200, color="red")
+    pixel_separation = np.sqrt((star_a_pix[0] - star_b_pix[0])**2 + (star_a_pix[1] - star_b_pix[1])**2)
+    plt.scatter(star_a_pix[0] + pixel_separation / 2, star_a_pix[1], marker="_", s=200, color="darkblue", label='Main star')
+    plt.scatter(star_a_pix[0], star_a_pix[1] + pixel_separation / 2, marker="|", s=200, color="darkblue")
+    plt.scatter(star_b_pix[0] + pixel_separation / 2, star_b_pix[1], marker="_", s=200, color="cornflowerblue", label='Companion')
+    plt.scatter(star_b_pix[0], star_b_pix[1] + pixel_separation / 2, marker="|", s=200, color="cornflowerblue")
     plt.legend(loc="upper right")
     plt.title(pairname)
-
-    pixel_separation = np.sqrt((star_a_pix[0] - star_b_pix[0])**2 + (star_a_pix[1] - star_b_pix[1])**2)
 
     # Get the current axis limits
     x_center = star_a_pix[0]
     y_center = star_a_pix[1]
-    x_range = pixel_separation * 3
-    y_range = pixel_separation * 3
+    x_range = pixel_separation * 5
+    y_range = pixel_separation * 5
 
     # Set new limits centered around the center point
     plt.xlim(x_center - x_range, x_center + x_range)
     plt.ylim(y_center - y_range, y_center + y_range)
 
-    plt.imshow(image, origin='lower',cmap='Greys', aspect='equal') # , vmax=image_limit, vmin=0
+    plt.imshow(image, origin='lower',cmap='Greys', aspect='equal', vmax=image_limit, vmin=0) # 
     plt.savefig(str(working_directory + '/' + pairname + '_crp_img.jpg').replace(' ', ''),dpi=300.0, bbox_inches='tight', pad_inches=0.2)
     plt.close()
 

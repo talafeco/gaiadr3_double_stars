@@ -40,7 +40,7 @@ dao_fwhm = 7.0
 dao_threshold = 12.0
 possible_distance = 50000.0 # AU
 search_cone = 0.002 # Decimal degree
-image_limit = 1000
+image_limit = 2000
 
 # Gravitational constant is convenient if measure distances in parsecs (pc), velocities in kilometres per second (km/s) and masses in solar units M
 gravConst = 0.0043009 
