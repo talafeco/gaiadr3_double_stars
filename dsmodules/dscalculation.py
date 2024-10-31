@@ -604,6 +604,7 @@ def hrdPlot(pairname, working_directory, mag_abs_a, mag_abs_b, bv_a, bv_b, hippa
 def gaia_hrd_plot(pairname, working_directory, mag_abs_a, mag_abs_b, bv_a, bv_b, gaia_file):
     if pairname and mag_abs_a and mag_abs_b and bv_a and bv_b:
         df = gaia_file.to_pandas()
+        savename = str(working_directory + '/' + pairname + '_ghrd.jpg').replace(' ', '')
         colors = (df['bp_rp'])
         plt.figure(figsize=(10, 10), facecolor='black')  # Set figure background to black
         ax = plt.gca()
@@ -613,18 +614,17 @@ def gaia_hrd_plot(pairname, working_directory, mag_abs_a, mag_abs_b, bv_a, bv_b,
         ax.spines['right'].set_color('white')
         ax.spines['left'].set_color('white')
         plt.scatter(df['bp_rp'], df['abs_mag'], c=colors, s=0.5, alpha=0.2, cmap='RdYlBu_r') #, 
-        plt.scatter(bv_a, mag_abs_a, s=14, color="blue", label='Main star') # s= 1 / mag_abs_a
-        plt.scatter(bv_b, mag_abs_b, s=7, color="red", label='Companion star') # s= 1 / mag_abs_a
+        plt.scatter(bv_a, mag_abs_a, s=50, marker='D' , color="blue", label='Main star') # s= 1 / mag_abs_a
+        plt.scatter(bv_b, mag_abs_b, s=50, marker='^' , color="red", label='Companion star') # s= 1 / mag_abs_a
         plt.legend(loc="upper right")
         plt.axis((-0.7,4,12,-2))
-        plt.title('Double Star ' + pairname + ' H-R Diagram')
+        #plt.title('Double Star ' + pairname + ' H-R Diagram')
         plt.xlabel('G_BP - G_RP index', color='white')
         plt.ylabel('Absolute magnitude', color='white')
-        plt.title('Hertzsprung-Russell Diagram (Color Index vs Absolute Magnitude)', color='white')
+        plt.title(' Hertzsprung-Russell Diagram of ' + pairname + ' (Color Index vs Absolute Magnitude)', color='white')
         #plt.grid(color='gray', linestyle='--', linewidth=0.5)
         ax.tick_params(axis='x', colors='white')
         ax.tick_params(axis='y', colors='white')
-        savename = str(working_directory + '/' + pairname + '_ghrd.jpg').replace(' ', '')
         plt.savefig(savename, bbox_inches='tight', dpi=300.0)
         plt.close()
 
@@ -651,7 +651,7 @@ def imagePlot(filename, working_directory, pairname, raa, deca, rab, decb, image
     #plt.text(star_a_pix[0] - 10, star_a_pix[1] - 50, 'c', fontsize=10, color='red')
     plt.legend(loc="upper right")
     plt.title(pairname)
-    plt.imshow(image, origin='lower',cmap='Greys', aspect='equal', vmax=image_limit, vmin=0) # , cmap='cividis'
+    plt.imshow(image, origin='lower',cmap='Greys', aspect='equal') # , vmax=image_limit, vmin=0
     plt.savefig(str(working_directory + '/' + pairname + '_img.jpg').replace(' ', ''),dpi=300.0, bbox_inches='tight', pad_inches=0.2)
     plt.close()
 
@@ -822,7 +822,7 @@ def crop_double_star_to_jpg_with_markers(fits_path, working_directory, pairname,
     plt.xlim(x_center - x_range, x_center + x_range)
     plt.ylim(y_center - y_range, y_center + y_range)
 
-    plt.imshow(image, origin='lower',cmap='Greys', aspect='equal') # , cmap='cividis' vmax=image_limit, vmin=0
+    plt.imshow(image, origin='lower',cmap='Greys', aspect='equal') # , vmax=image_limit, vmin=0
     plt.savefig(str(working_directory + '/' + pairname + '_crp_img.jpg').replace(' ', ''),dpi=300.0, bbox_inches='tight', pad_inches=0.2)
     plt.close()
 

@@ -38,9 +38,9 @@ hipparcos_bv_index = hipparcos_file['B-V']
 dao_sigma = 3.0
 dao_fwhm = 7.0
 dao_threshold = 12.0
-possible_distance = 30000.0 # AU
-search_cone = 0.001 # Decimal degree
-image_limit = 2000
+possible_distance = 50000.0 # AU
+search_cone = 0.002 # Decimal degree
+image_limit = 1000
 
 # Gravitational constant is convenient if measure distances in parsecs (pc), velocities in kilometres per second (km/s) and masses in solar units M
 gravConst = 0.0043009 
@@ -647,14 +647,13 @@ objectMean = reportTable_by_object.groups.aggregate(np.mean)
 count = 1
 for ds in reportTable_by_object.groups:
     print('\n### Group index:', count, '###')
-    print(ds.info)
     count = count + 1
     rhoPairDr3 = rhoCalc(ds[0]['ra_a'], ds[0]['dec_a'], ds[0]['ra_b'], ds[0]['dec_b'])
     pairFileName = ds[0]['filename']
     pairRaA = ds[0]['ra_a']
     pairDecA = ds[0]['dec_a']
     pairRaB = ds[0]['ra_b']
-    pairDecB = ds[0]['dec_a']
+    pairDecB = ds[0]['dec_b']
     pairDistanceMinA = calcDistanceMin(ds[0]['parallax_a'], ds[0]['parallax_error_a'])
     pairDistanceMinB = calcDistanceMin(ds[0]['parallax_b'], ds[0]['parallax_error_b'])
     pairMeanTheta = ds['theta_measured'].groups.aggregate(np.mean)
@@ -721,10 +720,10 @@ for ds in reportTable_by_object.groups:
     
 
     # Plot double star components on the full image
-    imagePlot(pairFileName, pairDesignationA, pairDesignationB, pairRaA, pairDecA, pairRaB, pairDecB)
+    imagePlot(pairFileName, pairDesignationA, pairDesignationB, pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree)
 
     # Plot double star components on a cropped image
-    dscalculation.crop_double_star_to_jpg_with_markers(pairFileName, workingDirectory, ds[0]['object_id'], pairRaA, pairDecA, pairRaB, pairDecB, image_limit)
+    dscalculation.crop_double_star_to_jpg_with_markers(pairFileName, workingDirectory, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
 
     # Create HRD based on Gaia data
     dscalculation.gaia_hrd_plot(ds[0]['object_id'], workingDirectory, pairAbsMag1,pairAbsMag2, pairBVIndexA, pairBVIndexB, gaia_file)
@@ -743,8 +742,8 @@ for ds in reportTable_by_object.groups:
     print('Component B DR3 on date:', pairBCurrentCoord.ra.degree, pairBCurrentCoord.dec.degree)
     print('Component B measured:', pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree)
     print('Component B error (on date - measured):', pairBCoordErr.arcsecond)
-    print('2016 Calculared Position angle / Separation: ', pairACurrentCoord.position_angle(pairBCurrentCoord).degree, pairACurrentCoord.separation(pairBCurrentCoord).arcsecond)
-    print('Current Calculared Position angle / Separation: ', SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree, SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond)
+    print('2016 Calculated Position angle / Separation: ', pairACurrentCoord.position_angle(pairBCurrentCoord).degree, pairACurrentCoord.separation(pairBCurrentCoord).arcsecond)
+    print('Current Calculated Position angle / Separation: ', SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree, SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond)
     print('\nTheta measurements\n', ds['theta_measured'])
     print('Number of measurements: ', pairNumTheta)
     print('Mean:', pairMeanTheta[0])
@@ -802,8 +801,8 @@ for ds in reportTable_by_object.groups:
     reportFile.write('\nComponent B DR3 on date: ' + str(pairBCurrentCoord.ra.degree) + ' ' + str(pairBCurrentCoord.dec.degree))
     reportFile.write('\nComponent B measured: ' + str(pairBMeasuredCoord.ra.degree) + ' ' + str(pairBMeasuredCoord.dec.degree))
     reportFile.write('\nComponent B error (on date - measured): ' + str(pairBCoordErr.arcsecond))
-    reportFile.write('\n\n2016 Calculared Position angle / Separation: '  + str(pairACurrentCoord.position_angle(pairBCurrentCoord).degree) + ' ' + str(pairACurrentCoord.separation(pairBCurrentCoord).arcsecond))
-    reportFile.write('\nCurrent Calculared Position angle / Separation: ' + str(SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree) + ' ' + str(SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond))
+    reportFile.write('\n\n2016 Calculated Position angle / Separation: '  + str(pairACurrentCoord.position_angle(pairBCurrentCoord).degree) + ' ' + str(pairACurrentCoord.separation(pairBCurrentCoord).arcsecond))
+    reportFile.write('\nCurrent Calculated Position angle / Separation: ' + str(SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree) + ' ' + str(SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond))
     reportFile.write('\n\nTheta measurements\n' + str(ds['theta_measured']))
     reportFile.write('\nMean: ' + str(pairMeanTheta[0]))
     reportFile.write('\nError: ' + str(pairMeanThetaErr[0]))
