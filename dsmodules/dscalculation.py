@@ -26,6 +26,7 @@ import warnings
 from matplotlib import pyplot as plt
 from astropy.wcs import utils
 from astropy.time import Time, TimeDelta
+from PIL import Image, ImageDraw
 warnings.filterwarnings("ignore")
 from astroquery.gaia import Gaia
 Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"  # Reselect Data Release 3, default
@@ -784,6 +785,48 @@ def plot_image_with_frame(image_array, wds_double_stars, frame_edges, output_fil
     # Close the plot to free up memory
     plt.close()
 
+def crop_double_star_to_jpg_with_markers(fits_path, working_directory, pairname, raa, deca, rab, decb, image_limit):
+    # Load the FITS file to extract WCS and image data
+    with fits.open(fits_path) as hdul:
+        wcs = WCS(hdul[0].header)
+        image_data = hdul[0].data
+
+    image_data = fits.open(fits_path)
+    header = image_data[0].header
+    wcs_helix = WCS(image_data[0].header, naxis=2)
+    image = image_data[0].data
+    image_height = header['NAXIS2']
+    star_a = SkyCoord(raa * u.deg, deca * u.deg, frame='icrs')
+    star_b = SkyCoord(rab * u.deg, decb * u.deg, frame='icrs')
+    ds_pa = star_a.position_angle(star_b)
+    ds_sep = star_a.separation(star_b).arcsec
+    midpoint = star_a.directional_offset_by(ds_pa, (ds_sep / 2))
+    star_a_pix = utils.skycoord_to_pixel(star_a, wcs_helix)
+    star_b_pix = utils.skycoord_to_pixel(star_b, wcs_helix)
+    plt.scatter(star_a_pix[0] + 20, star_a_pix[1], marker="_", s=200, color="blue", label='Main star')
+    plt.scatter(star_a_pix[0], star_a_pix[1] + 20, marker="|", s=200, color="blue")
+    plt.scatter(star_b_pix[0] + 20, star_b_pix[1], marker="_", s=200, color="red", label='Companion')
+    plt.scatter(star_b_pix[0], star_b_pix[1] + 20, marker="|", s=200, color="red")
+    plt.legend(loc="upper right")
+    plt.title(pairname)
+
+    pixel_separation = np.sqrt((star_a_pix[0] - star_b_pix[0])**2 + (star_a_pix[1] - star_b_pix[1])**2)
+
+    # Get the current axis limits
+    x_center = star_a_pix[0]
+    y_center = star_a_pix[1]
+    x_range = pixel_separation * 3
+    y_range = pixel_separation * 3
+
+    # Set new limits centered around the center point
+    plt.xlim(x_center - x_range, x_center + x_range)
+    plt.ylim(y_center - y_range, y_center + y_range)
+
+    plt.imshow(image, origin='lower',cmap='Greys', aspect='equal') # , cmap='cividis' vmax=image_limit, vmin=0
+    plt.savefig(str(working_directory + '/' + pairname + '_crp_img.jpg').replace(' ', ''),dpi=300.0, bbox_inches='tight', pad_inches=0.2)
+    plt.close()
+
+
 def define_image_plane(wcs, header):
     # Define inner rectangle coordinates
     # Define the inner rectangle percent in image pixels measured from the edge of the image
@@ -797,8 +840,6 @@ def define_image_plane(wcs, header):
     photo_left_lower = SkyCoord.from_pixel(photo_y_coords[1], photo_x_coords[0], wcs, origin=0, mode='all')
     photo_right_upper = SkyCoord.from_pixel(photo_y_coords[0], photo_x_coords[1], wcs, origin=0, mode='all')
     photo_right_lower = SkyCoord.from_pixel(photo_y_coords[1], photo_x_coords[1], wcs, origin=0, mode='all')
-    # print('photo_coords in pixel: ', photo_x_coords, photo_y_coords)
-    # print('photo_coords in degree: ', SkyCoord.to_pixel(photo_left_upper, wcs, origin=0, mode='all'), SkyCoord.to_pixel(photo_left_lower, wcs, origin=0, mode='all'), SkyCoord.to_pixel(photo_right_upper, wcs, origin=0, mode='all'))
     half_width = photo_left_upper.separation(photo_right_upper) / 2
     half_height = photo_left_upper.separation(photo_left_lower) / 2
     corners = SkyCoord(

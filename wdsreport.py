@@ -314,6 +314,7 @@ for ds in upd_sources_ds_by_object.groups:
     firstFitsImageFileName = ds['file'][0]
     wds_double_star = dscalculation.wds_measurement(ds)
     dscalculation.imagePlot(firstFitsImageFileName, workingDirectory, wds_double_star.pairObjectId, wds_double_star.starActualRa1, wds_double_star.starActualDec1, wds_double_star.starActualRa2, wds_double_star.starActualDec2, image_limit)
+    dscalculation.crop_double_star_to_jpg_with_markers(firstFitsImageFileName, workingDirectory, wds_double_star.pairObjectId, wds_double_star.starActualRa1, wds_double_star.starActualDec1, wds_double_star.starActualRa2, wds_double_star.starActualDec2, image_limit)
     dscalculation.write_wds_report(ds, wds_double_star, workingDirectory)
     gaiaAStar, gaiaBStar, searchKey = 0, 0, 0
 
