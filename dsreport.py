@@ -23,6 +23,7 @@ from matplotlib import pyplot as plt
 from astropy.wcs import utils
 from astropy.time import Time, TimeDelta
 import warnings
+from dsmodules import dscalculation
 warnings.filterwarnings("ignore")
 
 # List of constances
@@ -37,8 +38,8 @@ hipparcos_bv_index = hipparcos_file['B-V']
 dao_sigma = 3.0
 dao_fwhm = 7.0
 dao_threshold = 12.0
-possible_distance = 30000.0 # AU
-search_cone = 0.001 # Decimal degree
+possible_distance = 50000.0 # AU
+search_cone = 0.002 # Decimal degree
 image_limit = 2000
 
 # Gravitational constant is convenient if measure distances in parsecs (pc), velocities in kilometres per second (km/s) and masses in solar units M
@@ -56,6 +57,8 @@ dao_threshold = 5.0
 possible_distance = 10000.0 # AU
 search_cone = 0.001 # Decimal degree
 '''
+
+gaia_file = Table.read(f"/usr/share/dr3map/gaia/star_catalog.csv", format='ascii')
 
 #########################
 ### Declare functions ###
@@ -645,14 +648,14 @@ count = 1
 for ds in reportTable_by_object.groups:
     print('\n### Group index:', count, '###')
     count = count + 1
-    rhoPairDr3 = rhoCalc(ds[0][2], ds[0][3], ds[0][18], ds[0][19])
-    pairFileName = ds[0][0]
-    pairRaA = ds[0][2]
-    pairDecA = ds[0][3]
-    pairRaB = ds[0][18]
-    pairDecB = ds[0][19]
-    pairDistanceMinA = calcDistanceMin(ds[0][4], ds[0][5])
-    pairDistanceMinB = calcDistanceMin(ds[0][20], ds[0][21])
+    rhoPairDr3 = rhoCalc(ds[0]['ra_a'], ds[0]['dec_a'], ds[0]['ra_b'], ds[0]['dec_b'])
+    pairFileName = ds[0]['filename']
+    pairRaA = ds[0]['ra_a']
+    pairDecA = ds[0]['dec_a']
+    pairRaB = ds[0]['ra_b']
+    pairDecB = ds[0]['dec_b']
+    pairDistanceMinA = calcDistanceMin(ds[0]['parallax_a'], ds[0]['parallax_error_a'])
+    pairDistanceMinB = calcDistanceMin(ds[0]['parallax_b'], ds[0]['parallax_error_b'])
     pairMeanTheta = ds['theta_measured'].groups.aggregate(np.mean)
     pairMeanThetaErr = ds['theta_measured'].groups.aggregate(np.std)
     pairMeanRho = ds['rho_measured'].groups.aggregate(np.mean)
@@ -661,39 +664,41 @@ for ds in reportTable_by_object.groups:
     pairMagMeasuredAErr = ds['magmeasured_a'].groups.aggregate(np.std)
     pairMagMeasuredB = ds['magmeasured_b'].groups.aggregate(np.mean)
     pairMagMeasuredBErr = ds['magmeasured_b'].groups.aggregate(np.std)
-    pairDesignationA = ds[0][1]
-    pairDesignationB = ds[0][17]
-    pairGMagnitudeA = ds[0][8]
-    pairGMagnitudeB = ds[0][24]
+    pairDesignationA = ds[0]['designation_a']
+    pairDesignationB = ds[0]['designation_b']
+    pairGMagnitudeA = ds[0]['phot_g_mean_mag_a']
+    pairGMagnitudeB = ds[0]['phot_g_mean_mag_b']
     pairMagDiff = math.fabs(pairMagMeasuredA - pairMagMeasuredB)
     pairMagDiffDr3 = math.fabs(pairGMagnitudeA - pairGMagnitudeB)
     pairMagDiffErr = math.fabs(((ds['magmeasured_a']) - (ds['magmeasured_b'])).groups.aggregate(np.std))
-    pairRadVelRatioA = math.fabs(ds[0][12] / ds[0][11]) * 100
-    pairRadVelRatioB = math.fabs(ds[0][28] / ds[0][27]) * 100
-    pairRadVelA, pairRadVelAErr, pairRadVelB, pairRadVelBErr = ds[0][11], ds[0][12], ds[0][28], ds[0][29]
-    pairParallaxFactor = (calcParallaxFactor(ds[0][4], ds[0][20])) * 100
-    pairPmFactor = (calcPmFactor(ds[0][6], ds[0][7], ds[0][22], ds[0][23])) * 100
+    pairRadVelRatioA = math.fabs(ds[0]['radial_velocity_error_a'] / ds[0]['radial_velocity_a']) * 100
+    pairRadVelRatioB = math.fabs(ds[0]['radial_velocity_error_b'] / ds[0]['radial_velocity_b']) * 100
+    pairRadVelA, pairRadVelAErr, pairRadVelB, pairRadVelBErr = ds[0]['radial_velocity_a'], ds[0]['radial_velocity_error_a'], ds[0]['radial_velocity_b'], ds[0]['radial_velocity_error_b']
+    pairPmA = np.sqrt(ds[0]['pmra_a']**2 + ds[0]['pmdec_a']**2)
+    pairPmB = np.sqrt(ds[0]['pmra_b']**2 + ds[0]['pmdec_b']**2)
+    pairParallaxFactor = (calcParallaxFactor(ds[0]['parallax_a'], ds[0]['parallax_b'])) * 100
+    pairPmFactor = (calcPmFactor(ds[0]['pmra_a'], ds[0]['pmdec_a'], ds[0]['pmra_b'], ds[0]['pmdec_b'])) * 100
     pairPmCommon = calcPmCategory(pairPmFactor)
-    pairAbsMag1 = calcAbsMag(pairGMagnitudeA, ds[0][4]) # Calculate Absolute magnitude
-    pairAbsMag2 = calcAbsMag(pairGMagnitudeB, ds[0][20]) # Calculate Absolute magnitude
+    pairAbsMag1 = calcAbsMag(pairGMagnitudeA, ds[0]['parallax_a']) # Calculate Absolute magnitude
+    pairAbsMag2 = calcAbsMag(pairGMagnitudeB, ds[0]['parallax_b']) # Calculate Absolute magnitude
     pairLum1 = calcLuminosity(pairAbsMag1)
     pairLum2 = calcLuminosity(pairAbsMag2)
     pairAltLum1 = calcLuminosityAlternate(pairAbsMag1)
     pairAltLum2 = calcLuminosityAlternate(pairAbsMag2)
     pairMass1 = calcMass(pairAltLum1)
     pairMass2 = calcMass(pairAltLum2)
-    pairBVIndexA = ds[0][10] - ds[0][8]
-    pairBVIndexB = ds[0][26] - ds[0][24]
+    pairBVIndexA = ds[0]['phot_bp_mean_mag_a'] - ds[0]['phot_rp_mean_mag_a']
+    pairBVIndexB = ds[0]['phot_bp_mean_mag_b'] - ds[0]['phot_rp_mean_mag_b']
     pairSepPar = sepCalc(pairDistanceMinA, pairDistanceMinB, rhoPairDr3) # Separation of the pairs in parsecs
     pairEscapeVelocity = calcEscapevelocity(pairMass1, pairMass2, pairSepPar, gravConst)
-    pairRelativeVelocity = calcRelativeVelocity(ds[0][6], ds[0][7], ds[0][22], ds[0][23], ds[0][11], ds[0][27], pairDistanceMinA, pairDistanceMinB)
+    pairRelativeVelocity = calcRelativeVelocity(ds[0]['pmra_a'], ds[0]['pmdec_a'], ds[0]['pmra_b'], ds[0]['pmdec_b'], ds[0]['radial_velocity_a'], ds[0]['radial_velocity_b'], pairDistanceMinA, pairDistanceMinB)
     pairHarshawFactor = calcHarshaw(pairParallaxFactor, pairPmFactor)
     pairHarshawPhysicality = calcHarshawPhysicality(pairHarshawFactor)
     pairBinarity = calcBinarity(pairRelativeVelocity, pairEscapeVelocity)
     dateOfObservation = getUTC(fitsFileDate)
 
-    pairACurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaA, pairDecA, ds[0][6], ds[0][7])
-    pairBCurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaB, pairDecB, ds[0][22], ds[0][23])
+    pairACurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaA, pairDecA, ds[0]['pmra_a'], ds[0]['pmdec_a'])
+    pairBCurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaB, pairDecB, ds[0]['pmra_b'], ds[0]['pmdec_b'])
     pairAMeasuredCoord = SkyCoord(ra=ds['rameasured_a'].groups.aggregate(np.mean) * u.deg, dec=ds['decmeasured_a'].groups.aggregate(np.mean) * u.deg)
     pairBMeasuredCoord = SkyCoord(ra=ds['rameasured_b'].groups.aggregate(np.mean) * u.deg, dec=ds['decmeasured_b'].groups.aggregate(np.mean) * u.deg)
     pairACoordErr = pairACurrentCoord.separation(pairAMeasuredCoord)
@@ -705,12 +710,23 @@ for ds in reportTable_by_object.groups:
     pairNumRho = len(ds['rho_measured'])
     pairNumMagMeasureadA = len(ds['magmeasured_a'])
     pairNumMagMeasureadB = len(ds['magmeasured_b'])
+    pairPossibleDistance = max(ds[0]['parallax_a'], ds[0]['parallax_b']) # in parallax from Earth
+    gravitational_bound = dscalculation.calc_gravitational_bound(pairPossibleDistance, pairPossibleDistance, pairPmA, pairPmB, ds[0][11], ds[0][28], pairMeanRho, pairMass1, pairMass2)
     
-    reportName = (workingDirectory + '/' + ds[0][37] + '.txt')
+    reportName = (workingDirectory + '/' + ds[0]['object_id'] + '.txt')
     reportFile = open(reportName, "a")
 
-    hrdPlot(pairDesignationA, pairDesignationB, pairAbsMag1, pairAbsMag2, pairBVIndexA, pairBVIndexB)
-    imagePlot(pairFileName, pairDesignationA, pairDesignationB, pairRaA, pairDecA, pairRaB, pairDecB)
+    # hrdPlot(pairDesignationA, pairDesignationB, pairAbsMag1, pairAbsMag2, pairBVIndexA, pairBVIndexB)
+    
+
+    # Plot double star components on the full image
+    imagePlot(pairFileName, pairDesignationA, pairDesignationB, pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree)
+
+    # Plot double star components on a cropped image
+    dscalculation.crop_double_star_to_jpg_with_markers(pairFileName, workingDirectory, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
+
+    # Create HRD based on Gaia data
+    dscalculation.gaia_hrd_plot(ds[0]['object_id'], workingDirectory, pairAbsMag1,pairAbsMag2, pairBVIndexA, pairBVIndexB, gaia_file)
 
     print('### COMPONENTS ###')
     print('\nDate of observation: ' + dateOfObservation)
@@ -726,8 +742,8 @@ for ds in reportTable_by_object.groups:
     print('Component B DR3 on date:', pairBCurrentCoord.ra.degree, pairBCurrentCoord.dec.degree)
     print('Component B measured:', pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree)
     print('Component B error (on date - measured):', pairBCoordErr.arcsecond)
-    print('2016 Calculared Position angle / Separation: ', pairACurrentCoord.position_angle(pairBCurrentCoord).degree, pairACurrentCoord.separation(pairBCurrentCoord).arcsecond)
-    print('Current Calculared Position angle / Separation: ', SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree, SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond)
+    print('2016 Calculated Position angle / Separation: ', pairACurrentCoord.position_angle(pairBCurrentCoord).degree, pairACurrentCoord.separation(pairBCurrentCoord).arcsecond)
+    print('Current Calculated Position angle / Separation: ', SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree, SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond)
     print('\nTheta measurements\n', ds['theta_measured'])
     print('Number of measurements: ', pairNumTheta)
     print('Mean:', pairMeanTheta[0])
@@ -769,6 +785,7 @@ for ds in reportTable_by_object.groups:
     print('Pair Harshaw factor:', pairHarshawFactor)
     print('Pair Harshaw physicality:', pairHarshawPhysicality)
     print('Pair binarity:', pairBinarity)
+    print('Pair gravitational bound:', gravitational_bound[0], ', ', gravitational_bound[1], '(kinetic / gravitational)')
     
     reportFile.write('### COMPONENTS ###')
     reportFile.write('\nDate of observation: ' + dateOfObservation)
@@ -784,8 +801,8 @@ for ds in reportTable_by_object.groups:
     reportFile.write('\nComponent B DR3 on date: ' + str(pairBCurrentCoord.ra.degree) + ' ' + str(pairBCurrentCoord.dec.degree))
     reportFile.write('\nComponent B measured: ' + str(pairBMeasuredCoord.ra.degree) + ' ' + str(pairBMeasuredCoord.dec.degree))
     reportFile.write('\nComponent B error (on date - measured): ' + str(pairBCoordErr.arcsecond))
-    reportFile.write('\n\n2016 Calculared Position angle / Separation: '  + str(pairACurrentCoord.position_angle(pairBCurrentCoord).degree) + ' ' + str(pairACurrentCoord.separation(pairBCurrentCoord).arcsecond))
-    reportFile.write('\nCurrent Calculared Position angle / Separation: ' + str(SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree) + ' ' + str(SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond))
+    reportFile.write('\n\n2016 Calculated Position angle / Separation: '  + str(pairACurrentCoord.position_angle(pairBCurrentCoord).degree) + ' ' + str(pairACurrentCoord.separation(pairBCurrentCoord).arcsecond))
+    reportFile.write('\nCurrent Calculated Position angle / Separation: ' + str(SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree) + ' ' + str(SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond))
     reportFile.write('\n\nTheta measurements\n' + str(ds['theta_measured']))
     reportFile.write('\nMean: ' + str(pairMeanTheta[0]))
     reportFile.write('\nError: ' + str(pairMeanThetaErr[0]))
@@ -821,6 +838,7 @@ for ds in reportTable_by_object.groups:
     reportFile.write('\nPair Harshaw factor: ' + str(pairHarshawFactor))
     reportFile.write('\nPair Harshaw physicality: ' + str(pairHarshawPhysicality))
     reportFile.write('\nPair binarity: ' + str(pairBinarity))
+    reportFile.write('\nPair gravitational bound: ' + str(gravitational_bound[0]) + ', ' + str(gravitational_bound[1]) + ' (kinetic / gravitational)')
 
     reportFile.write('\n\n### Publication table 1. ###')
     reportFile.write('\n' + str(pairDesignationA) + ',' + str(pairMagMeasuredA[0]) + ',' + str(pairMagMeasuredAErr[0]) + ',' + str(pairGMagnitudeA) + ',' + str(pairAbsMag1) + ',' + str(pairLum1) + ',' + str(pairMass1) + ',' + dateOfObservation)
