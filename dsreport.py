@@ -266,12 +266,13 @@ def calcStandardError(arr):
 
 # Calculate Common Proper Motion category
 def calcPmCategory(pmfact):
+    print('pmfact: ', pmfact)
     pmCommon = ()
-    if pmfact >= 0.8:
+    if pmfact >= 80.0:
         pmCommon = 'CPM'
-    elif 0.4 <= pmfact < 0.8:
+    elif 40.0 <= pmfact < 80.0:
         pmCommon = 'SPM'
-    elif pmfact < 0.4:
+    elif pmfact < 40.0:
         pmCommon = 'DPM'
     return pmCommon
 
