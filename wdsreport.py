@@ -313,9 +313,13 @@ for ds in upd_sources_ds_by_object.groups:
     print('DS: ', ds)
     firstFitsImageFileName = ds['file'][0]
     wds_double_star = dscalculation.wds_measurement(ds)
-    dscalculation.imagePlot(firstFitsImageFileName, workingDirectory, wds_double_star.pairObjectId, wds_double_star.starActualRa1, wds_double_star.starActualDec1, wds_double_star.starActualRa2, wds_double_star.starActualDec2, image_limit)
-    dscalculation.crop_double_star_to_jpg_with_markers(firstFitsImageFileName, workingDirectory, wds_double_star.pairObjectId, wds_double_star.starActualRa1, wds_double_star.starActualDec1, wds_double_star.starActualRa2, wds_double_star.starActualDec2, image_limit)
-    dscalculation.write_wds_report(ds, wds_double_star, workingDirectory)
+
+    dscalculation.create_measurement_folder(workingDirectory, wds_double_star.pairObjectId)
+    measurement_folder = workingDirectory + '/' + wds_double_star.pairObjectId.replace(' ', '')
+    print('measurement_folder: ', measurement_folder)
+    dscalculation.imagePlot(firstFitsImageFileName, measurement_folder, wds_double_star.pairObjectId, wds_double_star.starActualRa1, wds_double_star.starActualDec1, wds_double_star.starActualRa2, wds_double_star.starActualDec2, image_limit)
+    dscalculation.crop_double_star_to_jpg_with_markers(firstFitsImageFileName, measurement_folder, wds_double_star.pairObjectId, wds_double_star.starActualRa1, wds_double_star.starActualDec1, wds_double_star.starActualRa2, wds_double_star.starActualDec2, image_limit)
+    dscalculation.write_wds_report(ds, wds_double_star, measurement_folder)
     gaiaAStar, gaiaBStar, searchKey = 0, 0, 0
 
     if args.gaia_measurements and args.offline:
@@ -328,11 +332,11 @@ for ds in upd_sources_ds_by_object.groups:
     if gaiaAStar and gaiaBStar:
         gaia_ds = dscalculation.gaia_calculations(gaiaAStar, gaiaBStar, ds, searchKey)
         gaiaData = gaia_ds.gaiaData
-        dscalculation.gaia_hrd_plot(wds_double_star.pairObjectId, workingDirectory, gaia_ds.pairAbsMag1, gaia_ds.pairAbsMag2, gaia_ds.pairBVIndexA, gaia_ds.pairBVIndexB, gaia_file)
-        dscalculation.write_gaia_report(ds, wds_double_star, gaia_ds, workingDirectory)
+        dscalculation.gaia_hrd_plot(wds_double_star.pairObjectId, measurement_folder, gaia_ds.pairAbsMag1, gaia_ds.pairAbsMag2, gaia_ds.pairBVIndexA, gaia_ds.pairBVIndexB, gaia_file)
+        dscalculation.write_gaia_report(ds, wds_double_star, gaia_ds, measurement_folder)
 
         if args.orbit_calculations:
             historic_orbit_calculation = dscalculation.calculate_historical_orbit(gaia_ds, wds_double_star, ds)
-            dscalculation.write_historic_orbit_report(wds_double_star, historic_orbit_calculation, workingDirectory)
+            dscalculation.write_historic_orbit_report(wds_double_star, historic_orbit_calculation, measurement_folder)
 
 #reportTable.write(workingDirectory + '/double_stars_wds_format.txt', format='ascii', overwrite=True, delimiter=',')

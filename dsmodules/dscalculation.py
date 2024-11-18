@@ -296,14 +296,26 @@ def calcParallaxFactor(para, parb):
 # Function to calculate the proper motion factor of the stars and define if it is a CPM (common proper motion) pair
 # EXCEL formula =ABS(1-((SQRT(pmraA-pmraB)^2+(pmdecA-pmdecB)^2)/(SQRT(pmraA^2+pmdecA^2)+(pmraB^2+pmdecB^2)))))
 def calcPmFactor(pmraa, pmdeca, pmrab, pmdecb):
-    pmfac = math.fabs(1-((math.sqrt(((pmraa-pmrab) ** 2) + ((pmdeca-pmdecb) ** 2))/(math.sqrt((pmraa ** 2) + (pmdeca ** 2))+((pmrab ** 2) + pmdecb ** 2)))))
+    rpm = ((math.sqrt(((pmraa-pmrab) ** 2) + ((pmdeca-pmdecb) ** 2))/(math.sqrt((pmraa ** 2) + (pmdeca ** 2))+((pmrab ** 2) + pmdecb ** 2))))
+    pmfac = math.fabs(1-rpm)
     ### 2 Átlag saját mozgás vektor: AVG PM prob
     ### =(GYÖK(pmra A^2+pm dec A^2)+GYÖK(pm ra B^2+pm dec B^2))/2
     ### 3 sajátmozgás valószínűség: PM prob
     ### =HA(Vr A=0;0;ABS(1-(GYÖK((pm ra A-pm ra B)^2+(pm dec A-pm dec B)^2)/2 pont eredménye))*0.15)
     ### distance = math.sqrt((pmraa - pmrab)**2 + (pmdeca - pmdecb)**2)
     ### pmfac = abs(1 - (distance / 2)) * 0.15
-    return pmfac
+    return rpm, pmfac
+
+# Calculate Common Proper Motion category
+def calcPmCategory(pmfact):
+    pmCommon = ()
+    if pmfact >= 80.0:
+        pmCommon = 'CPM'
+    elif 40.0 <= pmfact < 80.0:
+        pmCommon = 'SPM'
+    elif pmfact < 40.0:
+        pmCommon = 'DPM'
+    return pmCommon
 
 def calculate_distance_from_parallax(parallax_mas):
     """
@@ -530,16 +542,7 @@ def calcStandardError(arr):
     stderr = np.std(arr)
     return stderr
 
-# Calculate Common Proper Motion category
-def calcPmCategory(pmfact):
-    pmCommon = ()
-    if pmfact >= 80.0:
-        pmCommon = 'CPM'
-    elif 40.0 <= pmfact < 80.0:
-        pmCommon = 'SPM'
-    elif pmfact < 40.0:
-        pmCommon = 'DPM'
-    return pmCommon
+
 
 # Function to search coordinates in the WDS catalog file
 def search_in_wds(ra_source, dec_source, wdsTable, wds_catalog):
@@ -1073,6 +1076,10 @@ def calculate_historical_orbit(gaia_data, wds_data, double_star):
 
     return pair_orbit
 
+def create_measurement_folder(working_directory, pair_name):
+    path = working_directory + '/' + pair_name.replace(' ', '')
+    os.makedirs(path, exist_ok=True)
+
 def gaia_calculations(gaia_star_a, gaia_star_b, double_star, search_key):
     pairObjectId = double_star[0]['2000 Coord'] + double_star[0]['Discov'] + str(double_star[0]['Comp'])
     print(gaia_star_a['parallax'], '\n', gaia_star_a['parallax_error'], '\n', gaia_star_b['parallax'], '\n',gaia_star_b['parallax_error'])
@@ -1085,7 +1092,7 @@ def gaia_calculations(gaia_star_a, gaia_star_b, double_star, search_key):
     pairCoordB = SkyCoord(ra=float(gaia_star_b['ra']) * u.deg, dec=float(gaia_star_b['dec']) * u.deg)
     pairParallaxFactor = (calcParallaxFactor(float(gaia_star_a['parallax']), float(gaia_star_b['parallax']))) * 100
     pairPmFactor = (calcPmFactor(float(gaia_star_a['pmra']), float(gaia_star_a['pmdec']), float(gaia_star_b['pmra']), float(gaia_star_b['pmdec'])))
-    pairPmCommon = calcPmCategory(pairPmFactor * 100)
+    pairPmCommon = calcPmCategory(pairPmFactor[1] * 100)
     pairDist1 = calculate_distance_from_parallax(float(gaia_star_a['parallax'])) # Distance in parsecs, lightyears
     pairDist2 = calculate_distance_from_parallax(float(gaia_star_b['parallax'])) # Distance in parsecs, lightyears
     pairAbsMag1 = calcAbsMag(float(gaia_star_a['phot_g_mean_mag']), float(gaia_star_a['parallax'])) # Calculate Absolute magnitude
@@ -1110,7 +1117,7 @@ def gaia_calculations(gaia_star_a, gaia_star_b, double_star, search_key):
     pairSepPar = pairDistance[2] * auToParsec
     pairEscapeVelocity = calcEscapevelocity(pairMass1, pairMass2, pairSepPar, gravConst)
     pairRelativeVelocity = calcRelativeVelocity(float(gaia_star_a['pmra']), float(gaia_star_a['pmdec']), float(gaia_star_b['pmra']), float(gaia_star_b['pmdec']), gaia_star_a['radial_velocity'], gaia_star_b['radial_velocity'], pairDistanceMinA, pairDistanceMinB)
-    pairHarshawFactor = calcHarshaw((pairParallaxFactor) / 100, (pairPmFactor))
+    pairHarshawFactor = calcHarshaw((pairParallaxFactor) / 100, (pairPmFactor[1]))
     pairHarshawPhysicality = calcHarshawPhysicality(pairHarshawFactor * 100)
     pairBinarity = calcBinarity(pairRelativeVelocity, pairEscapeVelocity)
     pairGravitationalBound = calc_gravitational_bound(float(gaia_star_a['parallax']), float(gaia_star_b['parallax']), float(gaia_star_a['pm']), float(gaia_star_b['pmra']), convertStringToNan(gaia_star_a['radial_velocity']), convertStringToNan(gaia_star_b['radial_velocity']), pairDR3Rho, pairMass1, pairMass2)
@@ -1219,7 +1226,7 @@ def print_gaia_data(gaia_data_calculations, wds_measurements):
     #print('Current Calculated Position angle / Separation: ', SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree, SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond)
     print('Current Calculated Position angle / Separation: ', gaia_data_calculations.pairACurrentCoord.position_angle(gaia_data_calculations.pairBCurrentCoord).degree, gaia_data_calculations.pairACurrentCoord.separation(gaia_data_calculations.pairBCurrentCoord).arcsecond)
     print('\n\nParallax factor:', gaia_data_calculations.pairParallaxFactor, '%')
-    print('Proper motion factor:', gaia_data_calculations.pairPmFactor * 100, '%')
+    print('Proper motion factor:', gaia_data_calculations.pairPmFactor[1] * 100, '%', ', rPM: ', gaia_data_calculations.pairPmFactor[0])
     print('Proper motion category:', gaia_data_calculations.pairPmCommon)
     print('Distance from Earth A:', gaia_data_calculations.pairDist1[0], 'px', gaia_data_calculations.pairDist1[1], 'ly')
     print('Distance from Earth B:', gaia_data_calculations.pairDist2[0], 'px', gaia_data_calculations.pairDist2[1], 'ly')
@@ -1348,7 +1355,8 @@ def write_gaia_report(ds, wds_data, gaia_ds, image_folder):
     report_file.write('\nPair Relative velocity: ' + str(roundNumber(gaia_ds.pairRelativeVelocity)) + ' km/s')
     report_file.write('\n\n### Analysis ###')
     report_file.write('\nParallax factor: ' + str(roundNumber(gaia_ds.pairParallaxFactor)) + ' %')
-    report_file.write('\nProper motion factor: ' + str(roundNumber(gaia_ds.pairPmFactor * 100)) + ' %')
+    print('\nProper motion factor: ', str(roundNumber(gaia_ds.pairPmFactor[1] * 100)), ' %', 'rPM: ', gaia_ds.pairPmFactor[0])
+    report_file.write('\nProper motion factor: ' + str(roundNumber(gaia_ds.pairPmFactor[1] * 100)) + ' %' + 'rPM: ' + str(roundNumber(gaia_ds.pairPmFactor[0])))
     report_file.write('\nProper motion category: '+ str(gaia_ds.pairPmCommon))
     report_file.write('\nPair Harshaw factor: ' + str(roundNumber(gaia_ds.pairHarshawFactor)))
     report_file.write('\nPair Harshaw physicality: ' + str(gaia_ds.pairHarshawPhysicality))

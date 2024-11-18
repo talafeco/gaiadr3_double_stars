@@ -9,6 +9,7 @@ import os
 import sys
 import numpy as np
 import math
+import datetime
 from astropy import units as u
 from astropy.io import fits
 from astropy.stats import sigma_clipped_stats
@@ -35,9 +36,15 @@ hipparcos_bv_index = hipparcos_file['B-V']
 
 # Configuration for the ATIK camera
 
-dao_sigma = 3.0
+'''dao_sigma = 3.0
 dao_fwhm = 7.0
-dao_threshold = 12.0
+dao_threshold = 12.0'''
+
+# Configuration for the Canon camera
+dao_sigma = 10.0
+dao_fwhm = 10.0
+dao_threshold = 18.0
+
 possible_distance = 50000.0 # AU
 search_cone = 0.002 # Decimal degree
 image_limit = 2000
@@ -50,8 +57,7 @@ sun_luminosity = 3.0128 * (10 ** 28)
 sun_absolute_luminosity = 3.828 * (10 ** 26)
 
 # Configuration for the CANON camera
-'''
-dao_sigma = 2.0
+'''dao_sigma = 2.0
 dao_fwhm = 3.0
 dao_threshold = 5.0
 possible_distance = 10000.0 # AU
@@ -466,8 +472,9 @@ file_counter = 0
 
 for fitsFile in files:
     # 1. Read the list of sources extracted from an image (fits) file
+    analysis_start = datetime.datetime.now()
     file_counter = file_counter + 1
-    print('Processing file', file_counter, 'out of', len(files),': ', fitsFile)
+    print('\nProcessing file', file_counter, 'out of', len(files),': ', fitsFile)
     fitsFileName = workingDirectory + '/' + fitsFile
     hdu = fits.open(fitsFileName)
     mywcs = WCS(hdu[0].header)
@@ -478,7 +485,8 @@ for fitsFile in files:
 
     daofind = DAOStarFinder(fwhm=dao_fwhm, threshold=dao_threshold*std)  
     sources = daofind(data - median)
-
+    print('Sources identified: ', len(sources))
+    print('File processed, calculating segments.')
     # 2. Define the catalog file based on the source coordinate and read data from catalog file(s) to a catalog
     segments = []
     for star in sources:
@@ -488,11 +496,11 @@ for fitsFile in files:
         segmentName = f"{segmentRaCalc}-{segmentDecCalc}.csv"
         if segmentName not in segments:
             segments.append(segmentName)
-    print('### Segments are:',segments)
+    print('Segments are:',segments)
 
     # Read all segments into an array
     gaiaStars = np.empty((0, 20))
-
+    print('Reading segment files.')
     # Add all segments to the numpy array
     for seg in segments:
         if len(segments) > 1:
@@ -503,10 +511,10 @@ for fitsFile in files:
             #segmentpart = Table.read(f"C:\Astro\catalogs\GaiaDR3\gaiadr3_15mag_catalog\{seg}", format='ascii')
             segmentpart = Table.read(segment_lib + str(seg), format='ascii')
             gaiaStars = segmentpart
-
+    print('Segments has rows: ', len(gaiaStars))
     #dr3TableFileName = (str('dr3stars.csv'))
     #gaiaStars.write(dr3TableFileName, format='ascii.ecsv', overwrite=True, delimiter=',')
-    
+    print('Segments are imported, starting analysis.')
     # Search sources in the segment catalog
     for star in sources:
         ra2, dec2 = mywcs.all_pix2world([[star ['xcentroid'], star ['ycentroid']]], 0)[0]   
@@ -518,7 +526,8 @@ for fitsFile in files:
         sep = c.separation(catalogstar)
         if sep < Angle('00d00m02s'):
             sourceTable.add_row([fitsFile, gaiaStars[idx]['designation'], convertStringToNan(gaiaStars[idx]['ra']), convertStringToNan(gaiaStars[idx]['dec']), convertStringToNan(gaiaStars[idx]['parallax']), convertStringToNan(gaiaStars[idx]['parallax_error']), convertStringToNan(gaiaStars[idx]['pmra']), convertStringToNan(gaiaStars[idx]['pmdec']), convertStringToNan(gaiaStars[idx]['phot_g_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_bp_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_rp_mean_mag']), convertStringToNan(gaiaStars[idx]['radial_velocity']), convertStringToNan(gaiaStars[idx]['radial_velocity_error']), convertStringToNan(gaiaStars[idx]['teff_gspphot']), star['id'], ra2, dec2, star['mag']])
-
+    analysis_end = datetime.datetime.now()
+    print('Analysis finised in: ', ((analysis_end - analysis_start).seconds), ' sec')
 #gaiaStarsTableFileName = (str('gaiaStarsTab.csv'))
 
 # Write found sources into file
@@ -530,9 +539,15 @@ sourceTable_by_file = sourceTable.group_by('filename')
 
 for group in sourceTable_by_file.groups:
     # Creating empty arrays for Star related calculations
+    print('\n### Processing group: ', group[0]['filename'])
+    print('Timestamp: ', datetime.datetime.now())
+    print('Groupd rows: ', len(group))
     StarA = []
     StarB = []
+    rowcounter = 0
     for star in group: ## modify according to arrays instead of starlist
+        rowcounter = rowcounter + 1
+        sys.stdout.write(f'\rCount: {rowcounter}')
         StarA = (star['filename'], star['designation'], star['ra'], star['dec'], star['parallax'], star['parallax_error'], star['pmra'], star['pmdec'],star['phot_g_mean_mag'], star['phot_bp_mean_mag'], star['phot_rp_mean_mag'], star['radial_velocity'], star['radial_velocity_error'], star['teff_gspphot'], star['image_id'], star['source_ra'], star['source_dec'], star['source_mag'])
         for star in group:
             StarB = (star['filename'], star['designation'], star['ra'], star['dec'], star['parallax'], star['parallax_error'], star['pmra'], star['pmdec'],star['phot_g_mean_mag'], star['phot_bp_mean_mag'], star['phot_rp_mean_mag'], star['radial_velocity'], star['radial_velocity_error'], star['teff_gspphot'], star['image_id'], star['source_ra'], star['source_dec'], star['source_mag'])
