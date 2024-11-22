@@ -792,11 +792,11 @@ def plot_image_with_frame(image_array, wds_double_stars, frame_edges, output_fil
 
 def crop_double_star_to_jpg_with_markers(fits_path, working_directory, pairname, raa, deca, rab, decb, image_limit):
     # Load the FITS file to extract WCS and image data
-    with fits.open(fits_path) as hdul:
+    with fits.open(working_directory + '/' + fits_path) as hdul:
         wcs = WCS(hdul[0].header)
         image_data = hdul[0].data
 
-    image_data = fits.open(fits_path)
+    image_data = fits.open(working_directory + '/' + fits_path)
     header = image_data[0].header
     wcs_helix = WCS(image_data[0].header, naxis=2)
     image = image_data[0].data

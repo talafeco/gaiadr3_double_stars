@@ -384,9 +384,49 @@ def imagePlot(filename, designation_a, designation_b, raa, deca, rab, decb):
     plt.title(str(designation_a) + ' - ' + str(designation_b))
 
     plt.imshow(image, origin='lower',cmap='Greys', aspect='equal', vmax=image_limit, vmin=0) # , cmap='cividis'
-    plt.savefig(workingDirectory + '/' + str(designation_a) + '-' + str(designation_b) + '_img.jpg', dpi=150.0, bbox_inches='tight', pad_inches=0.2)
+    plt.savefig((measurement_folder + '/' + str(designation_a) + '-' + str(designation_b) + '_img.jpg').replace(' ', ''), dpi=150.0, bbox_inches='tight', pad_inches=0.2)
     plt.close()
     #plt.show()
+
+def crop_double_star_to_jpg_with_markers(fits_path, working_directory, pairname, raa, deca, rab, decb, image_limit):
+    # Load the FITS file to extract WCS and image data
+    with fits.open(working_directory + '/' + fits_path) as hdul:
+        wcs = WCS(hdul[0].header)
+        image_data = hdul[0].data
+
+    image_data = fits.open(working_directory + '/' + fits_path)
+    header = image_data[0].header
+    wcs_helix = WCS(image_data[0].header, naxis=2)
+    image = image_data[0].data
+    image_height = header['NAXIS2']
+    star_a = SkyCoord(raa * u.deg, deca * u.deg, frame='icrs')
+    star_b = SkyCoord(rab * u.deg, decb * u.deg, frame='icrs')
+    ds_pa = star_a.position_angle(star_b)
+    ds_sep = star_a.separation(star_b).arcsec
+    midpoint = star_a.directional_offset_by(ds_pa, (ds_sep / 2))
+    star_a_pix = utils.skycoord_to_pixel(star_a, wcs_helix)
+    star_b_pix = utils.skycoord_to_pixel(star_b, wcs_helix)
+    pixel_separation = np.sqrt((star_a_pix[0] - star_b_pix[0])**2 + (star_a_pix[1] - star_b_pix[1])**2)
+    plt.scatter(star_a_pix[0] + pixel_separation / 2, star_a_pix[1], marker="_", s=200, color="darkblue", label='Main star')
+    plt.scatter(star_a_pix[0], star_a_pix[1] + pixel_separation / 2, marker="|", s=200, color="darkblue")
+    plt.scatter(star_b_pix[0] + pixel_separation / 2, star_b_pix[1], marker="_", s=200, color="cornflowerblue", label='Companion')
+    plt.scatter(star_b_pix[0], star_b_pix[1] + pixel_separation / 2, marker="|", s=200, color="cornflowerblue")
+    plt.legend(loc="upper right")
+    plt.title(pairname)
+
+    # Get the current axis limits
+    x_center = star_a_pix[0]
+    y_center = star_a_pix[1]
+    x_range = pixel_separation * 5
+    y_range = pixel_separation * 5
+
+    # Set new limits centered around the center point
+    plt.xlim(x_center - x_range, x_center + x_range)
+    plt.ylim(y_center - y_range, y_center + y_range)
+
+    plt.imshow(image, origin='lower',cmap='Greys', aspect='equal', vmax=image_limit, vmin=0) # 
+    plt.savefig(str(measurement_folder + '/' + pairname + '_crp_img.jpg').replace(' ', ''),dpi=300.0, bbox_inches='tight', pad_inches=0.2)
+    plt.close()
 
 ### Run source detection, collect star data to Qtable
 workingDirectory = sys.argv[1]
@@ -668,6 +708,8 @@ objectMean = reportTable_by_object.groups.aggregate(np.mean)
 count = 1
 for ds in reportTable_by_object.groups:
     print('\n### Group index:', count, '###')
+    measurement_folder = workingDirectory + '/' + ds[0]['object_id'].replace(' ', '')
+    os.makedirs(measurement_folder, exist_ok=True)
     count = count + 1
     rhoPairDr3 = rhoCalc(ds[0]['ra_a'], ds[0]['dec_a'], ds[0]['ra_b'], ds[0]['dec_b'])
     pairFileName = ds[0]['filename']
@@ -734,7 +776,7 @@ for ds in reportTable_by_object.groups:
     pairPossibleDistance = max(ds[0]['parallax_a'], ds[0]['parallax_b']) # in parallax from Earth
     gravitational_bound = dscalculation.calc_gravitational_bound(pairPossibleDistance, pairPossibleDistance, pairPmA, pairPmB, ds[0][11], ds[0][28], pairMeanRho, pairMass1, pairMass2)
     
-    reportName = (workingDirectory + '/' + ds[0]['object_id'] + '.txt')
+    reportName = (measurement_folder + '/' + ds[0]['object_id'] + '.txt').replace(' ', '')
     reportFile = open(reportName, "a")
 
     # hrdPlot(pairDesignationA, pairDesignationB, pairAbsMag1, pairAbsMag2, pairBVIndexA, pairBVIndexB)
@@ -744,10 +786,11 @@ for ds in reportTable_by_object.groups:
     imagePlot(pairFileName, pairDesignationA, pairDesignationB, pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree)
 
     # Plot double star components on a cropped image
-    dscalculation.crop_double_star_to_jpg_with_markers(pairFileName, workingDirectory, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
+    print('crop_double_star_to_jpg_with_markers attributes: ', pairFileName, measurement_folder, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
+    crop_double_star_to_jpg_with_markers(pairFileName, workingDirectory, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
 
     # Create HRD based on Gaia data
-    dscalculation.gaia_hrd_plot(ds[0]['object_id'], workingDirectory, pairAbsMag1,pairAbsMag2, pairBVIndexA, pairBVIndexB, gaia_file)
+    dscalculation.gaia_hrd_plot(ds[0]['object_id'], measurement_folder, pairAbsMag1,pairAbsMag2, pairBVIndexA, pairBVIndexB, gaia_file)
 
     print('### COMPONENTS ###')
     print('\nDate of observation: ' + dateOfObservation)
