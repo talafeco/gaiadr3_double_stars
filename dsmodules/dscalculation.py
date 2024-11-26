@@ -625,7 +625,7 @@ def gaia_hrd_plot(pairname, working_directory, mag_abs_a, mag_abs_b, bv_a, bv_b,
         plt.axis((-0.8,4,12,-2))
         #plt.title('Double Star ' + pairname + ' H-R Diagram')
         plt.xlabel('G_BP - G_RP index', color='white')
-        plt.ylabel('Absolute magnitude', color='white')
+        plt.ylabel('Absolute magnitude in Gaia G band', color='white')
         plt.title(' Hertzsprung-Russell Diagram of ' + pairname + ' (Color Index vs Absolute Magnitude)', color='white')
         #plt.grid(color='gray', linestyle='--', linewidth=0.5)
         ax.tick_params(axis='x', colors='white')

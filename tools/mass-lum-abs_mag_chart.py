@@ -82,10 +82,10 @@ def plot_absolute_magnitude_luminosity(csv_file):
     abs_mag = data[['abs_mag_a', 'abs_mag_b']].mean(axis=1)
     luminosity = data[['lum_a', 'lum_b']].mean(axis=1)
 
-    plt.scatter(abs_mag, luminosity, c=luminosity, cmap=plt.cm.coolwarm, norm=Normalize(vmin=luminosity.min(), vmax=luminosity.max()))
+    plt.scatter(abs_mag, luminosity, c=luminosity, cmap=plt.cm.coolwarm.reversed(), norm=Normalize(vmin=luminosity.min(), vmax=luminosity.max()))
     plt.colorbar(label='Luminosity (Solar Luminosities)')
-    #plt.gca().invert_xaxis()  # Inverted for absolute magnitude
-    plt.gca()  # Inverted for absolute magnitude
+    plt.gca().invert_xaxis()  # Inverted for absolute magnitude
+    #plt.gca()  # Inverted for absolute magnitude
     plt.yscale('log')
     plt.xlabel('Absolute Magnitude')
     plt.ylabel('Luminosity (Solar Luminosities)')
