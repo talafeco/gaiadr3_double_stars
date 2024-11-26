@@ -29,26 +29,26 @@ warnings.filterwarnings("ignore")
 
 # List of constances
 #wdsFile = Table.read(f"/usr/share/dr3map/wds/dr3-wds.csv", format='ascii')
-#hipparcos_file = Table.read(f"/usr/share/dr3map/hipparcos/I_239_selection.csv", format='ascii')
-#segment_lib = "/usr/share/dr3map/gaiadr3_18mag_catalog/"
-#gaia_file = Table.read(f"/usr/share/dr3map/gaia/star_catalog.csv", format='ascii')
-gaia_file = Table.read(r"C:\Users\gerge\Documents\Catalogs\gaia\star_catalog.csv", format='ascii')
-hipparcos_file = Table.read(r"C:\Users\gerge\Documents\Catalogs\Hipparcos\I_239_selection.csv", format='ascii')
-segment_lib = r"C:/Users/gerge\Documents/Catalogs/gaiadr3_18mag_catalog/"
+hipparcos_file = Table.read(f"/usr/share/dr3map/hipparcos/I_239_selection.csv", format='ascii')
+segment_lib = "/usr/share/dr3map/gaiadr3_18mag_catalog/"
+gaia_file = Table.read(f"/usr/share/dr3map/gaia/star_catalog.csv", format='ascii')
+#gaia_file = Table.read(r"C:\Users\gerge\Documents\Catalogs\gaia\star_catalog.csv", format='ascii')
+#hipparcos_file = Table.read(r"C:\Users\gerge\Documents\Catalogs\Hipparcos\I_239_selection.csv", format='ascii')
+#segment_lib = r"C:/Users/gerge\Documents/Catalogs/gaiadr3_18mag_catalog/"
 
 hipparcos_abs_mag = hipparcos_file['Abs_mag']
 hipparcos_bv_index = hipparcos_file['B-V']
 
 # Configuration for the ATIK camera
 
-'''dao_sigma = 3.0
+dao_sigma = 2.0
 dao_fwhm = 7.0
-dao_threshold = 12.0'''
+dao_threshold = 10.0
 
 # Configuration for the Canon camera
-dao_sigma = 10.0
+'''dao_sigma = 10.0
 dao_fwhm = 10.0
-dao_threshold = 18.0
+dao_threshold = 18.0'''
 
 possible_distance = 50000.0 # AU
 search_cone = 0.002 # Decimal degree
