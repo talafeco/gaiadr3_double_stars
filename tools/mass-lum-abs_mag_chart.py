@@ -8,7 +8,7 @@ from matplotlib.cm import ScalarMappable
 def plot_star_mass(csv_file):
     """Plots the mass of the stars, colored by mass, with an average trend line."""
     data = pd.read_csv(csv_file)
-    mass = data[['mass_a', 'mass_b']].mean(axis=1)
+    mass = np.concatenate([data['mass_a'].values, data['mass_b'].values])
     avg_mass = mass.mean()
 
     norm = Normalize(vmin=mass.min(), vmax=mass.max())
@@ -41,8 +41,8 @@ def plot_mass_luminosity(csv_file):
 def plot_hr_diagram(csv_file):
     """Plots the Hertzsprung-Russell diagram."""
     data = pd.read_csv(csv_file)
-    abs_mag = data[['abs_mag_a', 'abs_mag_b']].mean(axis=1)
-    luminosity = data[['lum_a', 'lum_b']].mean(axis=1)
+    abs_mag = np.concatenate([data['abs_mag_a'].values, data['abs_mag_b'].values])
+    luminosity = np.concatenate([data['lum_a'].values, data['lum_b'].values])
 
     plt.scatter(abs_mag, luminosity, c=luminosity, cmap=plt.cm.coolwarm.reversed(), norm=Normalize(vmin=luminosity.min(), vmax=luminosity.max()))
     plt.colorbar(label='Luminosity (Solar Luminosities)')
@@ -50,17 +50,17 @@ def plot_hr_diagram(csv_file):
     plt.gca()  # HR diagrams often have inverted magnitude axes
     plt.yscale('log')
     plt.xlabel('Absolute Magnitude')
-    plt.ylabel('Luminosity (Solar Luminosities)')
+    plt.ylabel('Luminosity (Solar Luminosities based on Gaia G band)')
     plt.title('Hertzsprung-Russell Diagram')
     plt.show()
 
 def plot_luminosity_distribution(csv_file):
     """Plots the distribution of stellar luminosities."""
     data = pd.read_csv(csv_file)
-    luminosity = data[['lum_a', 'lum_b']].mean(axis=1)
+    luminosity = np.concatenate([data['lum_a'].values, data['lum_b'].values])
 
     plt.hist(luminosity, bins=30, log=True, color='blue', edgecolor='black', alpha=0.7)
-    plt.xlabel('Luminosity (Solar Luminosities)')
+    plt.xlabel('Luminosity (Solar Luminosities based on Gaia G band)')
     plt.ylabel('Number of Stars')
     plt.title('Luminosity Distribution')
     plt.show()
@@ -68,7 +68,7 @@ def plot_luminosity_distribution(csv_file):
 def plot_mass_distribution(csv_file):
     """Plots the distribution of stellar masses."""
     data = pd.read_csv(csv_file)
-    mass = data[['mass_a', 'mass_b']].mean(axis=1)
+    mass = np.concatenate([data['mass_a'].values, data['mass_b'].values])
 
     plt.hist(mass, bins=30, color='green', edgecolor='black', alpha=0.7)
     plt.xlabel('Mass (Solar Masses)')
@@ -79,8 +79,8 @@ def plot_mass_distribution(csv_file):
 def plot_absolute_magnitude_luminosity(csv_file):
     """Plots the absolute magnitude vs luminosity."""
     data = pd.read_csv(csv_file)
-    abs_mag = data[['abs_mag_a', 'abs_mag_b']].mean(axis=1)
-    luminosity = data[['lum_a', 'lum_b']].mean(axis=1)
+    abs_mag = np.concatenate([data['abs_mag_a'].values, data['abs_mag_b'].values])
+    luminosity = np.concatenate([data['lum_a'].values, data['lum_b'].values])
 
     plt.scatter(abs_mag, luminosity, c=luminosity, cmap=plt.cm.coolwarm.reversed(), norm=Normalize(vmin=luminosity.min(), vmax=luminosity.max()))
     plt.colorbar(label='Luminosity (Solar Luminosities)')
