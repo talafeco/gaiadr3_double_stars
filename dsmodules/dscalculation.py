@@ -24,6 +24,7 @@ from astropy.wcs import WCS
 import astropy.units as u
 import warnings
 from matplotlib import pyplot as plt
+from matplotlib.colors import TwoSlopeNorm
 from astropy.wcs import utils
 from astropy.time import Time, TimeDelta
 from PIL import Image, ImageDraw
@@ -606,7 +607,7 @@ def hrdPlot(pairname, working_directory, mag_abs_a, mag_abs_b, bv_a, bv_b, hippa
         print('Data is missing, HRD plot cannot be created!')
 
 # Create HRD plot of the double stars based on GAia DR3
-def gaia_hrd_plot(pairname, working_directory, mag_abs_a, mag_abs_b, bv_a, bv_b, gaia_file):
+'''def gaia_hrd_plot(pairname, working_directory, mag_abs_a, mag_abs_b, bv_a, bv_b, gaia_file):
     if pairname and mag_abs_a and mag_abs_b and bv_a and bv_b:
         df = gaia_file.to_pandas()
         savename = str(working_directory + '/' + pairname + '_ghrd.jpg').replace(' ', '')
@@ -631,8 +632,45 @@ def gaia_hrd_plot(pairname, working_directory, mag_abs_a, mag_abs_b, bv_a, bv_b,
         ax.tick_params(axis='x', colors='white')
         ax.tick_params(axis='y', colors='white')
         plt.savefig(savename, bbox_inches='tight', dpi=300.0)
-        plt.close()
+        plt.close()'''
 
+def gaia_hrd_plot(pairname, working_directory, mag_abs_a, mag_abs_b, bv_a, bv_b, gaia_file):
+    if pairname and mag_abs_a and mag_abs_b and bv_a and bv_b:
+        sun_bp_rp = 0.82
+        df = gaia_file.to_pandas()
+        savename = str(working_directory + '/' + pairname + '_ghrd.jpg').replace(' ', '')
+        colors = df['bp_rp']
+        
+        # Define normalization with TwoSlopeNorm
+        vmin = colors.min()
+        vmax = colors.max()
+        norm = TwoSlopeNorm(vmin=vmin, vcenter=sun_bp_rp, vmax=vmax)
+        
+        plt.figure(figsize=(10, 10), facecolor='black')  # Set figure background to black
+        ax = plt.gca()
+        ax.set_facecolor('black')  # Set axes background to black
+        ax.spines['bottom'].set_color('white')
+        ax.spines['top'].set_color('white') 
+        ax.spines['right'].set_color('white')
+        ax.spines['left'].set_color('white')
+
+        # Scatter plot with colormap normalization
+        plt.scatter(df['bp_rp'], df['abs_mag'], c=colors, s=0.5, alpha=0.2, cmap='RdYlBu_r', norm=norm)
+        plt.scatter(bv_a, mag_abs_a, s=50, marker='D', color="blue", label='Main star')  # Main star
+        plt.scatter(bv_b, mag_abs_b, s=50, marker='^', color="red", label='Companion star')  # Companion star
+        
+        plt.legend(loc="upper right")
+        plt.axis((-0.8, 5, 15, -2))
+        plt.xlabel('G_BP - G_RP index', color='white')
+        plt.ylabel('Absolute magnitude in Gaia G band', color='white')
+        plt.title('Hertzsprung-Russell Diagram of ' + pairname + ' (Color Index vs Absolute Magnitude)', color='white')
+
+        # Set tick and grid colors
+        ax.tick_params(axis='x', colors='white')
+        ax.tick_params(axis='y', colors='white')
+
+        plt.savefig(savename, bbox_inches='tight', dpi=300.0)
+        plt.close()
 
 # Create Image plot of the double stars
 def imagePlot(filename, working_directory, pairname, raa, deca, rab, decb, image_limit):
