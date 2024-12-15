@@ -39,6 +39,8 @@ Excel obs orbit 3,1109 optikai így is, úgy is, de az eltérés nagy, lehet a k
 
 print('Importing modules, please stand by!')
 
+import multiprocessing
+
 import pprint
 import argparse
 import os
@@ -271,7 +273,8 @@ file_counter = 0
 
 ### Run source detection, collect star data to Qtable
 print('\nRunning source detection', datetime.datetime.now())
-for fitsFile in files:
+
+def process_files(fitsFile):
     # 1. Read the list of sources extracted from an image (fits) file
     file_counter = file_counter + 1
     print('\n\n### Processing file', file_counter, 'out of', len(files),': ', fitsFile, '###')
@@ -293,6 +296,17 @@ for fitsFile in files:
     image_plane = dscalculation.define_image_plane(image_wcs, fits_header)
 
     # dscalculation.plot_image_with_frame(fits_data, wds_doubles_pixel, image_plane[1], fitsFileName[:-4] + '-doubles.jpg', image_limit, workingDirectory)
+
+number_of_files = len(files)
+
+
+# Ensure proper multiprocessing entry point
+if __name__ == "__main__":
+    with multiprocessing.Pool(processes=4) as pool:  # Adjust `processes` as needed
+        pool.map(process_files, files)
+
+    print("All files processed successfully!")
+
 
 upd_sources_ds = sources_ds[sources_ds['rho_measured'] != 0]
 upd_sources_ds_by_object = upd_sources_ds.group_by(['2000 Coord', 'Discov', 'Comp'])
