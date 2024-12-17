@@ -127,8 +127,8 @@ workingDirectory = args.directory
 config = configparser.ConfigParser()
 
 # Define the configuration file
-config_file = 'C:\\Users\\gerge\\Documents\\Github\\gaiadr3_double_stars\\config.ini'
-# config_file = '/etc/wdsreport/config.ini'
+# config_file = 'C:\\Users\\gerge\\Documents\\Github\\gaiadr3_double_stars\\config.ini'
+config_file = '/etc/wdsreport/config.ini'
 
 # Read the configuration file
 config.read(config_file)
