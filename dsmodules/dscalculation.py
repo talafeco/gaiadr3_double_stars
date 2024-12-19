@@ -849,6 +849,7 @@ def crop_double_star_to_jpg_with_markers(fits_path, working_directory, pairname,
     star_a_pix = utils.skycoord_to_pixel(star_a, wcs_helix)
     star_b_pix = utils.skycoord_to_pixel(star_b, wcs_helix)
     pixel_separation = np.sqrt((star_a_pix[0] - star_b_pix[0])**2 + (star_a_pix[1] - star_b_pix[1])**2)
+
     plt.scatter(star_a_pix[0] + pixel_separation / 2, star_a_pix[1], marker="_", s=200, color="darkblue", label='Main star')
     plt.scatter(star_a_pix[0], star_a_pix[1] + pixel_separation / 2, marker="|", s=200, color="darkblue")
     plt.scatter(star_b_pix[0] + pixel_separation / 2, star_b_pix[1], marker="_", s=200, color="cornflowerblue", label='Companion')
@@ -869,7 +870,6 @@ def crop_double_star_to_jpg_with_markers(fits_path, working_directory, pairname,
     plt.imshow(image, origin='lower',cmap='Greys', aspect='equal', vmax=image_limit, vmin=0) # 
     plt.savefig(str(working_directory + '/' + pairname + '_crp_img.jpg').replace(' ', ''),dpi=300.0, bbox_inches='tight', pad_inches=0.2)
     plt.close()
-
 
 def define_image_plane(wcs, header):
     # Define inner rectangle coordinates
@@ -1346,6 +1346,7 @@ def write_gaia_report(ds, wds_data, gaia_ds, image_folder):
     report_file.write('\nSeparation: ' + str(roundNumber(gaia_ds.pairDR3Rho)))
     report_file.write('\nMagnitude difference: ' + str(roundNumber(gaia_ds.pairGMagDiff)))
     report_file.write('\nPrecise coordinates (J2000): ' + wds_data.preciseCoord)
+    report_file.write('\nDate of observation (human readable): ' + str(Time(ds['image_date'].data).mean()))
     report_file.write('\nDate of observation: ' + wds_data.dateOfObservation)
     report_file.write('\n\nCalculated coordinates')
     report_file.write('\nComponent A DR3 2016: ' + str(gaia_ds.pairRaA) + ' ' + str(gaia_ds.pairDecA))
