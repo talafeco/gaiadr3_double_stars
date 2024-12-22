@@ -672,6 +672,34 @@ def gaia_hrd_plot(pairname, working_directory, mag_abs_a, mag_abs_b, bv_a, bv_b,
         plt.savefig(savename, bbox_inches='tight', dpi=300.0)
         plt.close()
 
+# Get north direction
+def get_north_angle(wcs, ref_pixel):
+    """
+    Calculate the angle of north relative to the image's vertical axis.
+
+    Parameters:
+    - wcs (WCS): WCS object from the FITS header.
+    - ref_pixel (tuple): Reference pixel coordinates (x, y).
+
+    Returns:
+    - north_angle (float): Angle of north in degrees relative to the image's vertical axis.
+    """
+    # Reference pixel in image coordinates
+    x_ref, y_ref = ref_pixel
+
+    # Pixel directly "above" the reference in image coordinates
+    x_above, y_above = x_ref, y_ref + 1
+
+    # Convert these pixel coordinates to world coordinates
+    sky_ref = wcs.pixel_to_world(x_ref, y_ref)
+    sky_above = wcs.pixel_to_world(x_above, y_above)
+
+    # Calculate the position angle from the reference point to the "above" point
+    north_angle = sky_ref.position_angle(sky_above).deg
+
+    return north_angle
+
+
 # Create Image plot of the double stars
 def imagePlot(filename, working_directory, pairname, raa, deca, rab, decb, image_limit):
     # data[0]
@@ -692,6 +720,38 @@ def imagePlot(filename, working_directory, pairname, raa, deca, rab, decb, image
     plt.scatter(star_b_pix[0] + 40, star_b_pix[1], marker="_", s=50, color="red", label='Companion')
     plt.scatter(star_b_pix[0], star_b_pix[1] + 40, marker="|", s=50, color="red")
     #plt.text(star_a_pix[0] - 10, star_a_pix[1] - 50, 'c', fontsize=10, color='red')
+    
+    length = 150
+    center = [170, 170]
+    angle_deg = get_north_angle(wcs_helix, [50,50])
+
+    # Compute the start and end points of the arrow without rotation
+    half_length = length / 2
+    start = (-half_length, 0)
+    end = (half_length, 0)
+
+    # Create a rotation matrix
+    angle_rad = np.deg2rad(angle_deg)
+    rotation_matrix = np.array([
+        [np.cos(angle_rad), -np.sin(angle_rad)],
+        [np.sin(angle_rad), np.cos(angle_rad)]
+    ])
+
+    # Rotate the start and end points
+    start_rotated = rotation_matrix @ np.array(start)
+    end_rotated = rotation_matrix @ np.array(end)
+
+    # Adjust the rotated points to the center
+    start_rotated += np.array(center)
+    end_rotated += np.array(center)
+
+    plt.arrow(
+        start_rotated[0], start_rotated[1],
+        end_rotated[0] - start_rotated[0], end_rotated[1] - start_rotated[1],
+        width=5, head_width=20, head_length=20, color='blue'
+    )
+
+    plt.text(center[0], center[1], 'N', color='blue', fontsize=10, ha='center', va='center')
     plt.legend(loc="upper right")
     plt.title(pairname)
     plt.imshow(image, origin='lower',cmap='Greys', aspect='equal', vmax=image_limit, vmin=0) # 
@@ -867,6 +927,37 @@ def crop_double_star_to_jpg_with_markers(fits_path, working_directory, pairname,
     plt.xlim(x_center - x_range, x_center + x_range)
     plt.ylim(y_center - y_range, y_center + y_range)
 
+    length = pixel_separation
+    center = [x_center - x_range + pixel_separation, y_center - y_range + pixel_separation]
+    angle_deg = get_north_angle(wcs_helix, [10,10])
+
+    # Compute the start and end points of the arrow without rotation
+    half_length = length / 2
+    start = (-half_length, 0)
+    end = (half_length, 0)
+
+    # Create a rotation matrix
+    angle_rad = np.deg2rad(angle_deg)
+    rotation_matrix = np.array([
+        [np.cos(angle_rad), -np.sin(angle_rad)],
+        [np.sin(angle_rad), np.cos(angle_rad)]
+    ])
+
+    # Rotate the start and end points
+    start_rotated = rotation_matrix @ np.array(start)
+    end_rotated = rotation_matrix @ np.array(end)
+
+    # Adjust the rotated points to the center
+    start_rotated += np.array(center)
+    end_rotated += np.array(center)
+
+    plt.arrow(
+        start_rotated[0], start_rotated[1],
+        end_rotated[0] - start_rotated[0], end_rotated[1] - start_rotated[1],
+        width=pixel_separation / 50, head_width=pixel_separation / 25, head_length=pixel_separation / 25, color='blue'
+    )
+
+    plt.text(center[0], center[1], 'N', color='blue', fontsize=10, ha='center', va='center')
     plt.imshow(image, origin='lower',cmap='Greys', aspect='equal', vmax=image_limit, vmin=0) # 
     plt.savefig(str(working_directory + '/' + pairname + '_crp_img.jpg').replace(' ', ''),dpi=300.0, bbox_inches='tight', pad_inches=0.2)
     plt.close()
@@ -876,7 +967,6 @@ def define_image_plane(wcs, header):
     # Define the inner rectangle percent in image pixels measured from the edge of the image
 
     frame_sink = (frame_percentage / 100) * header['NAXIS2']
-
     photo_x_coords = [frame_sink, header['NAXIS1'] - frame_sink]
     photo_y_coords = [frame_sink, header['NAXIS2'] - frame_sink]
     photo_center = SkyCoord(header['CRVAL1'] * u.degree, header['CRVAL2'] * u.degree)
