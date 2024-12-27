@@ -12,6 +12,24 @@ pm_ra_cosdec = np.random.uniform(-10, 10, num_stars) * u.mas/u.yr  # Proper Moti
 pm_dec = np.random.uniform(-10, 10, num_stars) * u.mas/u.yr  # Proper Motion Dec
 radial_velocity = np.random.uniform(-100, 100, num_stars) * u.km/u.s  # Radial Velocity
 
+
+# Function to read data from CSV and compute missing values
+def read_data_from_csv_with_parallax(filename):
+    data = pd.read_csv(filename)
+    ra = data['ra'].values * u.deg
+    dec = data['dec'].values * u.deg
+    parallax = data['parallax'].values * u.mas
+
+    # Compute distances from parallax
+    distance_pc = 1000 / parallax  # Distance in parsecs
+
+    # Compute pm_ra_cosdec using pm_ra and dec
+    pm_ra = data['pmra'].values * u.mas/u.yr
+    pm_ra_cosdec = pm_ra * np.cos(dec.to(u.rad))  # Convert dec to radians for cosine
+
+    pm_dec = data['pmdec'].values * u.mas/u.yr
+    return ra, dec, distance_pc * u.pc, pm_ra_cosdec, pm_dec, data
+
 # Step 1: Convert input data to SkyCoord objects
 coords = SkyCoord(ra=ra, dec=dec, distance=distance_pc, 
                   pm_ra_cosdec=pm_ra_cosdec, pm_dec=pm_dec, 
@@ -22,7 +40,7 @@ velocities = coords.velocity.d_xyz.to(u.lyr/u.yr)  # Convert to light-years/year
 positions = coords.cartesian.xyz.to(u.lyr)  # Positions in light-years
 
 # Trace back trajectories
-time = 1e6 * u.yr  # Large backward time
+time = 1e5 * u.yr  # Large backward time
 origin_positions = positions - velocities * time  # Projected origins
 
 # Step 3: Calculate pairwise distances between origins
@@ -35,7 +53,7 @@ pairwise_dist = distance.pdist(origin_array, metric='euclidean')
 distance_matrix = distance.squareform(pairwise_dist)
 
 # Step 4: Find stars within 2 light-years of each other
-threshold_distance = 2.0  # 2 light-years
+threshold_distance = 20.0  # 2 light-years
 close_pairs = np.argwhere((distance_matrix < threshold_distance) & (distance_matrix > 0))
 
 # Step 5: Group stars into clusters manually

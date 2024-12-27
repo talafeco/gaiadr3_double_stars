@@ -41,14 +41,14 @@ hipparcos_bv_index = hipparcos_file['B-V']
 
 # Configuration for the ATIK camera
 
-'''dao_sigma = 2.0
-dao_fwhm = 7.0
-dao_threshold = 10.0'''
+dao_sigma = 3.0
+dao_fwhm = 8.0
+dao_threshold = 12.0
 
 # Configuration for the Canon camera
-dao_sigma = 10.0
+'''dao_sigma = 10.0
 dao_fwhm = 10.0
-dao_threshold = 18.0
+dao_threshold = 18.0'''
 
 possible_distance = 50000.0 # AU
 search_cone = 0.002 # Decimal degree
