@@ -37,6 +37,22 @@ Excel obs orbit 3,1109 optikai így is, úgy is, de az eltérés nagy, lehet a k
 # Get DR3 based HRD
 # Dont create wds doubles image, if no pairs found on images
 
+# Create file with exposition data:
+#BITPIX pt depth
+#NAXIS1 pixels
+#NAXIS2 pixel
+#INSTRUME 
+#RA degree
+#DEC degree
+#SITELAT degree
+#SITELONG degree
+#AIRMASS
+#EXPTIME seconds
+#PIXSIZE1 micromilimeter
+#PIXSIZE1 micromilimeter
+#COMENT scale:
+#DATE-OBS time and date
+
 print('Importing modules, please stand by!')
 
 import pprint

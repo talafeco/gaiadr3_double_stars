@@ -189,9 +189,10 @@ def getUTC(date_time):
     if isNaN(date_time):
         utc_date_time = str(date_time)
     else:
-        date_of_observation_time_cet = Time(date_time, precision=0)
-        time_zone_delta = TimeDelta(-3600, format='sec')
-        date_of_observation_time_utc = date_of_observation_time_cet + time_zone_delta
+        #date_of_observation_time_cet = Time(date_time, precision=0)
+        #time_zone_delta = TimeDelta(-3600, format='sec')
+        #date_of_observation_time_utc = date_of_observation_time_cet + time_zone_delta
+        date_of_observation_time_utc = Time(date_time, precision=0)
         utc_date_time = str(date_of_observation_time_utc.jyear)
     return utc_date_time
 
@@ -582,6 +583,26 @@ def calculate_wds_dec_hourangle(wds_dec_array):
         else:
             wds_dec_dms.append('.')
     return wds_dec_dms
+
+def calculate_wdss_ra_hourangle(wdss_ra_array):
+    wdss_ra_hms = []
+    for star in wdss_ra_array:
+        if len(str(star)) == 9:
+            wdss_ra_hms.append(str(star[0:2]) + 'h' + str(star[2:4]) + 'm' + str(star[4:9]) + 's')
+        else:
+            wdss_ra_hms.append('.')
+    print(wdss_ra_hms)
+    return wdss_ra_hms
+
+def calculate_wdss_dec_hourangle(wdss_dec_array):
+    wdss_dec_dms = []
+    for star in wdss_dec_array:
+        if len(str(star)) == 9:
+            wdss_dec_dms.append(str(star[0:3]) + 'd' + str(star[3:5]) + 'm' + str(star[5:9]) + 's')
+        else:
+            wdss_dec_dms.append('.')
+    print(wdss_dec_dms)
+    return wdss_dec_dms
 
 # Create HRD plot of the double stars based on Hipparcos
 def hrdPlot(pairname, working_directory, mag_abs_a, mag_abs_b, bv_a, bv_b, hipparcos_file):
@@ -1097,6 +1118,18 @@ def create_wds_table(wdsdata):
     wdsTable = delete_invalid_lines_wds(wdsTable)
 
     return wdsTable
+
+def create_wdss_table(wdssdata):
+    print(wdssdata)
+    wdssTable = hstack([wdssdata, calculate_wdss_ra_hourangle(wdssdata['Coord (RA)'])])
+    wdssTable.rename_column('col0', 'Coord (RA) hms')
+    wdssTable = hstack([wdssTable, calculate_wdss_dec_hourangle(wdssdata['Coord (DEC)'])])
+    wdssTable.rename_column('col0', 'Coord (DEC) dms')
+    wdssTable = hstack([wdssTable, create_unique_id(wdssdata['WDSS identifier'], wdssdata['Component identifier'])])
+    wdssTable.rename_column('col0', 'Unique ID')
+    wdssTable = delete_invalid_lines_wds(wdssTable)
+
+    return wdssTable
 
 def get_fits_data(fits_file):
     hdu = fits.open(fits_file)

@@ -13,10 +13,10 @@ first_dec = float(sys.argv[2])
 second_ra = float(sys.argv[3])
 second_dec = float(sys.argv[4])
 
-first_object = SkyCoord(ra=first_ra*u.degree, dec=first_dec*u.degree)
-second_object = SkyCoord(ra=second_ra*u.degree, dec=second_dec*u.degree)
+first_object = SkyCoord(ra=first_ra*u.hourangle, dec=first_dec*u.degree)
+second_object = SkyCoord(ra=second_ra*u.hourangle, dec=second_dec*u.degree)
 
 object_position_angle = first_object.position_angle(second_object).degree
 object_separation = first_object.separation(second_object).arcsecond
 
-print('### Calculate Separation between two celestial coordinates ###\n', 'First object coordinates (Ra/Dec):', first_ra, '°,', first_dec, '°', '\n', 'Second object coordinates (Ra/Dec): ', second_ra, '°, ', second_dec, '°', '\n', 'Position angle:', object_position_angle, '°', '\n', 'Separation:', object_separation, '"')
+print('### Calculate Separation between two celestial coordinates ###\n', 'First object coordinates (Ra/Dec):', first_object.ra.degree, '°,', first_dec, '°', '\n', 'Second object coordinates (Ra/Dec): ', second_object.ra.degree, '°, ', second_dec, '°', '\n', 'Position angle:', object_position_angle, '°', '\n', 'Separation:', object_separation, '"')
