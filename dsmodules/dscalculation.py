@@ -591,7 +591,6 @@ def calculate_wdss_ra_hourangle(wdss_ra_array):
             wdss_ra_hms.append(str(star[0:2]) + 'h' + str(star[2:4]) + 'm' + str(star[4:9]) + 's')
         else:
             wdss_ra_hms.append('.')
-    print(wdss_ra_hms)
     return wdss_ra_hms
 
 def calculate_wdss_dec_hourangle(wdss_dec_array):
@@ -601,7 +600,6 @@ def calculate_wdss_dec_hourangle(wdss_dec_array):
             wdss_dec_dms.append(str(star[0:3]) + 'd' + str(star[3:5]) + 'm' + str(star[5:9]) + 's')
         else:
             wdss_dec_dms.append('.')
-    print(wdss_dec_dms)
     return wdss_dec_dms
 
 # Create HRD plot of the double stars based on Hipparcos
@@ -1120,7 +1118,6 @@ def create_wds_table(wdsdata):
     return wdsTable
 
 def create_wdss_table(wdssdata):
-    print(wdssdata)
     wdssTable = hstack([wdssdata, calculate_wdss_ra_hourangle(wdssdata['Coord (RA)'])])
     wdssTable.rename_column('col0', 'Coord (RA) hms')
     wdssTable = hstack([wdssTable, calculate_wdss_dec_hourangle(wdssdata['Coord (DEC)'])])
