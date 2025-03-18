@@ -719,64 +719,6 @@ def get_north_angle(wcs, ref_pixel):
     return north_angle
 
 
-# Create Image plot of the double stars
-def imagePlot(filename, working_directory, pairname, raa, deca, rab, decb, image_limit):
-    # data[0]
-    #image_data = fits.open(working_directory + '/' + filename)
-    image_data = fits.open(filename)
-    #print('IMAGE DATA:', working_directory, '/', filename)
-    header = image_data[0].header
-    wcs_helix = WCS(image_data[0].header, naxis=2)
-    image = image_data[0].data
-    image_height = header['NAXIS2']
-    star_a = SkyCoord(raa * u.deg, deca * u.deg, frame='icrs')
-    star_b = SkyCoord(rab * u.deg, decb * u.deg, frame='icrs')
-    star_a_pix = utils.skycoord_to_pixel(star_a, wcs_helix)
-    star_b_pix = utils.skycoord_to_pixel(star_b, wcs_helix)
-    plt.scatter(star_a_pix[0] + 40, star_a_pix[1], marker="_", s=50, color="blue", label='Main star')
-    plt.scatter(star_a_pix[0], star_a_pix[1] + 40, marker="|", s=50, color="blue")
-    #plt.text(star_a_pix[0] + 10, star_a_pix[1] + 40, 'm', fontsize=10, color='blue')
-    plt.scatter(star_b_pix[0] + 40, star_b_pix[1], marker="_", s=50, color="red", label='Companion')
-    plt.scatter(star_b_pix[0], star_b_pix[1] + 40, marker="|", s=50, color="red")
-    #plt.text(star_a_pix[0] - 10, star_a_pix[1] - 50, 'c', fontsize=10, color='red')
-    
-    length = 150
-    center = [170, 170]
-    angle_deg = get_north_angle(wcs_helix, [50,50])
-
-    # Compute the start and end points of the arrow without rotation
-    half_length = length / 2
-    start = (-half_length, 0)
-    end = (half_length, 0)
-
-    # Create a rotation matrix
-    angle_rad = np.deg2rad(angle_deg)
-    rotation_matrix = np.array([
-        [np.cos(angle_rad), -np.sin(angle_rad)],
-        [np.sin(angle_rad), np.cos(angle_rad)]
-    ])
-
-    # Rotate the start and end points
-    start_rotated = rotation_matrix @ np.array(start)
-    end_rotated = rotation_matrix @ np.array(end)
-
-    # Adjust the rotated points to the center
-    start_rotated += np.array(center)
-    end_rotated += np.array(center)
-
-    plt.arrow(
-        start_rotated[0], start_rotated[1],
-        end_rotated[0] - start_rotated[0], end_rotated[1] - start_rotated[1],
-        width=5, head_width=20, head_length=20, color='blue'
-    )
-
-    plt.text(center[0], center[1], 'N', color='blue', fontsize=10, ha='center', va='center')
-    plt.legend(loc="upper right")
-    plt.title(pairname)
-    plt.imshow(image, origin='lower',cmap='Greys', aspect='equal', vmax=image_limit, vmin=0) # 
-    plt.savefig(str(working_directory + '/' + pairname + '_img.jpg').replace(' ', ''),dpi=300.0, bbox_inches='tight', pad_inches=0.2)
-    plt.close()
-
 def calc_average_distance(star_a_par, star_a_par_err, star_b_par, star_b_par_err, sep):
     # Calcualte average distance in lightyears
     # Excel formula: = 1000 / (((1-star A parallax) * star A parallax error in %)+((1-star B parallax) * star B parallax error in %))/((1-star A parallax error in %)+(1-star B parallax error in %))
@@ -906,49 +848,30 @@ def plot_image_with_frame(image_array, wds_double_stars, frame_edges, output_fil
     
     # Close the plot to free up memory
     plt.close()
-
-def crop_double_star_to_jpg_with_markers(fits_path, working_directory, pairname, raa, deca, rab, decb, image_limit):
-    # Load the FITS file to extract WCS and image data
-    #with fits.open(working_directory + '/' + fits_path) as hdul:
-    with fits.open(fits_path) as hdul:
-        wcs = WCS(hdul[0].header)
-        image_data = hdul[0].data
-
-    #image_data = fits.open(working_directory + '/' + fits_path)
-    image_data = fits.open(fits_path)
+# Create Image plot of the double stars
+def imagePlot(filename, working_directory, pairname, raa, deca, rab, decb, image_limit):
+    # data[0]
+    #image_data = fits.open(working_directory + '/' + filename)
+    image_data = fits.open(filename)
+    #print('IMAGE DATA:', working_directory, '/', filename)
     header = image_data[0].header
     wcs_helix = WCS(image_data[0].header, naxis=2)
     image = image_data[0].data
     image_height = header['NAXIS2']
     star_a = SkyCoord(raa * u.deg, deca * u.deg, frame='icrs')
     star_b = SkyCoord(rab * u.deg, decb * u.deg, frame='icrs')
-    ds_pa = star_a.position_angle(star_b)
-    ds_sep = star_a.separation(star_b).arcsec
-    midpoint = star_a.directional_offset_by(ds_pa, (ds_sep / 2))
     star_a_pix = utils.skycoord_to_pixel(star_a, wcs_helix)
     star_b_pix = utils.skycoord_to_pixel(star_b, wcs_helix)
-    pixel_separation = np.sqrt((star_a_pix[0] - star_b_pix[0])**2 + (star_a_pix[1] - star_b_pix[1])**2)
-
-    plt.scatter(star_a_pix[0] + pixel_separation / 2, star_a_pix[1], marker="_", s=200, color="darkblue", label='Main star')
-    plt.scatter(star_a_pix[0], star_a_pix[1] + pixel_separation / 2, marker="|", s=200, color="darkblue")
-    plt.scatter(star_b_pix[0] + pixel_separation / 2, star_b_pix[1], marker="_", s=200, color="cornflowerblue", label='Companion')
-    plt.scatter(star_b_pix[0], star_b_pix[1] + pixel_separation / 2, marker="|", s=200, color="cornflowerblue")
-    plt.legend(loc="upper right")
-    plt.title(pairname)
-
-    # Get the current axis limits
-    x_center = star_a_pix[0]
-    y_center = star_a_pix[1]
-    x_range = pixel_separation * 5
-    y_range = pixel_separation * 5
-
-    # Set new limits centered around the center point
-    plt.xlim(x_center - x_range, x_center + x_range)
-    plt.ylim(y_center - y_range, y_center + y_range)
-
-    length = pixel_separation
-    center = [x_center - x_range + pixel_separation, y_center - y_range + pixel_separation]
-    angle_deg = get_north_angle(wcs_helix, [10,10])
+    plt.scatter(star_a_pix[0] + 40, star_a_pix[1], marker="_", s=50, color="blue", label='Main star')
+    plt.scatter(star_a_pix[0], star_a_pix[1] + 40, marker="|", s=50, color="blue")
+    #plt.text(star_a_pix[0] + 10, star_a_pix[1] + 40, 'm', fontsize=10, color='blue')
+    plt.scatter(star_b_pix[0] + 40, star_b_pix[1], marker="_", s=50, color="red", label='Companion')
+    plt.scatter(star_b_pix[0], star_b_pix[1] + 40, marker="|", s=50, color="red")
+    #plt.text(star_a_pix[0] - 10, star_a_pix[1] - 50, 'c', fontsize=10, color='red')
+    
+    length = 150
+    center = [170, 170]
+    angle_deg = get_north_angle(wcs_helix, [50,50])
 
     # Compute the start and end points of the arrow without rotation
     half_length = length / 2
@@ -973,10 +896,89 @@ def crop_double_star_to_jpg_with_markers(fits_path, working_directory, pairname,
     plt.arrow(
         start_rotated[0], start_rotated[1],
         end_rotated[0] - start_rotated[0], end_rotated[1] - start_rotated[1],
-        width=pixel_separation / 50, head_width=pixel_separation / 25, head_length=pixel_separation / 25, color='blue'
+        width=5, head_width=20, head_length=20, color='blue'
     )
 
     plt.text(center[0], center[1], 'N', color='blue', fontsize=10, ha='center', va='center')
+    plt.legend(loc="upper right")
+    plt.title(pairname)
+    plt.imshow(image, origin='lower',cmap='Greys', aspect='equal', vmax=image_limit, vmin=0) # 
+    plt.savefig(str(working_directory + '/' + pairname + '_img.jpg').replace(' ', ''),dpi=300.0, bbox_inches='tight', pad_inches=0.2)
+    plt.close()
+
+def crop_double_star_to_jpg_with_markers(filename, working_directory, pairname, raa, deca, rab, decb, image_limit):
+    # data[0]
+    #image_data = fits.open(working_directory + '/' + filename)
+    image_data = fits.open(filename)
+    #print('IMAGE DATA:', working_directory, '/', filename)
+    header = image_data[0].header
+    wcs_helix = WCS(image_data[0].header, naxis=2)
+    image = image_data[0].data
+    image_height = header['NAXIS2']
+
+    star_a = SkyCoord(raa * u.deg, deca * u.deg, frame='icrs')
+    star_b = SkyCoord(rab * u.deg, decb * u.deg, frame='icrs')
+    ds_pa = star_a.position_angle(star_b)
+    ds_sep = star_a.separation(star_b).arcsec
+    midpoint = star_a.directional_offset_by(ds_pa, (ds_sep / 2))
+    star_a_pix = utils.skycoord_to_pixel(star_a, wcs_helix)
+    star_b_pix = utils.skycoord_to_pixel(star_b, wcs_helix)
+    pixel_separation = float(np.sqrt((star_a_pix[0] - star_b_pix[0])**2 + (star_a_pix[1] - star_b_pix[1])**2))
+
+    plt.scatter(star_a_pix[0] + pixel_separation / 2, star_a_pix[1], marker="_", s=200, color="darkblue", label='Main star')
+    plt.scatter(star_a_pix[0], star_a_pix[1] + pixel_separation / 2, marker="|", s=200, color="darkblue")
+    plt.scatter(star_b_pix[0] + pixel_separation / 2, star_b_pix[1], marker="_", s=200, color="cornflowerblue", label='Companion')
+    plt.scatter(star_b_pix[0], star_b_pix[1] + pixel_separation / 2, marker="|", s=200, color="cornflowerblue")
+    plt.legend(loc="upper right")
+    plt.title(pairname)
+
+    # Get the current axis limits
+    x_center = star_a_pix[0]
+    y_center = star_a_pix[1]
+    x_range = pixel_separation * 5
+    y_range = pixel_separation * 5
+
+    # Set new limits centered around the center point
+    plt.xlim(x_center - x_range, x_center + x_range)
+    plt.ylim(y_center - y_range, y_center + y_range)
+
+    length = pixel_separation
+    center = [float(x_center - x_range + pixel_separation), float(y_center - y_range + pixel_separation)]
+    print('center: ' + str(center))
+    angle_deg = get_north_angle(wcs_helix, [10,10])
+
+    # Compute the start and end points of the arrow without rotation
+    half_length = float(length / 2)
+    start = (-half_length, 0)
+    print('start: ' + str(start))
+    end = (half_length, 0)
+
+    # Create a rotation matrix
+    angle_rad = np.deg2rad(angle_deg)
+    rotation_matrix = np.array([
+        [np.cos(angle_rad), -np.sin(angle_rad)],
+        [np.sin(angle_rad), np.cos(angle_rad)]
+    ])
+
+    # Rotate the start and end points
+    print('np.array(start): ', + np.array(start))
+    start_rotated = rotation_matrix @ np.array(start)
+    end_rotated = rotation_matrix @ np.array(end)
+
+    # Adjust the rotated points to the center
+    start_rotated += np.array(center)
+    end_rotated += np.array(center)
+    print('start_rotated: ' + str(start_rotated))
+    print('end_rotated: ' + str(end_rotated))
+    print('pixel_separation: ' + str(pixel_separation))
+
+    plt.arrow(
+        float(start_rotated[0]), float(start_rotated[1]),
+        float(end_rotated[0] - start_rotated[0]), float(end_rotated[1] - start_rotated[1]),
+        width=pixel_separation / 50, head_width=pixel_separation / 25, head_length=pixel_separation / 25, color='blue'
+    )
+
+    plt.text(center[0], center[1], 'N', color='blue', fontsize=15, ha='center', va='center')
     plt.imshow(image, origin='lower',cmap='Greys', aspect='equal', vmax=image_limit, vmin=0) # 
     plt.savefig(str(working_directory + '/' + pairname + '_crp_img.jpg').replace(' ', ''),dpi=300.0, bbox_inches='tight', pad_inches=0.2)
     plt.close()
@@ -1426,7 +1428,7 @@ def write_wds_report(ds, wds_data, image_folder):
     report_file.write('\nPA last: ' + str(ds[0]['PA_l']))
     report_file.write('\nSep last: ' +  str(ds[0]['Sep_l']))
     report_file.write('\n\n### Measurements ###')
-    report_file.write('\nDate of observation (human readable): ' + str(Time(ds['image_date'].data).mean()))
+    report_file.write('\nDate of observation (human readable): ' + str(Time(ds['image_date'].data).mean().iso))
     report_file.write('\nDate of observation: ' + wds_data.dateOfObservation)
     report_file.write('\nPrecise coordinates (J2000): ' + wds_data.preciseCoord)
     report_file.write('\n\nPosition angle:')

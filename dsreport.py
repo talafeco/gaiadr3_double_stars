@@ -455,8 +455,9 @@ imageId = np.array([], dtype=np.int32)
 sourceRa = np.array([], dtype=np.float64)
 sourceDec = np.array([], dtype=np.float64)
 sourceMag = np.array([], dtype=np.float64)
+file_date = np.array([], dtype=str)
 # Create source table
-sourceTable = QTable([fileName, dr3Designation, dr3Ra, dr3Dec, dr3Parallax, dr3ParallaxError, dr3PmRa, dr3PmDec, dr3gMag, dr3bpMag, dr3rpMag, dr3RadVel, dr3RadVelErr, dr3Temp, imageId, sourceRa, sourceDec, sourceMag], names=('filename', 'designation', 'ra', 'dec', 'parallax', 'parallax_error', 'pmra', 'pmdec','phot_g_mean_mag', 'phot_bp_mean_mag', 'phot_rp_mean_mag', 'radial_velocity', 'radial_velocity_error', 'teff_gspphot', 'image_id', 'source_ra', 'source_dec', 'source_mag'), meta={'name': 'source table'})
+sourceTable = QTable([fileName, dr3Designation, dr3Ra, dr3Dec, dr3Parallax, dr3ParallaxError, dr3PmRa, dr3PmDec, dr3gMag, dr3bpMag, dr3rpMag, dr3RadVel, dr3RadVelErr, dr3Temp, imageId, sourceRa, sourceDec, sourceMag, file_date], names=('filename', 'designation', 'ra', 'dec', 'parallax', 'parallax_error', 'pmra', 'pmdec','phot_g_mean_mag', 'phot_bp_mean_mag', 'phot_rp_mean_mag', 'radial_velocity', 'radial_velocity_error', 'teff_gspphot', 'image_id', 'source_ra', 'source_dec', 'source_mag', 'file_date'), meta={'name': 'source table'})
 
 # Define Qtable to record Gaia data for each image about the doubles
 reportFileName = np.array([], dtype=str)
@@ -499,7 +500,8 @@ reportThetaMeasured = np.array([], dtype=np.float64)
 reportRhoDr3= np.array([], dtype=np.float64)
 reportRhoMeasured = np.array([], dtype=np.float64)
 reportObjectId = np.array([], dtype=str)
-reportTable = QTable([reportFileName, reportDr3DesignationA, reportDr3RaA, reportDr3DecA, reportDr3ParallaxA, reportDr3ParallaxErrorA, reportDr3PmRaA, reportDr3PmDecA, reportDr3gMagA, reportDr3bpMagA, reportDr3rpMagA, reportDr3RadVelA, reportDr3RadVelErrA, reportDr3TempA, reportRaMeasuredA, reportDecMeasuredA, reportMagMeasuredA, reportDr3DesignationB, reportDr3RaB, reportDr3DecB, reportDr3ParallaxB, reportDr3ParallaxErrorB, reportDr3PmRaB, reportDr3PmDecB, reportDr3gMagB, reportDr3bpMagB, reportDr3rpMagB, reportDr3RadVelB, reportDr3RadVelErrB, reportDr3TempB, reportRaMeasuredB, reportDecMeasuredB, reportMagMeasuredB, reportThetaDr3, reportThetaMeasured, reportRhoDr3, reportRhoMeasured, reportObjectId], names=('filename', 'designation_a', 'ra_a', 'dec_a', 'parallax_a', 'parallax_error_a', 'pmra_a', 'pmdec_a', 'phot_g_mean_mag_a', 'phot_bp_mean_mag_a', 'phot_rp_mean_mag_a', 'radial_velocity_a', 'radial_velocity_error_a', 'teff_gspphot_a', 'rameasured_a', 'decmeasured_a', 'magmeasured_a', 'designation_b', 'ra_b', 'dec_b', 'parallax_b', 'parallax_error_b', 'pmra_b', 'pmdec_b', 'phot_g_mean_mag_b', 'phot_bp_mean_mag_b', 'phot_rp_mean_mag_b', 'radial_velocity_b', 'radial_velocity_error_b', 'teff_gspphot_b', 'rameasured_b', 'decmeasured_b', 'magmeasured_b', 'theta_dr3', 'theta_measured', 'rho_dr3', 'rho_measured', 'object_id'), meta={'name': 'report table'})
+reportFileDate = np.array([], dtype=str)
+reportTable = QTable([reportFileName, reportDr3DesignationA, reportDr3RaA, reportDr3DecA, reportDr3ParallaxA, reportDr3ParallaxErrorA, reportDr3PmRaA, reportDr3PmDecA, reportDr3gMagA, reportDr3bpMagA, reportDr3rpMagA, reportDr3RadVelA, reportDr3RadVelErrA, reportDr3TempA, reportRaMeasuredA, reportDecMeasuredA, reportMagMeasuredA, reportDr3DesignationB, reportDr3RaB, reportDr3DecB, reportDr3ParallaxB, reportDr3ParallaxErrorB, reportDr3PmRaB, reportDr3PmDecB, reportDr3gMagB, reportDr3bpMagB, reportDr3rpMagB, reportDr3RadVelB, reportDr3RadVelErrB, reportDr3TempB, reportRaMeasuredB, reportDecMeasuredB, reportMagMeasuredB, reportThetaDr3, reportThetaMeasured, reportRhoDr3, reportRhoMeasured, reportObjectId, reportFileDate], names=('filename', 'designation_a', 'ra_a', 'dec_a', 'parallax_a', 'parallax_error_a', 'pmra_a', 'pmdec_a', 'phot_g_mean_mag_a', 'phot_bp_mean_mag_a', 'phot_rp_mean_mag_a', 'radial_velocity_a', 'radial_velocity_error_a', 'teff_gspphot_a', 'rameasured_a', 'decmeasured_a', 'magmeasured_a', 'designation_b', 'ra_b', 'dec_b', 'parallax_b', 'parallax_error_b', 'pmra_b', 'pmdec_b', 'phot_g_mean_mag_b', 'phot_bp_mean_mag_b', 'phot_rp_mean_mag_b', 'radial_velocity_b', 'radial_velocity_error_b', 'teff_gspphot_b', 'rameasured_b', 'decmeasured_b', 'magmeasured_b', 'theta_dr3', 'theta_measured', 'rho_dr3', 'rho_measured', 'object_id', 'file_date'), meta={'name': 'report table'})
 
 # Set observation date and time
 fitsFileDate = ''
@@ -523,6 +525,7 @@ for fitsFile in files:
     fitsFileName = workingDirectory + '/' + fitsFile
     hdu = fits.open(fitsFileName)
     mywcs = WCS(hdu[0].header)
+    fits_file_date = dscalculation.set_observation_date(hdu[0].header)
 
     # Estimate the background and background noise
     data = hdu[0].data
@@ -570,7 +573,7 @@ for fitsFile in files:
         catalogstar = SkyCoord(ra=gaiaStars[idx]['ra']*u.degree, dec=gaiaStars[idx]['dec']*u.degree)
         sep = c.separation(catalogstar)
         if sep < Angle('00d00m02s'):
-            sourceTable.add_row([fitsFile, gaiaStars[idx]['designation'], convertStringToNan(gaiaStars[idx]['ra']), convertStringToNan(gaiaStars[idx]['dec']), convertStringToNan(gaiaStars[idx]['parallax']), convertStringToNan(gaiaStars[idx]['parallax_error']), convertStringToNan(gaiaStars[idx]['pmra']), convertStringToNan(gaiaStars[idx]['pmdec']), convertStringToNan(gaiaStars[idx]['phot_g_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_bp_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_rp_mean_mag']), convertStringToNan(gaiaStars[idx]['radial_velocity']), convertStringToNan(gaiaStars[idx]['radial_velocity_error']), convertStringToNan(gaiaStars[idx]['teff_gspphot']), star['id'], ra2, dec2, star['mag']])
+            sourceTable.add_row([fitsFile, gaiaStars[idx]['designation'], convertStringToNan(gaiaStars[idx]['ra']), convertStringToNan(gaiaStars[idx]['dec']), convertStringToNan(gaiaStars[idx]['parallax']), convertStringToNan(gaiaStars[idx]['parallax_error']), convertStringToNan(gaiaStars[idx]['pmra']), convertStringToNan(gaiaStars[idx]['pmdec']), convertStringToNan(gaiaStars[idx]['phot_g_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_bp_mean_mag']), convertStringToNan(gaiaStars[idx]['phot_rp_mean_mag']), convertStringToNan(gaiaStars[idx]['radial_velocity']), convertStringToNan(gaiaStars[idx]['radial_velocity_error']), convertStringToNan(gaiaStars[idx]['teff_gspphot']), star['id'], ra2, dec2, star['mag'], fits_file_date])
     analysis_end = datetime.datetime.now()
     print('Analysis finised in: ', ((analysis_end - analysis_start).seconds), ' sec')
 #gaiaStarsTableFileName = (str('gaiaStarsTab.csv'))
@@ -579,6 +582,8 @@ for fitsFile in files:
 tableFileName = (workingDirectory + '/' + str(fitsFile[:-4] + '.csv'))
 sourceTable.write(tableFileName, format='ascii', overwrite=True, delimiter=',')
 
+
+
 ### Search double stars on the image sequence
 sourceTable_by_file = sourceTable.group_by('filename')
 
@@ -586,12 +591,13 @@ for group in sourceTable_by_file.groups:
     # Creating empty arrays for Star related calculations
     print('\n### Processing group: ', group[0]['filename'])
     print('Timestamp: ', datetime.datetime.now())
-    print('Groupd rows: ', len(group))
+    print('Group rows: ', len(group))
     StarA = []
     StarB = []
     rowcounter = 0
     for star in group: ## modify according to arrays instead of starlist
         rowcounter = rowcounter + 1
+        starFileDate = star['file_date']
         sys.stdout.write(f'\rCount: {rowcounter}')
         StarA = (star['filename'], star['designation'], star['ra'], star['dec'], star['parallax'], star['parallax_error'], star['pmra'], star['pmdec'],star['phot_g_mean_mag'], star['phot_bp_mean_mag'], star['phot_rp_mean_mag'], star['radial_velocity'], star['radial_velocity_error'], star['teff_gspphot'], star['image_id'], star['source_ra'], star['source_dec'], star['source_mag'])
         for star in group:
@@ -672,6 +678,9 @@ for group in sourceTable_by_file.groups:
                     starDistanceMin2 = calcDistanceMin(starParallax2, starParallaxError2)
                     starDistanceRange2 = starDistanceMax2 - starDistanceMin2
 
+                    # Extend with date of observation
+                    #starFileDate = float(StarB[18])
+
                     # Check if stars shares a common distance range
                     distanceCommon = ()
                     if starDistanceMin1 < starDistanceMin2 < starDistanceMax1 or starDistanceMin2 < starDistanceMin1 < starDistanceMax2:
@@ -680,11 +689,11 @@ for group in sourceTable_by_file.groups:
                         distanceCommon = 'no'
                     
                     # Check if the pair is a Common Proper Motion pairs (CPM), Similar Proper Motion (SPM) or Different Proper Motion (DPM)
-
+                    #
 
                     #Print data, if stars are close and share a common distance range
                     if distanceCommon == 'overlapping':
-                        reportTable.add_row([star[0], starName1, starRa1, starDec1, starParallax1, starParallaxError1, starPmRa1, starPmDec1, starGMag1, starBpMag1, starRpMag1, starRadVel1, starRadVelErr1, starTemp1, starActualRa1, starActualDec1, starActualMag1, starName2, starRa2, starDec2, starParallax2, starParallaxError2, starPmRa2, starPmDec2, starGMag2, starBpMag2, starRpMag2, starRadVel2, starRadVelErr2, starTemp2, starActualRa2, starActualDec2, starActualMag2, thetaStar, thetaActual, rhoStar, rhoActual, starObjectId])
+                        reportTable.add_row([star[0], starName1, starRa1, starDec1, starParallax1, starParallaxError1, starPmRa1, starPmDec1, starGMag1, starBpMag1, starRpMag1, starRadVel1, starRadVelErr1, starTemp1, starActualRa1, starActualDec1, starActualMag1, starName2, starRa2, starDec2, starParallax2, starParallaxError2, starPmRa2, starPmDec2, starGMag2, starBpMag2, starRpMag2, starRadVel2, starRadVelErr2, starTemp2, starActualRa2, starActualDec2, starActualMag2, thetaStar, thetaActual, rhoStar, rhoActual, starObjectId, starFileDate])
 
 # print('### Report Table ###')
 # print(reportTable)
@@ -707,6 +716,8 @@ objectMean = reportTable_by_object.groups.aggregate(np.mean)
 
 count = 1
 for ds in reportTable_by_object.groups:
+    print(ds['file_date'])
+    #print('date of observation: ', Time(ds['file_date'].data).mean())
     print('\n### Group index:', count, '###')
     measurement_folder = workingDirectory + '/' + ds[0]['object_id'].replace(' ', '')
     os.makedirs(measurement_folder, exist_ok=True)
@@ -758,10 +769,12 @@ for ds in reportTable_by_object.groups:
     pairHarshawFactor = calcHarshaw(pairParallaxFactor, pairPmFactor)
     pairHarshawPhysicality = calcHarshawPhysicality(pairHarshawFactor)
     pairBinarity = calcBinarity(pairRelativeVelocity, pairEscapeVelocity)
-    dateOfObservation = getUTC(fitsFileDate)
+    #dateOfObservation1 = getUTC(fitsFileDate), fitsFileDate
+    dateOfObservation = getUTC(Time(ds['file_date'].data).mean()), Time(ds['file_date'].data).mean()
+    dateOfObservation2 = getUTC(Time(ds['file_date'].data).mean())
 
-    pairACurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaA, pairDecA, ds[0]['pmra_a'], ds[0]['pmdec_a'])
-    pairBCurrentCoord = calcCurrentDR3Coord(dateOfObservation, pairRaB, pairDecB, ds[0]['pmra_b'], ds[0]['pmdec_b'])
+    pairACurrentCoord = calcCurrentDR3Coord(dateOfObservation[0], pairRaA, pairDecA, ds[0]['pmra_a'], ds[0]['pmdec_a'])
+    pairBCurrentCoord = calcCurrentDR3Coord(dateOfObservation[0], pairRaB, pairDecB, ds[0]['pmra_b'], ds[0]['pmdec_b'])
     pairAMeasuredCoord = SkyCoord(ra=ds['rameasured_a'].groups.aggregate(np.mean) * u.deg, dec=ds['decmeasured_a'].groups.aggregate(np.mean) * u.deg)
     pairBMeasuredCoord = SkyCoord(ra=ds['rameasured_b'].groups.aggregate(np.mean) * u.deg, dec=ds['decmeasured_b'].groups.aggregate(np.mean) * u.deg)
     pairACoordErr = pairACurrentCoord.separation(pairAMeasuredCoord)
@@ -783,18 +796,21 @@ for ds in reportTable_by_object.groups:
     
 
     # Plot double star components on the full image
-    imagePlot(pairFileName, pairDesignationA, pairDesignationB, pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree)
+    #imagePlot(pairFileName, pairDesignationA, pairDesignationB, pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree)
+    dscalculation.imagePlot(pairFileName, measurement_folder, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
 
     # Plot double star components on a cropped image
     print('crop_double_star_to_jpg_with_markers attributes: ', pairFileName, measurement_folder, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
-    crop_double_star_to_jpg_with_markers(pairFileName, workingDirectory, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
+    #crop_double_star_to_jpg_with_markers(pairFileName, workingDirectory, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
+    dscalculation.crop_double_star_to_jpg_with_markers(pairFileName, measurement_folder, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
     #dscalculation.crop_double_star_to_jpg_with_markers(pairFileName, workingDirectory, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
 
     # Create HRD based on Gaia data
     dscalculation.gaia_hrd_plot(ds[0]['object_id'], measurement_folder, pairAbsMag1,pairAbsMag2, pairBVIndexA, pairBVIndexB, gaia_file)
 
     print('### COMPONENTS ###')
-    print('\nDate of observation: ' + dateOfObservation)
+    #print('\nDate of observation: ' + str(dateOfObservation1))
+    print('\nDate of observation: ' + str(dateOfObservation[0]) + ' jyear, ' + str(dateOfObservation[1].iso))
     print('\nPrecise coordinates (J2000): ' + preciseCoord)
     print('\nComponent A:', pairDesignationA)
     print('Component B:', pairDesignationB)
@@ -853,7 +869,7 @@ for ds in reportTable_by_object.groups:
     print('Pair gravitational bound:', gravitational_bound[0], ', ', gravitational_bound[1], '(kinetic / gravitational)')
     
     reportFile.write('### COMPONENTS ###')
-    reportFile.write('\nDate of observation: ' + dateOfObservation)
+    reportFile.write('\nDate of observation: ' + str(dateOfObservation[0]) + ' jyear, ' + str(dateOfObservation[1].iso))
     reportFile.write('\nPrecise coordinates (J2000): ' + preciseCoord)     
     reportFile.write('\nComponent A: ' + pairDesignationA)
     reportFile.write('\nComponent B: ' + pairDesignationB)
@@ -906,8 +922,8 @@ for ds in reportTable_by_object.groups:
     reportFile.write('\nPair gravitational bound: ' + str(gravitational_bound[0]) + ', ' + str(gravitational_bound[1]) + ' (kinetic / gravitational)')
 
     reportFile.write('\n\n### Publication table 1. ###')
-    reportFile.write('\n' + str(pairDesignationA) + ',' + str(pairMagMeasuredA[0]) + ',' + str(pairMagMeasuredAErr[0]) + ',' + str(pairGMagnitudeA) + ',' + str(pairAbsMag1) + ',' + str(pairLum1) + ',' + str(pairMass1) + ',' + dateOfObservation)
-    reportFile.write('\n' + str(pairDesignationB) + ',' + str(pairMagMeasuredB[0]) + ',' + str(pairMagMeasuredBErr[0]) + ',' + str(pairGMagnitudeB) + ',' + str(pairAbsMag2) + ',' + str(pairLum2) + ',' + str(pairMass2) + ',' + dateOfObservation)
+    reportFile.write('\n' + str(pairDesignationA) + ',' + str(pairMagMeasuredA[0]) + ',' + str(pairMagMeasuredAErr[0]) + ',' + str(pairGMagnitudeA) + ',' + str(pairAbsMag1) + ',' + str(pairLum1) + ',' + str(pairMass1) + ',' + dateOfObservation[0])
+    reportFile.write('\n' + str(pairDesignationB) + ',' + str(pairMagMeasuredB[0]) + ',' + str(pairMagMeasuredBErr[0]) + ',' + str(pairGMagnitudeB) + ',' + str(pairAbsMag2) + ',' + str(pairLum2) + ',' + str(pairMass2) + ',' + dateOfObservation[0])
     
     reportFile.write('\n\n### Publication table 2. ###')
     reportFile.write('\n' + preciseCoord + ',' + str(pairMeanTheta[0]) + ',' + str(pairMeanThetaErr[0]) + ',' + str(pairMeanRho[0]) + ',' + str(pairMeanRhoErr[0]) + ',' + str(pairSepPar * 206265) + ' AU')
@@ -918,11 +934,11 @@ for ds in reportTable_by_object.groups:
     reportFile.write('\n\n### WDS table ###')
     c = str(SkyCoord(pairRaA, pairDecA, unit='deg', frame='icrs').to_string('hmsdms'))
     pair_wds_name = str(c[0:2]) + str(c[3:5]) + str(c[6:8]) + str(c[9:10]) + str(c[19:22]) + str(c[23:25]) + str(c[26:28]) # + str(c[29:30])
-    wdsform = pair_wds_name + ',' + dateOfObservation + ',' +  str(pairMeanTheta[0]) + ',' + str(pairMeanThetaErr[0]) + ',' + str(pairMeanRho[0]) + ',' + str(pairMeanRhoErr[0]) + ',' +  'nan' + ',' +  'nan' + ',' +  str(pairMagDiff) + ',' +  str(pairMagDiffErr) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TLB_2023' + ',' +  'C' + ',' + '7' + ',' + preciseCoord.replace(":","").replace(" ","")
+    wdsform = pair_wds_name + ',' + dateOfObservation[0] + ',' +  str(pairMeanTheta[0]) + ',' + str(pairMeanThetaErr[0]) + ',' + str(pairMeanRho[0]) + ',' + str(pairMeanRhoErr[0]) + ',' +  'nan' + ',' +  'nan' + ',' +  str(pairMagDiff) + ',' +  str(pairMagDiffErr) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TLB_2023' + ',' +  'C' + ',' + '7' + ',' + preciseCoord.replace(":","").replace(" ","")
     reportFile.write('\n' + str(wdsform))
 
     reportFile.write('\n\n### Publication table sum ###')
-    reportFile.write('\n' + str(pairDesignationA) + ',' + str(pairMagMeasuredA[0]) + ',' + str(pairMagMeasuredAErr[0]) + ',' + str(pairGMagnitudeA) + ',' + str(pairAbsMag1) + ',' + str(pairLum1) + ',' + str(pairMass1) + ',' + dateOfObservation + ',' + str(pairDesignationB) + ',' + str(pairMagMeasuredB[0]) + ',' + str(pairMagMeasuredBErr[0]) + ',' + str(pairGMagnitudeB) + ',' + str(pairAbsMag2) + ',' + str(pairLum2) + ',' + str(pairMass2) + ',' + preciseCoord + ',' + str(pairMeanTheta[0]) + ',' + str(pairMeanThetaErr[0]) + ',' + str(pairMeanRho[0]) + ',' + str(pairMeanRhoErr[0]) + ',' + str(pairSepPar * 206265) + ' AU' + ',' + str(pairParallaxFactor) + '%' + ',' + str(pairPmFactor) + '%' + ',' + str(pairPmCommon) + ',' + str(pairEscapeVelocity) + ',' + str(pairRelativeVelocity) + ',' + str(pairHarshawFactor) + ',' + str(pairHarshawPhysicality) + ',' + str(pairBinarity) + ',' + pair_wds_name + ',' + dateOfObservation + ',' +  str(pairMeanTheta[0]) + ',' + str(pairMeanThetaErr[0]) + ',' + str(pairMeanRho[0]) + ',' + str(pairMeanRhoErr[0]) + ',' +  'nan' + ',' +  'nan' + ',' +  str(pairMagDiff) + ',' +  str(pairMagDiffErr) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TLB_2023' + ',' +  'C' + ',' + '7' + ',' + preciseCoord.replace(":","").replace(" ",""))
+    reportFile.write('\n' + str(pairDesignationA) + ',' + str(pairMagMeasuredA[0]) + ',' + str(pairMagMeasuredAErr[0]) + ',' + str(pairGMagnitudeA) + ',' + str(pairAbsMag1) + ',' + str(pairLum1) + ',' + str(pairMass1) + ',' + dateOfObservation[0] + ',' + str(pairDesignationB) + ',' + str(pairMagMeasuredB[0]) + ',' + str(pairMagMeasuredBErr[0]) + ',' + str(pairGMagnitudeB) + ',' + str(pairAbsMag2) + ',' + str(pairLum2) + ',' + str(pairMass2) + ',' + preciseCoord + ',' + str(pairMeanTheta[0]) + ',' + str(pairMeanThetaErr[0]) + ',' + str(pairMeanRho[0]) + ',' + str(pairMeanRhoErr[0]) + ',' + str(pairSepPar * 206265) + ' AU' + ',' + str(pairParallaxFactor) + '%' + ',' + str(pairPmFactor) + '%' + ',' + str(pairPmCommon) + ',' + str(pairEscapeVelocity) + ',' + str(pairRelativeVelocity) + ',' + str(pairHarshawFactor) + ',' + str(pairHarshawPhysicality) + ',' + str(pairBinarity) + ',' + pair_wds_name + ',' + dateOfObservation[0] + ',' +  str(pairMeanTheta[0]) + ',' + str(pairMeanThetaErr[0]) + ',' + str(pairMeanRho[0]) + ',' + str(pairMeanRhoErr[0]) + ',' +  'nan' + ',' +  'nan' + ',' +  str(pairMagDiff) + ',' +  str(pairMagDiffErr) + ',' + 'Filter wawelenght' + ',' + 'filter FWHM' + ',' + '0.2' + ',' + '1' + ',' + 'TLB_2023' + ',' +  'C' + ',' + '7' + ',' + preciseCoord.replace(":","").replace(" ",""))
 
     
     reportFile.close()

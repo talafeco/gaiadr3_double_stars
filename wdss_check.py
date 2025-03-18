@@ -1,4 +1,4 @@
-from dsmodules import dscalculation
+'''from dsmodules import dscalculation
 from astropy.table import Table, vstack, hstack
 from astropy.coordinates import SkyCoord, Angle, FK5
 from astropy import units as u
@@ -16,6 +16,9 @@ target_coords = SkyCoord(ra=coords_ra * u.deg, dec=coords_dec * u.deg)
 
 print('### Script start! ###')
 print('# Timestamp: ' + str(datetime.datetime.now()))
+
+
+
 
 # Create WDS table
 wdss_converters = {  'WDSS identifier': np.str_,
@@ -83,6 +86,64 @@ wdss_catalog = SkyCoord(ra=wdssTable['Coord (RA) hms'], dec=Angle(wdssTable['Coo
 # Folyt. köv. be kell olvasni a targeteket és megkeresni az adatbázisban a legközelebbi objektumokat, aztán kiíratni, hogy mi a helyzet
 
 print('### Script end! ###')
+print('# Timestamp: ' + str(datetime.datetime.now()))'''
+
+
+import pandas as pd
+import numpy as np
+import sys
+import datetime
+from astropy.coordinates import SkyCoord
+from astropy import units as u
+
+# Insert the downloaded wdss file path here
+wdss_file = sys.argv[1]
+
+coords_ra = float(sys.argv[2])
+coords_dec = float(sys.argv[3])
+target_coords = SkyCoord(ra=coords_ra * u.deg, dec=coords_dec * u.deg)
+
+print('### Script start! ###')
 print('# Timestamp: ' + str(datetime.datetime.now()))
 
-#print(wdss_catalog[0])
+# Define column names
+column_names = [
+                    'WDSS identifier',
+                    'Component identifier',
+                    'First/last observation',
+                    'Number of astrometric observations',
+                    'Position angle',
+                    'Sepatarion',
+                    'Flag for separation units',
+                    'Magnitude',
+                    'G Filter',
+                    'Infrared magnitude',
+                    'Filter',
+                    'Spectral type',
+                    'Proper motion',
+                    'Parallax',
+                    'Alternate name',
+                    'Note flags',
+                    'Coord (RA)',
+                    'Coord (DEC)',
+                    'Designation in main WDS',
+                    'Discoverer designation',
+                    'Component designation'
+]
+
+# Define column widths based on col_starts and col_ends
+col_starts = [1, 15, 24, 29, 33, 37, 43, 45, 50, 52, 57, 59, 65, 82, 90, 115, 118, 127, 137, 148, 155]
+col_ends = [14, 23, 28, 32, 36, 42, 44, 50, 51, 57, 58, 64, 81, 89, 114, 117, 126, 136, 147, 155, 160]
+col_widths = [end - start + 1 for start, end in zip(col_starts, col_ends)]
+print('col witdths: ', col_widths)
+
+# Load data using pandas with fixed column widths
+wdss_data = pd.read_fwf(wdss_file, widths=col_widths, names=column_names, dtype=str) 
+
+# Display the first few rows to verify loading
+print(wdss_data.head())
+
+# Save results to a CSV file
+output_file = 'wdss_output.csv'
+wdss_data.to_csv(output_file, index=False)
+print(f'Data successfully saved to {output_file}')
