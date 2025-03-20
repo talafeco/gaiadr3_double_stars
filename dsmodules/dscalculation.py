@@ -657,7 +657,8 @@ def gaia_hrd_plot(pairname, working_directory, mag_abs_a, mag_abs_b, bv_a, bv_b,
     if pairname and mag_abs_a and mag_abs_b and bv_a and bv_b:
         sun_bp_rp = 0.82
         df = gaia_file.to_pandas()
-        savename = str(working_directory + '/' + pairname  + '/' + pairname + '_ghrd.jpg').replace(' ', '')
+        #savename = str(working_directory + '/' + pairname  + '/' + pairname + '_ghrd.jpg').replace(' ', '')
+        savename = str(working_directory + '/' + pairname + '_ghrd.jpg').replace(' ', '')
         colors = df['bp_rp']
         
         # Define normalization with TwoSlopeNorm

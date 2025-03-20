@@ -799,21 +799,21 @@ for ds in reportTable_by_object.groups:
     reportFile = open(reportName, "a")
 
     # hrdPlot(pairDesignationA, pairDesignationB, pairAbsMag1, pairAbsMag2, pairBVIndexA, pairBVIndexB)
-    
+    measurement_folder = workingDirectory + '/' + ds[0]['object_id']
 
     # Plot double star components on the full image
     #imagePlot(pairFileName, pairDesignationA, pairDesignationB, pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree)
     #dscalculation.imagePlot(pairFileName, measurement_folder, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
-    dscalculation.imagePlot(pairFileName, workingDirectory, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
+    dscalculation.imagePlot(workingDirectory + '/' + pairFileName, measurement_folder, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
 
     # Plot double star components on a cropped image
     print('crop_double_star_to_jpg_with_markers attributes: ', pairFileName, workingDirectory, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
     #crop_double_star_to_jpg_with_markers(pairFileName, workingDirectory, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
-    dscalculation.crop_double_star_to_jpg_with_markers(pairFileName, workingDirectory, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
+    dscalculation.crop_double_star_to_jpg_with_markers(workingDirectory + '/' + pairFileName, measurement_folder, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
     #dscalculation.crop_double_star_to_jpg_with_markers(pairFileName, workingDirectory, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
 
     # Create HRD based on Gaia data
-    dscalculation.gaia_hrd_plot(ds[0]['object_id'], workingDirectory, pairAbsMag1,pairAbsMag2, pairBVIndexA, pairBVIndexB, gaia_file)
+    dscalculation.gaia_hrd_plot(ds[0]['object_id'], measurement_folder, pairAbsMag1,pairAbsMag2, pairBVIndexA, pairBVIndexB, gaia_file)
 
     print('### COMPONENTS ###')
     #print('\nDate of observation: ' + str(dateOfObservation1))
