@@ -5,6 +5,10 @@
 # Install: copy file to /usr/local/bin folder
 # Usage: dsreport <image_folder>
 
+# Additions
+# Add proper motion to reports
+# Add Magnitzude difference and magnitude difference error to the report
+
 import os
 import sys
 import numpy as np
@@ -29,12 +33,14 @@ warnings.filterwarnings("ignore")
 
 # List of constances
 #wdsFile = Table.read(f"/usr/share/dr3map/wds/dr3-wds.csv", format='ascii')
-hipparcos_file = Table.read(f"/usr/share/dr3map/hipparcos/I_239_selection.csv", format='ascii')
-segment_lib = "/usr/share/dr3map/gaiadr3_18mag_catalog/"
-gaia_file = Table.read(f"/usr/share/dr3map/gaia/star_catalog.csv", format='ascii')
-#gaia_file = Table.read(r"C:\Users\gerge\Documents\Catalogs\gaia\star_catalog.csv", format='ascii')
-#hipparcos_file = Table.read(r"C:\Users\gerge\Documents\Catalogs\Hipparcos\I_239_selection.csv", format='ascii')
-#segment_lib = r"C:/Users/gerge\Documents/Catalogs/gaiadr3_18mag_catalog/"
+#hipparcos_file = Table.read(f"/usr/share/dr3map/hipparcos/I_239_selection.csv", format='ascii')
+#segment_lib = "/usr/share/dr3map/gaiadr3_18mag_catalog/"
+#gaia_file = Table.read(f"/usr/share/dr3map/gaia/star_catalog.csv", format='ascii')
+print('Reading Gaia DR3 catalog')
+gaia_file = Table.read(r"C:\Users\gerge\Documents\Catalogs\gaia\star_catalog.csv", format='ascii')
+print('Reading Hipparcos catalog')
+hipparcos_file = Table.read(r"C:\Users\gerge\Documents\Catalogs\Hipparcos\I_239_selection.csv", format='ascii')
+segment_lib = r"C:/Users/gerge\Documents/Catalogs/gaiadr3_18mag_catalog/"
 
 hipparcos_abs_mag = hipparcos_file['Abs_mag']
 hipparcos_bv_index = hipparcos_file['B-V']
@@ -797,16 +803,17 @@ for ds in reportTable_by_object.groups:
 
     # Plot double star components on the full image
     #imagePlot(pairFileName, pairDesignationA, pairDesignationB, pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree)
-    dscalculation.imagePlot(pairFileName, measurement_folder, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
+    #dscalculation.imagePlot(pairFileName, measurement_folder, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
+    dscalculation.imagePlot(pairFileName, workingDirectory, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
 
     # Plot double star components on a cropped image
-    print('crop_double_star_to_jpg_with_markers attributes: ', pairFileName, measurement_folder, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
+    print('crop_double_star_to_jpg_with_markers attributes: ', pairFileName, workingDirectory, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
     #crop_double_star_to_jpg_with_markers(pairFileName, workingDirectory, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
-    dscalculation.crop_double_star_to_jpg_with_markers(pairFileName, measurement_folder, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
+    dscalculation.crop_double_star_to_jpg_with_markers(pairFileName, workingDirectory, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
     #dscalculation.crop_double_star_to_jpg_with_markers(pairFileName, workingDirectory, ds[0]['object_id'], pairAMeasuredCoord.ra.degree, pairAMeasuredCoord.dec.degree, pairBMeasuredCoord.ra.degree, pairBMeasuredCoord.dec.degree, image_limit)
 
     # Create HRD based on Gaia data
-    dscalculation.gaia_hrd_plot(ds[0]['object_id'], measurement_folder, pairAbsMag1,pairAbsMag2, pairBVIndexA, pairBVIndexB, gaia_file)
+    dscalculation.gaia_hrd_plot(ds[0]['object_id'], workingDirectory, pairAbsMag1,pairAbsMag2, pairBVIndexA, pairBVIndexB, gaia_file)
 
     print('### COMPONENTS ###')
     #print('\nDate of observation: ' + str(dateOfObservation1))

@@ -657,7 +657,7 @@ def gaia_hrd_plot(pairname, working_directory, mag_abs_a, mag_abs_b, bv_a, bv_b,
     if pairname and mag_abs_a and mag_abs_b and bv_a and bv_b:
         sun_bp_rp = 0.82
         df = gaia_file.to_pandas()
-        savename = str(working_directory + '/' + pairname + '_ghrd.jpg').replace(' ', '')
+        savename = str(working_directory + '/' + pairname  + '/' + pairname + '_ghrd.jpg').replace(' ', '')
         colors = df['bp_rp']
         
         # Define normalization with TwoSlopeNorm
@@ -853,7 +853,7 @@ def imagePlot(filename, working_directory, pairname, raa, deca, rab, decb, image
     # data[0]
     #image_data = fits.open(working_directory + '/' + filename)
     image_data = fits.open(filename)
-    #print('IMAGE DATA:', working_directory, '/', filename)
+    print('IMAGE DATA:', working_directory, '/', filename)
     header = image_data[0].header
     wcs_helix = WCS(image_data[0].header, naxis=2)
     image = image_data[0].data
@@ -904,6 +904,7 @@ def imagePlot(filename, working_directory, pairname, raa, deca, rab, decb, image
     plt.title(pairname)
     plt.imshow(image, origin='lower',cmap='Greys', aspect='equal', vmax=image_limit, vmin=0) # 
     plt.savefig(str(working_directory + '/' + pairname + '_img.jpg').replace(' ', ''),dpi=300.0, bbox_inches='tight', pad_inches=0.2)
+    #plt.savefig(str(working_directory + '/' + pairname + '/' + pairname + '_img.jpg').replace(' ', ''),dpi=300.0, bbox_inches='tight', pad_inches=0.2)
     plt.close()
 
 def crop_double_star_to_jpg_with_markers(filename, working_directory, pairname, raa, deca, rab, decb, image_limit):
@@ -980,6 +981,7 @@ def crop_double_star_to_jpg_with_markers(filename, working_directory, pairname, 
 
     plt.text(center[0], center[1], 'N', color='blue', fontsize=15, ha='center', va='center')
     plt.imshow(image, origin='lower',cmap='Greys', aspect='equal', vmax=image_limit, vmin=0) # 
+    #plt.savefig(str(working_directory + '/' + pairname + '/' + pairname + '_crp_img.jpg').replace(' ', ''),dpi=300.0, bbox_inches='tight', pad_inches=0.2)
     plt.savefig(str(working_directory + '/' + pairname + '_crp_img.jpg').replace(' ', ''),dpi=300.0, bbox_inches='tight', pad_inches=0.2)
     plt.close()
 
