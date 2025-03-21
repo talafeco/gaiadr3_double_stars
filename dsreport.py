@@ -32,7 +32,7 @@ from dsmodules import dscalculation
 warnings.filterwarnings("ignore")
 
 # List of constances
-wdsFile = Table.read(f"/usr/share/dr3map/wds/dr3-wds.csv", format='ascii')
+#wdsFile = Table.read(f"/usr/share/dr3map/wds/dr3-wds.csv", format='ascii')
 hipparcos_file = Table.read(f"/usr/share/dr3map/hipparcos/I_239_selection.csv", format='ascii')
 segment_lib = "/usr/share/dr3map/gaiadr3_18mag_catalog/"
 gaia_file = Table.read(f"/usr/share/dr3map/gaia/star_catalog.csv", format='ascii')
