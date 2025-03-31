@@ -7,12 +7,10 @@ import sys
 from astropy.time import Time, TimeDelta
 
 date_time = sys.argv[1]
-date_of_observation_time_cet = Time(date_time, precision=0)
-date_time_cet_jyear = str(date_of_observation_time_cet.jyear)
-
-time_zone_delta = TimeDelta(-3600, format='sec')
-date_time_utc_jyear = str((date_of_observation_time_cet + time_zone_delta).jyear)
+date_of_observation_time_cet = Time(date_time, precision=0, format='jyear')
 
 #print('CET:', date_time_cet_jyear)
 #print('UTC:', date_time_utc_jyear)
-print(date_time_utc_jyear)
+print(str(date_of_observation_time_cet.jyear))
+print(str(date_of_observation_time_cet.iso))
+
