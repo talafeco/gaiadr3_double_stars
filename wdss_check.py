@@ -21,13 +21,17 @@ column_names = [
     'Note flags', 'Coord (RA)', 'Coord (DEC)', 'Designation in main WDS',
     'Discoverer designation', 'Component designation'
 ]
-col_starts = [1, 15, 24, 29, 33, 37, 43, 45, 50, 52, 57, 59, 65, 82, 90, 115, 116, 125, 134, 148, 155]
-col_ends = [14, 23, 28, 32, 36, 42, 44, 50, 51, 57, 58, 64, 81, 89, 114, 115, 125, 133, 147, 155, 160]
-col_widths = [end - start + 1 for start, end in zip(col_starts, col_ends)]
-print('col widths: ', col_widths)
+#col_starts = [1, 15, 24, 29, 33, 37, 43, 45, 50, 52, 57, 59, 65, 82, 90, 115, 116, 125, 134, 148, 155]
+#col_ends = [14, 23, 28, 32, 36, 42, 44, 50, 51, 57, 58, 64, 81, 89, 114, 115, 125, 133, 147, 155, 160]
+#col_widths = [end - start + 1 for start, end in zip(col_starts, col_ends)]
+#print('col widths: ', col_widths)
+
+col_specs = [(1,14), (15, 18), (24, 28), (30, 32), (33, 36), (38, 43), (44, 44), (46, 50), (51, 51), (53, 57), (58, 58), (59, 64), (66, 81), (83, 89), (90, 114), (116, 117), (118, 127), (127, 136), (137, 147), (148, 155), (155, 160)]
 
 # Read fixed-width file
-wdss_data = pd.read_fwf(wdss_file, widths=col_widths, names=column_names, dtype=str)
+#wdss_data = pd.read_fwf(wdss_file, widths=col_widths, names=column_names, dtype=str)
+wdss_data = pd.read_fwf(wdss_file, colspecs=col_specs, names=column_names, dtype=str)
+
 print(wdss_data.head())
 
 # Function to convert RA hhmmss.ss to degrees
