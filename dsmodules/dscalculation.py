@@ -240,9 +240,9 @@ def thetaCalc(deltara,deltadec):
 # Excel formula: =(((1-(parallax error a / parallax a))*K5)+((1-L7)*L5))/((1-K7)+(1-L7))
 def sepCalc(dist_a, dist_b, rho):
     if dist_a > dist_b:
-        sep = (dist_b * rho) * auToParsec
-    else:
         sep = (dist_a * rho) * auToParsec
+    else:
+        sep = (dist_b * rho) * auToParsec
     return sep
 
 def calculate_3d_distance(parallax1_mas, parallax2_mas, angular_separation_arcsec):
