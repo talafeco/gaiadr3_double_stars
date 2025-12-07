@@ -57,8 +57,11 @@ print('Importing modules, please stand by!')
 
 import pprint
 import argparse
+
 import os
+
 import sys
+
 import numpy as np
 import numpy.ma as ma
 import math
@@ -84,8 +87,9 @@ from matplotlib import pyplot as plt
 from astropy.wcs import utils
 from astropy.time import Time, TimeDelta
 warnings.filterwarnings("ignore")
-from astroquery.gaia import Gaia
-Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"  # Reselect Data Release 3, default
+print('import ok so far')
+#from astroquery.gaia import Gaia
+#Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"  # Reselect Data Release 3, default
 
 print('\nModule import complete.', datetime.datetime.now())
 
