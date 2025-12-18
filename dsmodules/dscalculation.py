@@ -29,8 +29,8 @@ from astropy.wcs import utils
 from astropy.time import Time, TimeDelta
 from PIL import Image, ImageDraw
 warnings.filterwarnings("ignore")
-from astroquery.gaia import Gaia
-Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"  # Reselect Data Release 3, default
+#from astroquery.gaia import Gaia
+#Gaia.MAIN_GAIA_TABLE = "gaiadr3.gaia_source"  # Reselect Data Release 3, default
 
 # configurations
 # search_cone = 0.001 # Decimal degree
