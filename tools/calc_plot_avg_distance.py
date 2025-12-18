@@ -86,3 +86,4 @@ class CalculateDistance:
 double_star_parallaxes = CalculateDistance(19.200, 0.404, 19.808, 0.769, 'Gaia DR3 133984292234128896', 'Gaia DR3 133984360953300736') # args: star A parallax, star A parallax error, star B parallax, star B parallax error, star designation A, star designation B
 print(double_star_parallaxes.most_probable_parallax, double_star_parallaxes.distance_in_parsec)
 double_star_parallaxes.plot()
+
