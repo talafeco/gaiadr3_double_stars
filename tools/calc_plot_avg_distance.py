@@ -52,8 +52,8 @@ class CalculateDistance():
         self.err_b = args[3]
         
         # 1. Define Range
-        self.start = min(self.par_a, self.par_b) - 4 * max(self.err_a, self.err_b)
-        self.end = max(self.par_a, self.par_b) + 4 * max(self.err_a, self.err_b)
+        self.start = min(self.par_a, self.par_b) - 3 * max(self.err_a, self.err_b)
+        self.end = max(self.par_a, self.par_b) + 3 * max(self.err_a, self.err_b)
         
         # 2. Calculate X Axis
         self.x_axis = np.linspace(self.start, self.end, 1000)
