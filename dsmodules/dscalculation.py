@@ -58,7 +58,7 @@ frame_percentage = 5
 
 # Define double star class
 class gaia_calculated_attributes:
-    def __init__(self, pairParallaxFactor, pairPmFactor, pairPmCommon, pairAbsMag1, pairAbsMag2, pairLum1, pairLum2, pairAltLum1, pairAltLum2, pairRad1, pairRad2, pairDR3Theta, pairDR3Rho, pairMass1, pairMass2, pairBVIndexA, pairBVIndexB, pairSepPar2, pairDistance, pairSepPar, pairEscapeVelocity, pairRelativeVelocity, pairHarshawFactor, pairHarshawPhysicality, pairBinarity, pairDesignationA, pairDesignationB, pairRaA, pairDecA, pairRaB, pairDecB, pairMagA, pairMagB, pairGMagDiff, pairRadVelA, pairRadVelErrA, pairRadVelB, pairRadVelErrB, pairRadVelRatioA, pairRadVelRatioB, dateOfObservation, pairACurrentCoord, pairBCurrentCoord, pairAMeasuredCoord, pairBMeasuredCoord, pairACoordErr, pairBCoordErr, preciseCoord, gaiaData, pairDist1, pairDist2, pairDist3d, pairGravitationalBound): # , pair_a_inclination, pair_b_inclination
+    def __init__(self, pairParallaxFactor, pairPmFactor, pairPmCommon, pairAbsMag1, pairAbsMag2, pairLum1, pairLum2, pairAltLum1, pairAltLum2, pairRad1, pairRad2, pairDR3Theta, pairDR3Rho, pairMass1, pairMass2, pairBVIndexA, pairBVIndexB, pairSepPar2, pairDistance, pairSepPar, pairEscapeVelocity, pairRelativeVelocity, pairHarshawFactor, pairHarshawPhysicality, pairBinarity, pairDesignationA, pairDesignationB, pairRaA, pairDecA, pairRaB, pairDecB, pairMagA, pairMagB, pairGMagDiff, pairRadVelA, pairRadVelErrA, pairRadVelB, pairRadVelErrB, pairRadVelRatioA, pairRadVelRatioB, dateOfObservation, pairACurrentCoord, pairBCurrentCoord, pairAMeasuredCoord, pairBMeasuredCoord, pairACoordErr, pairBCoordErr, preciseCoord, gaiaData, pairDist1, pairDist2, pairDist3d, pairGravitationalBound, pairParallaxConsistency): # , pair_a_inclination, pair_b_inclination
         self.pairParallaxFactor = pairParallaxFactor
         self.pairPmFactor = pairPmFactor
         self.pairPmCommon = pairPmCommon
@@ -112,6 +112,7 @@ class gaia_calculated_attributes:
         self.pairDist2 = pairDist2
         self.pairDist3d = pairDist3d
         self.pairGravitationalBound = pairGravitationalBound
+        self.pairParallaxConsistency = pairParallaxConsistency
         # self.pair_a_inclination = pair_a_inclination
         # self.pair_b_inclination = pair_b_inclination
 
@@ -298,7 +299,17 @@ def calcParallaxFactor(para, parb):
 # Function to calculate the proper motion factor of the stars and define if it is a CPM (common proper motion) pair
 # EXCEL formula =ABS(1-((SQRT(pmraA-pmraB)^2+(pmdecA-pmdecB)^2)/(SQRT(pmraA^2+pmdecA^2)+(pmraB^2+pmdecB^2)))))
 def calcPmFactor(pmraa, pmdeca, pmrab, pmdecb):
-    rpm = ((math.sqrt(((pmraa-pmrab) ** 2) + ((pmdeca-pmdecb) ** 2))/(math.sqrt((pmraa ** 2) + (pmdeca ** 2))+((pmrab ** 2) + pmdecb ** 2))))
+    # rpm = ((math.sqrt(((pmraa-pmrab) ** 2) + ((pmdeca-pmdecb) ** 2))/(math.sqrt((pmraa ** 2) + (pmdeca ** 2))+((pmrab ** 2) + pmdecb ** 2))))
+    pm_a = math.sqrt(pmraa ** 2 + pmdeca ** 2)
+    pm_b = math.sqrt(pmrab ** 2 + pmdecb ** 2)
+    pm_max = 0
+    if pm_a > pm_b:
+        pm_max = pm_a
+    else:
+        pm_max = pm_b
+
+    rpm = math.sqrt(((pmraa-pmrab) ** 2) + ((pmdeca-pmdecb) ** 2)) / pm_max
+
     pmfac = math.fabs(1-rpm)
     ### 2 Átlag saját mozgás vektor: AVG PM prob
     ### =(GYÖK(pmra A^2+pm dec A^2)+GYÖK(pm ra B^2+pm dec B^2))/2
@@ -307,6 +318,12 @@ def calcPmFactor(pmraa, pmdeca, pmrab, pmdecb):
     ### distance = math.sqrt((pmraa - pmrab)**2 + (pmdeca - pmdecb)**2)
     ### pmfac = abs(1 - (distance / 2)) * 0.15
     return rpm, pmfac
+
+# Calculate parallax parallax_consistency
+# Original excel function: ABS(P2-R2)/SQRT(Q2^2 + S2^2)
+def calc_parallax_consistency(par_a, par_err_a, par_b, par_err_b):
+    par_cons = math.fabs(par_a - par_b) / math.sqrt(par_err_a ** 2 + par_err_b ** 2)
+    return par_cons
 
 # Calculate Common Proper Motion category
 def calcPmCategory(pmfact):
@@ -1322,11 +1339,14 @@ def gaia_calculations(gaia_star_a, gaia_star_b, double_star, search_key):
     # Calculate inclination of the trajectory of the stars
     # pair_a_inclination = calculate_inclination(float(gaia_star_a['ra']), float(gaia_star_a['dec']), pairRadVelA, float(gaia_star_a['parallax']))
     # pair_b_inclination = calculate_inclination(float(gaia_star_b['ra']), float(gaia_star_b['dec']), pairRadVelB, float(gaia_star_b['parallax']))
+
+    # Calculate parallax parallax_consistency
+    pairParallaxConsistency = calc_parallax_consistency(float(gaia_star_a['parallax']), float(gaia_star_a['parallax_error']), float(gaia_star_b['parallax']), float(gaia_star_b['parallax_error']))
     
     preciseCoord = str(getPreciseCoord(pairRaA, pairDecA, Time(double_star['image_date'].data).mean()))
     gaiaData = str(double_star[0]['2000 Coord']) + ',' + str(double_star[0]['Discov']) + ',' + str(gaia_star_a['pmra']) + ',' + str(gaia_star_a['pmdec']) + ',' + str(gaia_star_b['pmra']) + ',' + str(gaia_star_b['pmdec']) + ',' + str(gaia_star_a['parallax']) + ',' + str(gaia_star_b['parallax']) + ',' + str(calcDistance(gaia_star_a['parallax'])) + ',' + str(calcDistance(gaia_star_b['parallax'])) + ',' + str(gaia_star_a['radial_velocity']) + ',' + str(gaia_star_b['radial_velocity']) + ',' + 'pairRad1' + ',' + 'pairRad2' + ',' + str(pairLum1) + ',' + str(pairLum2) + ',' + str(gaia_star_a['teff_gspphot']) + ',' + str(gaia_star_b['teff_gspphot']) + ',' + str(gaia_star_a['phot_g_mean_mag']) + ',' + str(gaia_star_b['phot_g_mean_mag']) + ',' + str(gaia_star_a['phot_bp_mean_mag']) + ',' + str(gaia_star_b['phot_bp_mean_mag']) + ',' + str(gaia_star_a['phot_rp_mean_mag']) + ',' + str(gaia_star_b['phot_rp_mean_mag']) + ',' + str(pairDR3Theta) + ',' + str(pairDR3Rho) + ',' + str(gaia_star_a['ra']) + ',' + str(gaia_star_a['dec']) + ',' + str(gaia_star_b['ra']) + ',' + str(gaia_star_b['dec']) + ',' + str(gaia_star_a['parallax_error']) + ',' + str(gaia_star_b['parallax_error'])
 
-    double_star_calculation_results = gaia_calculated_attributes(pairParallaxFactor, pairPmFactor, pairPmCommon, pairAbsMag1, pairAbsMag2, pairLum1, pairLum2, pairAltLum1, pairAltLum2, pairRad1, pairRad2, pairDR3Theta, pairDR3Rho, pairMass1, pairMass2, pairBVIndexA, pairBVIndexB, pairSepPar2, pairDistance, pairSepPar, pairEscapeVelocity, pairRelativeVelocity, pairHarshawFactor, pairHarshawPhysicality, pairBinarity, pairDesignationA, pairDesignationB, pairRaA, pairDecA, pairRaB, pairDecB, pairMagA, pairMagB, pairGMagDiff, pairRadVelA, pairRadVelErrA, pairRadVelB, pairRadVelErrB, pairRadVelRatioA, pairRadVelRatioB, dateOfObservation, pairACurrentCoord, pairBCurrentCoord, pairAMeasuredCoord, pairBMeasuredCoord, pairACoordErr, pairBCoordErr, preciseCoord, gaiaData, pairDist1, pairDist2, pairDist3d, pairGravitationalBound) #, pair_a_inclination, pair_b_inclination
+    double_star_calculation_results = gaia_calculated_attributes(pairParallaxFactor, pairPmFactor, pairPmCommon, pairAbsMag1, pairAbsMag2, pairLum1, pairLum2, pairAltLum1, pairAltLum2, pairRad1, pairRad2, pairDR3Theta, pairDR3Rho, pairMass1, pairMass2, pairBVIndexA, pairBVIndexB, pairSepPar2, pairDistance, pairSepPar, pairEscapeVelocity, pairRelativeVelocity, pairHarshawFactor, pairHarshawPhysicality, pairBinarity, pairDesignationA, pairDesignationB, pairRaA, pairDecA, pairRaB, pairDecB, pairMagA, pairMagB, pairGMagDiff, pairRadVelA, pairRadVelErrA, pairRadVelB, pairRadVelErrB, pairRadVelRatioA, pairRadVelRatioB, dateOfObservation, pairACurrentCoord, pairBCurrentCoord, pairAMeasuredCoord, pairBMeasuredCoord, pairACoordErr, pairBCoordErr, preciseCoord, gaiaData, pairDist1, pairDist2, pairDist3d, pairGravitationalBound, pairParallaxConsistency) #, pair_a_inclination, pair_b_inclination
 
     return double_star_calculation_results
 
@@ -1391,6 +1411,7 @@ def print_gaia_data(gaia_data_calculations, wds_measurements):
     #print('Current Calculated Position angle / Separation: ', SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').position_angle(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).degree, SkyCoord(ra=pairRaA*u.degree, dec=pairDecA*u.degree, frame='icrs').separation(SkyCoord(ra=pairRaB*u.degree, dec=pairDecB*u.degree, frame='icrs')).arcsecond)
     print('Current Calculated Position angle / Separation: ', gaia_data_calculations.pairACurrentCoord.position_angle(gaia_data_calculations.pairBCurrentCoord).degree, gaia_data_calculations.pairACurrentCoord.separation(gaia_data_calculations.pairBCurrentCoord).arcsecond)
     print('\n\nParallax factor:', gaia_data_calculations.pairParallaxFactor, '%')
+    print('Parallax consistency: ', gaia_data_calculations.pairParallaxConsistency)
     print('Proper motion factor:', gaia_data_calculations.pairPmFactor[1] * 100, '%', ', rPM: ', gaia_data_calculations.pairPmFactor[0])
     print('Proper motion category:', gaia_data_calculations.pairPmCommon)
     print('Distance from Earth A:', gaia_data_calculations.pairDist1[0], 'px', gaia_data_calculations.pairDist1[1], 'ly')
@@ -1524,6 +1545,7 @@ def write_gaia_report(ds, wds_data, gaia_ds, image_folder):
     print('\nProper motion factor: ', str(roundNumber(gaia_ds.pairPmFactor[1] * 100)), ' %', ' rPM: ', gaia_ds.pairPmFactor[0])
     report_file.write('\nProper motion factor: ' + str(roundNumber(gaia_ds.pairPmFactor[1] * 100)) + ' %' + ' rPM: ' + str(roundNumber(gaia_ds.pairPmFactor[0])))
     report_file.write('\nProper motion category: '+ str(gaia_ds.pairPmCommon))
+    report_file.write('\nParallax consistency: '+ str(gaia_ds.pairParallaxConsistency))
     report_file.write('\nPair Harshaw factor: ' + str(roundNumber(gaia_ds.pairHarshawFactor)))
     report_file.write('\nPair Harshaw physicality: ' + str(gaia_ds.pairHarshawPhysicality))
     report_file.write('\nPair binarity: ' + str(gaia_ds.pairBinarity))

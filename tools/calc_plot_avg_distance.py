@@ -18,7 +18,7 @@ Example
 # analytical_script.py
 from common_distance import CalculateDistance
 
-# 1. Define your data
+# 1. Define data
 parallax1, error1 = 3.45, 0.1
 parallax2, error2 = 3.30, 0.4
 

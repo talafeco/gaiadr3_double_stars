@@ -61,6 +61,11 @@ Search visual double star candidates in Gaia DR3. Mag &lt; 15, par > 0.5.
 4. Calculate orbit period
 5. Check, if absolute magnitude measurement is possible on the images
 6. OK - Calculate Gaia source positions to the current epoch and compare them to the measurement results.
+7. Insert Z score calculation of common distance and parallax overlapping including plot of parallaxes
+8. Calculate sigma error of parallaxes and parallax errors, write error code, if it is below 5.0
+9. Check Calculation of Gaia source positions
+10. Refactor dsreport completely, create classes instead of simple objects
+11. Automate image plot calibration
 
 
 # Zsolti's input
